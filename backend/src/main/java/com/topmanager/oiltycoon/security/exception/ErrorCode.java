@@ -4,6 +4,7 @@ public enum ErrorCode {
     ERROR_WITH_DAtABASE("Error with data base"),
     ERROR_WITH_AUTHENTICATION("Error with authentication"),
     AUTHENTICATION_ERROR("You need to authorize"),
+    NOT_FOUND("Resource not found"),
     ACCOUNT_NOT_FOUND("Account not found");
 
 

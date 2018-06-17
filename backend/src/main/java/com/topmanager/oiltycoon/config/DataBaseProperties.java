@@ -29,7 +29,7 @@ public class DataBaseProperties {
                 .url(env.getProperty("jdbc.url"))
                 .username(env.getProperty("jdbc.username"))
                 .password(env.getProperty("jdbc.password"))
-                .driverClassName(/*"org.mariadb.jdbc.Driver"*/env.getProperty("jdbc.driverClassName"))
+                .driverClassName(env.getProperty("jdbc.driverClassName"))
                 .build();
     }
 }

@@ -1,8 +1,6 @@
 package com.topmanager.oiltycoon.security;
 
-import com.topmanager.oiltycoon.controller.HomeController;
 import com.topmanager.oiltycoon.dao.UserDao;
-import com.topmanager.oiltycoon.security.SocialUserDetailsImpl;
 import com.topmanager.oiltycoon.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class SocialUserDetailsServiceImpl implements SocialUserDetailsService {
 
-    private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
+    private static final Logger logger = LoggerFactory.getLogger(SocialUserDetailsServiceImpl.class);
 
     private UserDao userDao;
 
@@ -27,7 +25,7 @@ public class SocialUserDetailsServiceImpl implements SocialUserDetailsService {
 
     @Override
     public SocialUserDetails loadUserByUserId(String s) throws UsernameNotFoundException, DataAccessException {
-        logger.error("LoadUserByUserId[Social]: "+s);
+        logger.debug("LoadUserByUserId[Social]: "+s);
         User user = userDao.findById(Integer.parseInt(s)).orElseThrow(()->new UsernameNotFoundException("Account not found"));
         return new SocialUserDetailsImpl(user);
     }

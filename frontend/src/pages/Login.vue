@@ -4,20 +4,20 @@
             <h3 class="omb_authTitle">Login or <a href="#">Sign up</a></h3>
             <div class="row omb_row-sm-offset-3 omb_socialButtons">
                 <div class="col-xs-6 col-sm-3">
-                    <!--<router-link to="/auth/facebook">-->
+                    <!--<router-link to="/auth/facebook">  @click="auth(facebook)"-->
                     <!----><a :href="facebook" class="btn btn-lg btn-block omb_btn-vk"><!---->
-                        <i class="fa fa-vk visible-xs"></i>
-                        <span class="hidden-xs">Facebook</span>
-                    <!----></a><!---->
+                    <i class="fa fa-vk visible-xs"></i>
+                    <span class="hidden-xs">Facebook</span>
+                    <!-- --></a><!---->
                     <!--</router-link>-->
                 </div>
                 <div class="col-xs-6 col-sm-3">
                     <!----><a :href="google" class="btn btn-lg btn-block omb_btn-google"><!---->
-                    <!--<router-link to="/auth/google">-->
-                        <i class="fa fa-google-plus visible-xs"></i>
-                        <span class="hidden-xs">Google+</span>
-                        <!-- </router-link>-->
-                   <!----></a><!---->
+                    <!--<router-link to="/auth/google"> @click="auth(google)"-->
+                    <i class="fa fa-google-plus visible-xs"></i>
+                    <span class="hidden-xs">Google+</span>
+                    <!-- </router-link>-->
+                    <!----></a><!---->
                 </div>
             </div>
             <div class="row omb_row-sm-offset-3 omb_loginOr">
@@ -41,7 +41,9 @@
                             <input type="password" class="form-control" name="password" placeholder="Пароль">
                         </div>
                         <span class="help-block" v-if="error">{{error}}</span>
-                        <div v-if="profile">
+                        <div v-if="profile!=null">
+                            <span v-if="error"> Error: {{error}} </span>
+                            FirstName: {{profile.firstName}}
                             Username: {{profile.userName}}
                         </div>
 
@@ -66,14 +68,14 @@
 </template>
 
 <script>
-    import axios from 'axios'
+    import axios from '../http-common.js'
 
     export default {
         name: 'Login',
         data() {
             return {
-                facebook: '/auth/facebook',
-                google: '/auth/google',
+                facebook: 'http://localhost:8088/auth/facebook',
+                google: 'http://localhost:8088/auth/google',
                 profile: null,
                 error: ''
             }
@@ -85,10 +87,17 @@
             '$route': 'getData'
         },
         methods: {
+
             getData() {
-                axios.get("/api/profile").then(response =>{
+                axios.get("/api/profile", {
+                    data: {
+
+                    }
+                }).then(response => {
+                    console.log("data: ",response.data);
                     this.profile = response.data;
-                }).catch(error=>{
+                }).catch(error => {
+                    console.log("error: ",error.response);
                     this.error = error.response;
                 });
             }

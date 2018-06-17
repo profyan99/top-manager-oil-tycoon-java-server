@@ -30,6 +30,7 @@ public class UserService {
         User user = userDao.findById(getCurrentUserId()).orElseThrow(
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
         );
+        logger.debug("GetUserProfile NickName: "+user.getUserName());
         return new UserDto(
                 user.getId(),
                 user.getUserName(),

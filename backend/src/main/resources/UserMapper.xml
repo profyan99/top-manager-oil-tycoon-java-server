@@ -5,7 +5,7 @@
 
 <mapper namespace="com.topmanager.oiltycoon.dao.mapper.UserMapper">
     <select id="findByNickName" resultType="User">
-        SELECT * FROM user WHERE nickName=#{nickName}
+        SELECT * FROM user WHERE userName=#{userName}
     </select>
 
     <select id="findById" resultType="User">
@@ -13,7 +13,7 @@
     </select>
 
     <insert id="create" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
-        INSERT INTO user (email, nickName, firstName, lastName, password, role) VALUES (#{email}, #{userName},
+        INSERT INTO user (email, userName, firstName, lastName, password, role) VALUES (#{email}, #{userName},
         #{firstName}, #{lastName}, #{password}, #{role})
     </insert>
 

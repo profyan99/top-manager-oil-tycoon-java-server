@@ -78,16 +78,6 @@ public class SocialConfig implements SocialConfigurer {
         return connectionRepository;
     }
 
-
-    /*
-    * Not need, because we use SocialSecurityFilter
-
-    @Bean
-    public ConnectController connectController(ConnectionFactoryLocator connectionFactoryLocator, //
-                                               ConnectionRepository connectionRepository) {
-        return new ConnectController(connectionFactoryLocator, connectionRepository);
-    }*/
-
     @Bean
     @Scope(value = "request", proxyMode = ScopedProxyMode.INTERFACES)
     public Facebook facebook(ConnectionRepository repository) {

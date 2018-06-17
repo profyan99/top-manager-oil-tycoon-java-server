@@ -19,7 +19,7 @@
                 <version>1.2</version>
                 <executions>
                     <!-- Install our node and npm version to run npm/node scripts-->
-                    <execution>
+                    <!--<execution>
                         <id>install node and npm</id>
                         <goals>
                             <goal>install-node-and-npm</goal>
@@ -32,7 +32,7 @@
                         </configuration>
                     </execution>
 
-                    <!-- Set NPM Registry -->
+
                     <execution>
                         <id>npm set registry</id>
                         <goals>
@@ -43,31 +43,27 @@
                         </configuration>
                     </execution>
 
-                    <!-- Set SSL privilege -->
+
                     <execution>
                         <id>npm set non-strict ssl</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
-                        <!-- Optional configuration which provides for running any npm command -->
                         <configuration>
                             <arguments>config set strict-ssl false</arguments>
                         </configuration>
                     </execution>
 
-                    <!-- Install all project dependencies -->
                     <execution>
                         <id>npm install</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
-                        <!-- optional: default phase is "generate-resources" -->
                         <phase>generate-resources</phase>
-                        <!-- Optional configuration which provides for running any npm command -->
                         <configuration>
                             <arguments>install</arguments>
                         </configuration>
-                    </execution>
+                    </execution>-->
 
                     <!-- Build and minify static files -->
                     <execution>
