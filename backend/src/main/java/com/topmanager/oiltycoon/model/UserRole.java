@@ -1,5 +1,5 @@
 package com.topmanager.oiltycoon.model;
 
 public enum UserRole {
-    PLAYER, ADMIN
+    PLAYER, ADMIN, UNVERIFIED, WITHOUT_EMAIL
 }

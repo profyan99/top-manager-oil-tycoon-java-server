@@ -5,9 +5,9 @@
             <div class="row omb_row-sm-offset-3 omb_socialButtons">
                 <div class="col-xs-6 col-sm-3">
                     <!--<router-link to="/auth/facebook">  @click="auth(facebook)"-->
-                    <!----><a :href="facebook" class="btn btn-lg btn-block omb_btn-vk"><!---->
+                    <!----><a :href="vkontakte" class="btn btn-lg btn-block omb_btn-vk"><!---->
                     <i class="fa fa-vk visible-xs"></i>
-                    <span class="hidden-xs">Facebook</span>
+                    <span class="hidden-xs">VK</span>
                     <!-- --></a><!---->
                     <!--</router-link>-->
                 </div>
@@ -40,12 +40,7 @@
                             <span class="input-group-addon"><i class="fa fa-lock"></i></span>
                             <input type="password" class="form-control" name="password" placeholder="Пароль">
                         </div>
-                        <span class="help-block" v-if="error">{{error}}</span>
-                        <div v-if="profile!=null">
-                            <span v-if="error"> Error: {{error}} </span>
-                            FirstName: {{profile.firstName}}
-                            Username: {{profile.userName}}
-                        </div>
+                        <span class="help-block" v-if="error">{{error.message}}</span>
 
                         <button class="btn btn-lg btn-primary btn-block" type="submit">Войти</button>
                     </form>
@@ -74,7 +69,7 @@
         name: 'Login',
         data() {
             return {
-                facebook: 'http://localhost:8088/auth/facebook',
+                vkontakte: 'http://localhost:8088/auth/vkontakte',
                 google: 'http://localhost:8088/auth/google',
                 profile: null,
                 error: ''
@@ -98,7 +93,7 @@
                     this.profile = response.data;
                 }).catch(error => {
                     console.log("error: ",error.response);
-                    this.error = error.response;
+                    this.error = error.response.data.errors[0];
                 });
             }
         }

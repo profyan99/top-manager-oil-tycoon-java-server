@@ -27,7 +27,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
         logger.debug("LoadUserByUsername[Pure]: "+s);
-        User user = userDao.findByNickName(s).orElseThrow(()->new UsernameNotFoundException("Account not found"));
+        User user = userDao.findByUserName(s).orElseThrow(()->new UsernameNotFoundException("Account not found"));
         return new SocialUserDetailsImpl(user);
     }
 }

@@ -28,11 +28,11 @@ public class UserDaoImpl extends BaseDao implements UserDao {
     }
 
     @Override
-    public Optional<User> findByNickName(String nickName) {
+    public Optional<User> findByUserName(String userName) {
         try (SqlSession session = sessionFactory.openSession()) {
-            return Optional.ofNullable(getUserMapper(session).findByNickName(nickName));
+            return Optional.ofNullable(getUserMapper(session).findByUserName(userName));
         } catch (RuntimeException e) {
-            logger.error("Couldn't find by nickname: " + e.toString());
+            logger.error("Couldn't find by userName: " + e.toString());
             throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
         }
     }
@@ -41,6 +41,7 @@ public class UserDaoImpl extends BaseDao implements UserDao {
     public void create(User user) {
         try (SqlSession session = sessionFactory.openSession()) {
             getUserMapper(session).create(user);
+            getUserMapper(session).createRoles(user);
             session.commit();
         } catch (RuntimeException e) {
             logger.error("Couldn't create user: " + e.toString());
@@ -54,6 +55,16 @@ public class UserDaoImpl extends BaseDao implements UserDao {
             return Optional.ofNullable(getUserMapper(session).findById(userId));
         } catch (RuntimeException e) {
             logger.error("Couldn't find by id: " + e.toString());
+            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+        }
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        try (SqlSession session = sessionFactory.openSession()) {
+            return Optional.ofNullable(getUserMapper(session).findByEmail(email));
+        } catch (RuntimeException e) {
+            logger.error("Couldn't find by email: " + e.toString());
             throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
         }
     }

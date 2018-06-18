@@ -16,7 +16,7 @@ public class SocialUserDetailsImpl implements SocialUserDetails {
 
     public SocialUserDetailsImpl(User user) {
         this.user = user;
-        this.list.add(new SimpleGrantedAuthority(user.getRole().name()));
+        user.getRoles().forEach(r -> this.list.add(new SimpleGrantedAuthority(r.name())));
     }
 
     public User getUser() {
@@ -25,7 +25,7 @@ public class SocialUserDetailsImpl implements SocialUserDetails {
 
     @Override
     public String getUserId() {
-        return user.getId();
+        return String.valueOf(user.getId());
     }
 
     @Override

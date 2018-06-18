@@ -30,13 +30,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private AuthenticationEntryPoint authenticationEntryPoint;
 
-    private AccessDeniedHandler accessDeniedHandler;
-
-    @Autowired
-    public void setAccessDeniedHandler(AccessDeniedHandler accessDeniedHandler) {
-        this.accessDeniedHandler = accessDeniedHandler;
-    }
-
     @Autowired
     public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
         this.authenticationEntryPoint = authenticationEntryPoint;
@@ -73,17 +66,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .cors()
                 .and().authorizeRequests()
-                    //allow anonymous calls to social login
-                    .antMatchers("/auth/**").permitAll()
+                    .antMatchers("/auth/**", "/api/signup").permitAll()
                     .anyRequest().authenticated()
-                .and().formLogin().loginPage("/signin")
+                .and().formLogin().loginPage("/api/signin")
                     .successHandler(authenticationSuccessHandler)
                     .failureHandler(authenticationFailureHandler)
                 .and().logout()
                     .disable()
                 .exceptionHandling()
-                    .authenticationEntryPoint(authenticationEntryPoint)
-                    .accessDeniedHandler(accessDeniedHandler)
+                   .authenticationEntryPoint(authenticationEntryPoint)
                 .and().csrf()
                     .disable();
 

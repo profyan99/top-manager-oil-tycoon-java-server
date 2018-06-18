@@ -22,6 +22,8 @@ import org.springframework.social.facebook.connect.FacebookConnectionFactory;
 import org.springframework.social.google.api.Google;
 import org.springframework.social.google.connect.GoogleConnectionFactory;
 import org.springframework.social.security.AuthenticationNameUserIdSource;
+import org.springframework.social.vkontakte.api.VKontakte;
+import org.springframework.social.vkontakte.connect.VKontakteConnectionFactory;
 
 import javax.sql.DataSource;
 
@@ -47,24 +49,26 @@ public class SocialConfig implements SocialConfigurer {
 
     @Override
     public void addConnectionFactories(ConnectionFactoryConfigurer factoryConfigurer, Environment environment) {
-
-        factoryConfigurer.addConnectionFactory(new FacebookConnectionFactory(
-                environment.getProperty("facebook.clientId"),
-                environment.getProperty("facebook.clientSecret")));
-
         GoogleConnectionFactory googleConnectionFactory = new GoogleConnectionFactory(
                 environment.getProperty("google.clientId"),
                 environment.getProperty("google.clientSecret"));
         googleConnectionFactory.setScope(environment.getProperty("google.clientScope"));
+
+
+        VKontakteConnectionFactory vKontakteConnectionFactory = new VKontakteConnectionFactory(
+                environment.getProperty("vk.clientId"),
+                environment.getProperty("vk.clientSecret")
+        );
+        vKontakteConnectionFactory.setScope(environment.getProperty("vk.clientScope"));
+
         factoryConfigurer.addConnectionFactory(googleConnectionFactory);
+        factoryConfigurer.addConnectionFactory(vKontakteConnectionFactory);
 
     }
 
     @Override
     public UserIdSource getUserIdSource() {
-        UserIdSource source = new AuthenticationNameUserIdSource();
-        logger.error("GetUserIdSource");
-        return source;
+        return new AuthenticationNameUserIdSource();
     }
 
     @Override
@@ -80,8 +84,8 @@ public class SocialConfig implements SocialConfigurer {
 
     @Bean
     @Scope(value = "request", proxyMode = ScopedProxyMode.INTERFACES)
-    public Facebook facebook(ConnectionRepository repository) {
-        Connection<Facebook> connection = repository.findPrimaryConnection(Facebook.class);
+    public VKontakte vkontakte(ConnectionRepository repository) {
+        Connection<VKontakte> connection = repository.findPrimaryConnection(VKontakte.class);
         return connection != null ? connection.getApi() : null;
     }
 

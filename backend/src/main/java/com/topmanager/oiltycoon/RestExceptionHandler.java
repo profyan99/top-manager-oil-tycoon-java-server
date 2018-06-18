@@ -24,37 +24,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@ControllerAdvice//(basePackages = {"com.topmanager.oiltycoon"})
-@RequestMapping(produces = "application/json")
-@ResponseBody
+
+// @RequestMapping(produces = "application/json")
+//@ResponseBody
+@ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RestExceptionHandler.class);
 
-    @PostConstruct
-    public void construct() {
-        logger.error("Post Construct RestExceptionHandler");
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
-                                                                   HttpStatus status, WebRequest request) {
-        return ResponseEntity.badRequest().body(
-                new ArrayList<>(Collections.singletonList(new ErrorDto(
-                        ErrorCode.NOT_FOUND.name(),
-                        ErrorCode.NOT_FOUND.getMessage()))));
-    }
-
-    @ExceptionHandler(value = {AccessDeniedException.class})
-    public ResponseEntity<?> handleAccessDeniedException(Exception ex, WebRequest request) {
-        logger.debug("Handle access denied exception");
-        return ResponseEntity.badRequest().body(
-                new ArrayList<>(Collections.singletonList(new ErrorDto(
-                        ErrorCode.AUTHENTICATION_ERROR.name(),
-                        ErrorCode.AUTHENTICATION_ERROR.getMessage()))));
-    }
-
-    @ExceptionHandler(value = RestException.class)
+    @ExceptionHandler(value = {RestException.class})
     public ResponseEntity<?> handleRestException(RestException ex) {
         logger.debug("Handle rest exception: "+ex.getErrorCode().name());
         List<ErrorDto> errors = new ArrayList<>();

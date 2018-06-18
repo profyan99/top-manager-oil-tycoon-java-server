@@ -12,6 +12,7 @@
 
 	<typeAliases>
 		<typeAlias type="com.topmanager.oiltycoon.model.User" alias="User"/>
+		<typeAlias type="com.topmanager.oiltycoon.model.UserRole" alias="UserRole"/>
 	</typeAliases>
 
 	<environments default="development">
@@ -29,8 +30,7 @@
 	</environments>
 
 	<mappers>
-		<!--<mapper resource="com/topmanger/oiltycoon/mapper/UserMapper.xml"/>-->
-		<mapper resource="UserMapper.xml"/>
+		<mapper resource="mapper/UserMapper.xml"/>
 	</mappers>
 
 </configuration>
