@@ -17,46 +17,32 @@
         </collection>
     </resultMap>
 
+    <resultMap id="VerificationTokenResultMap" type="VerificationToken">
+        <id column="v_id" property="id"/>
+        <result property="confirmDate" column="confirmDate"/>
+        <result property="token" column="token"/>
+        <association property="user" resultMap="UserResultMap" javaType="User"/>
+    </resultMap>
+
     <select id="findByUserName" resultMap="UserResultMap">
-        SELECT
-            u.id,
-            u.userName,
-            u.password,
-            u.lastName,
-            u.firstName,
-            u.email,
-            r.role
+        SELECT u.id, u.userName, u.password, u.lastName, u.firstName, u.email, r.role
         FROM user u
-            LEFT JOIN user_role r on u.id = r.userId
+                 LEFT JOIN user_role r on u.id = r.userId
         WHERE u.userName = #{userName}
     </select>
 
     <select id="findById" resultMap="UserResultMap">
-        SELECT
-            u.id,
-            u.userName,
-            u.password,
-            u.lastName,
-            u.firstName,
-            u.email,
-            r.role
+        SELECT u.id, u.userName, u.password, u.lastName, u.firstName, u.email, r.role
         FROM user u
-            LEFT JOIN user_role r on u.id = r.userId
+                 LEFT JOIN user_role r on u.id = r.userId
         WHERE u.id = #{userId}
     </select>
 
     <select id="findByEmail" resultMap="UserResultMap">
-        SELECT
-            u.id,
-            u.userName,
-            u.password,
-            u.lastName,
-            u.firstName,
-            u.email,
-            r.role
+        SELECT u.id, u.userName, u.password, u.lastName, u.firstName, u.email, r.role
         FROM user u
-            LEFT JOIN user_role r on u.id = r.userId
-        WHERE u.email=#{email}
+                 LEFT JOIN user_role r on u.id = r.userId
+        WHERE u.email = #{email}
     </select>
 
     <insert id="create" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
@@ -71,5 +57,45 @@
             #{r}
         </foreach>
     </insert>
+
+    <update id="update">
+        UPDATE user SET firstName = #{firstName}, lastName = #{lastName}, password = #{password}, userName = #{userName}
+        WHERE id = #{id};
+        DELETE FROM user_role WHERE userId = #{id};
+        INSERT INTO user_role(userId, role) VALUES
+        <foreach collection="roles" item="r" index="index" open="(" separator="),(" close=")">
+            #{id},
+            #{r}
+        </foreach>;
+    </update>
+
+    <insert id="createVerificationToken">
+        INSERT INTO verification_token (token, user_id, confirmDate)
+        VALUES (#{token}, #{user.id}, #{confirmDate})
+    </insert>
+
+    <select id="getVerificationToken" resultMap="VerificationTokenResultMap">
+        SELECT vt.id as v_id,
+               vt.user_id,
+               vt.confirmDate,
+               vt.token,
+               u.id,
+               u.userName,
+               u.firstName,
+               u.lastName,
+               u.email,
+               u.password,
+               r.role
+        FROM verification_token vt
+                 LEFT JOIN user u on vt.user_id = u.id
+                 LEFT JOIN user_role r on u.id = r.userId
+        WHERE vt.token = #{uuid}
+    </select>
+
+    <delete id="deleteVerificationToken">
+        DELETE
+        FROM verification_token
+        WHERE id = #{id}
+    </delete>
 
 </mapper>

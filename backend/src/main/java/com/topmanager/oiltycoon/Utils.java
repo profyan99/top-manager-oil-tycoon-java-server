@@ -6,5 +6,6 @@ public class Utils {
 
 
     public static final String EMAIL_REGEX = "^([a-z0-9_-]+\\.)*[a-z0-9_-]+@[a-z0-9_-]+(\\.[a-z0-9_-]+)*\\.[a-z]{2,6}$";
+    public static final String BASE_URL = "http://localhost:8088";
 
 }

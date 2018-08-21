@@ -57,10 +57,7 @@ public class ConnectionSignUpImpl implements ConnectionSignUp {
                         email
                 )
         );
-        if (user.getEmail() == null || user.getEmail().isEmpty()) {
-            user.getRoles().add(UserRole.WITHOUT_EMAIL);
-        }
-        userDao.create(user);
+        userService.createAndSendVerify(user);
         logger.debug(user.toString());
         return String.valueOf(user.getId());
     }

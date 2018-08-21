@@ -1,10 +1,8 @@
 <template>
     <div id="app">
-        <div class="container">
-            <router-link to="/signin">Login</router-link>
-            <div class="row">
+        <div class="container-fluid">
+           <!-- <router-link to="/signin">Login</router-link>-->
                 <router-view></router-view>
-            </div>
         </div>
     </div>
 </template>
@@ -16,12 +14,17 @@
 </script>
 
 <style>
+    div.container-fluid {
+        padding: 0;
+    }
+
     #app {
         font-family: 'Avenir', Helvetica, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-align: center;
         color: #2c3e50;
-        margin-top: 60px;
     }
+
+
 </style>

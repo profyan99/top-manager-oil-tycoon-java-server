@@ -2,6 +2,7 @@ package com.topmanager.oiltycoon.dao.impl;
 
 import com.topmanager.oiltycoon.dao.UserDao;
 import com.topmanager.oiltycoon.model.User;
+import com.topmanager.oiltycoon.model.VerificationToken;
 import com.topmanager.oiltycoon.security.exception.ErrorCode;
 import com.topmanager.oiltycoon.security.exception.RestException;
 import org.apache.ibatis.session.SqlSession;
@@ -65,6 +66,38 @@ public class UserDaoImpl extends BaseDao implements UserDao {
             return Optional.ofNullable(getUserMapper(session).findByEmail(email));
         } catch (RuntimeException e) {
             logger.error("Couldn't find by email: " + e.toString());
+            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+        }
+    }
+
+    @Override
+    public void update(User user) {
+        try (SqlSession session = sessionFactory.openSession()) {
+            getUserMapper(session).update(user);
+            session.commit();
+        } catch (RuntimeException e) {
+            logger.error("Couldn't update user: " + e.toString());
+            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+        }
+    }
+
+    @Override
+    public void createVerificationToken(VerificationToken token) {
+        try (SqlSession session = sessionFactory.openSession()) {
+            getUserMapper(session).createVerificationToken(token);
+            session.commit();
+        } catch (RuntimeException e) {
+            logger.error("Couldn't create verification token: " + e.toString());
+            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+        }
+    }
+
+    @Override
+    public Optional<VerificationToken> getVerificationToken(String uuid) {
+        try (SqlSession session = sessionFactory.openSession()) {
+            return Optional.ofNullable(getUserMapper(session).getVerificationToken(uuid));
+        } catch (RuntimeException e) {
+            logger.error("Couldn't find verification token by uuid: " + e.toString());
             throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
         }
     }

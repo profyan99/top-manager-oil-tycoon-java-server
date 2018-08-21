@@ -1,6 +1,7 @@
 package com.topmanager.oiltycoon.security;
 
 import com.topmanager.oiltycoon.model.User;
+import com.topmanager.oiltycoon.model.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.social.security.SocialUserDetails;
@@ -60,6 +61,6 @@ public class SocialUserDetailsImpl implements SocialUserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return !user.getRoles().contains(UserRole.UNVERIFIED);
     }
 }

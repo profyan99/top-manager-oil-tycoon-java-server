@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.controller;
 
+import com.topmanager.oiltycoon.dto.request.ProfileEditRequestDto;
 import com.topmanager.oiltycoon.dto.request.SignUpRequestDto;
 import com.topmanager.oiltycoon.service.UserService;
 import org.slf4j.Logger;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping(value = "/api/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/", produces = MediaType.APPLICATION_JSON_VALUE)
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -24,7 +25,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping(path = "signup")
+    @PutMapping(path = "signup", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> signup(@RequestBody @Valid SignUpRequestDto signUpRequestDto) {
         return ResponseEntity.ok(userService.create(signUpRequestDto));
     }
@@ -32,6 +33,17 @@ public class UserController {
     @GetMapping(path = "profile")
     public ResponseEntity<?> profile() {
         return ResponseEntity.ok(userService.getUserProfile());
+    }
+
+    @PostMapping(path = "profile", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> editProfile(@RequestBody @Valid ProfileEditRequestDto profileEditRequestDto) {
+        return ResponseEntity.ok(userService.edit(profileEditRequestDto));
+    }
+
+    @GetMapping(path = "verification")
+    public ResponseEntity<?> verification(@RequestParam("token") String token) {
+        userService.verification(token);
+        return ResponseEntity.ok().build();
     }
 
 }

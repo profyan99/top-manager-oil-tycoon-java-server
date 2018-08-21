@@ -13,6 +13,7 @@
 	<typeAliases>
 		<typeAlias type="com.topmanager.oiltycoon.model.User" alias="User"/>
 		<typeAlias type="com.topmanager.oiltycoon.model.UserRole" alias="UserRole"/>
+		<typeAlias type="com.topmanager.oiltycoon.model.VerificationToken" alias="VerificationToken"/>
 	</typeAliases>
 
 	<environments default="development">
