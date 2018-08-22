@@ -4,6 +4,7 @@ import com.topmanager.oiltycoon.Utils;
 import com.topmanager.oiltycoon.dao.UserDao;
 import com.topmanager.oiltycoon.dto.UserDto;
 import com.topmanager.oiltycoon.dto.request.ProfileEditRequestDto;
+import com.topmanager.oiltycoon.dto.request.ResetPasswordRequestDto;
 import com.topmanager.oiltycoon.dto.request.SignUpRequestDto;
 import com.topmanager.oiltycoon.model.MailData;
 import com.topmanager.oiltycoon.model.User;
@@ -62,14 +63,7 @@ public class UserService {
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
         );
         logger.debug("GetUserProfile UserName: " + user.getUserName());
-
-        return new UserDto(
-                user.getId(),
-                user.getUserName(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getRoles()
-        );
+        return userDtoFromUserModel(user);
     }
 
 
@@ -84,43 +78,22 @@ public class UserService {
         User user = createUserFromSignUpForm(dto);
         createAndSendVerify(user);
         authenticateUser(user);
-        return new UserDto(
-                user.getId(),
-                user.getUserName(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getRoles()
-        );
+        return userDtoFromUserModel(user);
     }
 
     public void createAndSendVerify(User user) {
+        boolean mail = true;
         if (user.getEmail() == null || user.getEmail().isEmpty()) {
             user.getRoles().add(UserRole.WITHOUT_EMAIL);
-            userDao.create(user);
+            mail = false;
         }
-        else {
-            userDao.create(user);
-            String token = UUID.randomUUID().toString();
-            VerificationToken verificationToken = new VerificationToken(
-                    user.getId(),
-                    token,
-                    user,
-                    LocalDateTime.now().plusDays(1)
-            );
-            userDao.createVerificationToken(verificationToken);
-            //TODO delete magic strings
-            String recipientAddress = user.getEmail();
-            String subject = "Registration Confirmation";
-            String confirmationUrl
-                    = Utils.BASE_URL + "/verification?token=" + token;
-            String message = "Verify your account: ";
-            mailSender.send(new MailData(
-                    recipientAddress,
-                    subject,
-                    message + " link: "+confirmationUrl
-            ));
+        userDao.create(user);
+        if(mail) {
+            sendVerification(user, Utils.MailMessage.REGISTRATION_CONFIRM);
         }
     }
+
+
 
     public void verification(String uuid) {
         VerificationToken verificationToken = userDao.getVerificationToken(uuid).orElseThrow(
@@ -150,14 +123,30 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         userDao.update(user);
         authenticateUser(user);
-        return new UserDto(
-                user.getId(),
-                user.getUserName(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getRoles()
-        );
+        return userDtoFromUserModel(user);
     }
+
+    public void forgotPassword(String email) {
+        User user = userDao.findByEmail(email).orElseThrow(
+                () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
+        );
+        sendVerification(user, Utils.MailMessage.RESET_PASSWORD);
+    }
+
+    public UserDto resetPassword(ResetPasswordRequestDto dto) {
+        VerificationToken verificationToken = userDao.getVerificationToken(dto.getToken()).orElseThrow(
+                () -> new RestException(ErrorCode.VERIFICATION_TOKEN_NOT_FOUND)
+        );
+        User user = verificationToken.getUser();
+        if(verificationToken.getConfirmDate().isBefore(LocalDateTime.now())) {
+            throw new RestException(ErrorCode.CONFIRM_TIME_EXPIRED);
+        }
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userDao.update(user);
+        authenticateUser(user);
+        return userDtoFromUserModel(user);
+    }
+
 
 
     private void authenticateUser(User user) {
@@ -186,5 +175,32 @@ public class UserService {
             return Integer.parseInt(id);
         }
         throw new RestException(ErrorCode.ERROR_WITH_AUTHENTICATION);
+    }
+
+    private void sendVerification(User user, Utils.MailMessage mailMessage) {
+        String token = UUID.randomUUID().toString();
+        VerificationToken verificationToken = new VerificationToken(
+                user.getId(),
+                token,
+                user,
+                LocalDateTime.now().plusDays(1)
+        );
+        userDao.createVerificationToken(verificationToken);
+
+        mailSender.send(new MailData(
+                user.getEmail(),
+                mailMessage.getSubject(),
+                String.format(mailMessage.getMessage(), token)
+        ));
+    }
+
+    private UserDto userDtoFromUserModel(User user) {
+        return new UserDto(
+                user.getId(),
+                user.getUserName(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getRoles()
+        );
     }
 }

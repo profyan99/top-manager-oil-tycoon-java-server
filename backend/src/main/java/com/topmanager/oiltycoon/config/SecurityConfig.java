@@ -66,7 +66,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .cors()
                 .and().authorizeRequests()
-                    .antMatchers("/auth/**", "/api/signup", "/api/verification").permitAll()
+                    .antMatchers("/auth/**", "/api/signup", "/api/verification",
+                            "/api/forgot-password","/api/reset-password").permitAll()
                     .anyRequest().authenticated()
                 .and().formLogin().loginPage("/api/signin")
                     .successHandler(authenticationSuccessHandler)

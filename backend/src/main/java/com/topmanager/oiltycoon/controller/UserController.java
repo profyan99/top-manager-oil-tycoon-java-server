@@ -1,6 +1,7 @@
 package com.topmanager.oiltycoon.controller;
 
 import com.topmanager.oiltycoon.dto.request.ProfileEditRequestDto;
+import com.topmanager.oiltycoon.dto.request.ResetPasswordRequestDto;
 import com.topmanager.oiltycoon.dto.request.SignUpRequestDto;
 import com.topmanager.oiltycoon.service.UserService;
 import org.slf4j.Logger;
@@ -44,6 +45,17 @@ public class UserController {
     public ResponseEntity<?> verification(@RequestParam("token") String token) {
         userService.verification(token);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam("email") String email) {
+        userService.forgotPassword(email);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "reset-password", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPasswordRequestDto resetPasswordRequestDto) {
+        return ResponseEntity.ok(userService.resetPassword(resetPasswordRequestDto));
     }
 
 }
