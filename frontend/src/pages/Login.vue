@@ -66,7 +66,6 @@
                 axios.get("/api/profile", {
                     data: {}
                 }).then(response => {
-                    console.log("data: ", response.data);
                     this.profile = response.data;
                 }).catch(error => {
                     console.log("error: ", error.response);

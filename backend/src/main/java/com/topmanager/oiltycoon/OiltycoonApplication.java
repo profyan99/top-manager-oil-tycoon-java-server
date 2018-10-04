@@ -19,7 +19,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 @SpringBootApplication
-@MapperScan(basePackages = {"com.topmanager.oiltycoon.dao.mapper", "com.topmanger.oiltycoon.mapper"})
+@MapperScan(basePackages = {"com.topmanager.oiltycoon.social.dao.mapper", "com.topmanger.oiltycoon.mapper"})
 @EnableAsync
 public class OiltycoonApplication {
 

@@ -1,10 +1,9 @@
 package com.topmanager.oiltycoon;
 
 
-import com.topmanager.oiltycoon.dto.ErrorDto;
-import com.topmanager.oiltycoon.dto.response.ErrorResponseDto;
-import com.topmanager.oiltycoon.security.exception.ErrorCode;
-import com.topmanager.oiltycoon.security.exception.RestException;
+import com.topmanager.oiltycoon.social.dto.ErrorDto;
+import com.topmanager.oiltycoon.social.dto.response.ErrorResponseDto;
+import com.topmanager.oiltycoon.social.security.exception.RestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -18,10 +17,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 
