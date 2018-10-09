@@ -41,18 +41,28 @@
               </div>
             </div>
 
-            <div class="">
-              <button class="btn btn-primary mb-3">Отправить</button>
-              <p>или</p>
-              <button type="button" class="btn btn-indigo"><i class="fa fa-vk "></i></button>
-              <button type="button" class="btn btn-danger"><i class="fa fa-google-plus "></i></button>
-              <hr>
-              <p>
-                Нажимая <em>Отправить</em>, вы соглашаетесь с парвилами сервиса.
-              </p>
+            <div class="row justify-content-center mt-2">
+              <div class="col-md-10">
+                <button class="btn btn-primary btn-block mb-3">Отправить</button>
+                <p>или</p>
+                <div class="row">
+                  <div class="col-md-6">
+                    <a :href="vkontakte">
+                      <button type="button" class="btn btn-indigo btn-block"><i class="fa fa-vk "></i></button>
+                    </a>
+                  </div>
+                  <div class="col-md-6">
+                    <a :href="google">
+                      <button type="button" class="btn btn-danger btn-block"><i class="fa fa-google-plus "></i></button>
+                    </a>
+                  </div>
+                </div>
+                <hr>
+                <p>
+                  Нажимая <em>Отправить</em>, вы соглашаетесь с парвилами сервиса.
+                </p>
+              </div>
             </div>
-
-
           </form>
         </div>
       </div>
@@ -63,7 +73,13 @@
 
 <script>
 export default {
-  name: "Signup"
+  name: "Signup",
+  data() {
+    return {
+      vkontakte: this.$store.getters.authLinks.vk,
+      google: this.$store.getters.authLinks.google
+    }
+  }
 }
 </script>
 

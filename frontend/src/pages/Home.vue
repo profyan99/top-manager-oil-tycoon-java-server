@@ -72,7 +72,7 @@ export default {
   methods: {
     start() {
       if(this.$store.getters.profile === null) {
-        this.$router.push('signup');
+        this.$router.push('signin');
       } else {
         this.$router.push('rooms');
       }

@@ -1,6 +1,7 @@
 import Home from './pages/Home.vue'
-import Login from './pages/Login.vue'
+import Signin from './pages/Signin.vue'
 import Signup from './pages/Signup.vue'
+import Rooms from './pages/Rooms.vue'
 
 export default [
     {
@@ -9,13 +10,18 @@ export default [
         component: Home
     },
     {
-        Name: 'signin',
+        name: 'signin',
         path: '/signin',
-        component: Login
+        component: Signin
     },
     {
-        Name: 'signup',
+        name: 'signup',
         path: '/signup',
         component: Signup
+    },
+    {
+        name: 'rooms',
+        path: '/rooms',
+        component: Rooms
     }
 ]

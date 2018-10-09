@@ -12,7 +12,6 @@ import 'font-awesome/css/font-awesome.css';
 
 Vue.component('icon', Icon);
 
-import login from './pages/Login.vue'
 
 Vue.use(VueRouter);
 
@@ -32,8 +31,5 @@ sync(store, router);
 new Vue({
     router,
     store,
-    components: {
-        login
-    },
     render: h => h(App)
 }).$mount('#app');
