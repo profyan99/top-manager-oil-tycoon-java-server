@@ -12,7 +12,7 @@ const mutations = {
 
 const actions = {
 	getData({commit, store}) {
-		axios.get(store.getters.profileUrl, {
+		axios.get(store.getters.profileLink, {
 			data: {}
 		}).then(response => {
 			commit('setProfile', response.data);
@@ -20,8 +20,16 @@ const actions = {
 			console.log("error: ", error.response);
 		});
 	},
-	signIn({commit}, loginForm) {
-
+	signIn({commit, getters}, loginForm) {
+		return new Promise((resolve, reject) => {
+			axios.post(getters.signInLink, loginForm)
+			.then(response => {
+				commit('setProfile', response.data);
+				resolve();
+			}).catch(() => {
+				reject("Network error");
+			})
+		});
 	}
 };
 
