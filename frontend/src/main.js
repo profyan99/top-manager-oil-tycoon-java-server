@@ -1,6 +1,6 @@
-import Vue from 'vue'
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-css-only/css/bootstrap.min.css';
 import 'mdbvue/build/css/mdb.css';
+import Vue from 'vue'
 import App from './components/App.vue'
 import VueRouter from 'vue-router'
 import routes from './routes.js'

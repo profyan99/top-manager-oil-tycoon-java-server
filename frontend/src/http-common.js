@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { backendUrl } from './store/modules/misc.js'
 
 export default axios.create({
-    baseURL: `http://localhost:8088`,
+    baseURL: backendUrl,
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json;charset=UTF-8',

@@ -34,7 +34,7 @@
 
     <div class="view" id="main">
       <div class="mask rgba-teal-strong">
-        <div class="container-fluid d-flex align-items-center justify-content-center h-100">
+        <div class="container-fluid d-flex align-items-center text-center justify-content-center h-100">
           <div class="row ">
             <div class="col-md-12">
               <h2 class="h1 font-weight-bold white-text pt-5 mb-2">
@@ -71,7 +71,7 @@ export default {
   },
   methods: {
     start() {
-      if(this.$store.getters.profile === null) {
+      if(!this.$store.getters.isLoggedIn) {
         this.$router.push('signin');
       } else {
         this.$router.push('rooms');

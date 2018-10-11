@@ -4,44 +4,32 @@
     <div class="col-md-4">
       <div class="card mt-5">
         <div class="card-body">
-          <form class="p-3">
+          <form class="p-3" @submit.prevent="register">
             <h2 class="dark-grey-text text-center"><strong>Регистрация</strong></h2>
             <div class="row justify-content-center">
               <div class="col-md-10">
-                <div class="form-row md-form mt-5">
-                  <i class="fa fa-user prefix grey-text"></i>
-                  <input type="text" id="inputIconEx1" class="form-control">
-                  <label for="inputIconEx1">Имя</label>
+                <div class="md-form mt-5">
+                  <mdb-input type="text" label="Имя" icon="user grey-text" v-model="signupForm.name"/>
                 </div>
-                <div class="form-row md-form">
-                  <i class="fa fa-user prefix grey-text"></i>
-                  <input type="text" id="inputIconEx2" class="form-control">
-                  <label for="inputIconEx2">Фамилия</label>
+                <div class="md-form">
+                  <mdb-input type="text" label="Фамилия" icon="user grey-text" v-model="signupForm.surname"/>
                 </div>
-                <div class="form-row md-form">
-                  <i class="fa fa-user prefix grey-text"></i>
-                  <input type="text" id="inputIconEx3" class="form-control">
-                  <label for="inputIconEx3">Никнейм</label>
+                <div class="md-form">
+                  <mdb-input type="text" label="Никнейм" icon="user grey-text" v-model="signupForm.nickname"/>
                 </div>
-                <div class="form-row md-form">
-                  <i class="fa fa-envelope prefix grey-text"></i>
-                  <input type="text" id="inputIconEx4" class="form-control">
-                  <label for="inputIconEx4">Почта</label>
+                <div class="md-form">
+                  <mdb-input type="text" label="Почта" icon="envelope grey-text" v-model="signupForm.email"/>
                 </div>
-                <div class="form-row md-form">
-                  <i class="fa fa-lock prefix grey-text"></i>
-                  <input type="text" id="inputIconEx5" class="form-control">
-                  <label for="inputIconEx5">Пароль</label>
+                <div class="md-form">
+                  <mdb-input type="password" label="Пароль" icon="lock grey-text" v-model="signupForm.pass"/>
                 </div>
-                <div class="form-row md-form">
-                  <i class="fa fa-lock prefix grey-text"></i>
-                  <input type="text" id="inputIconEx6" class="form-control">
-                  <label for="inputIconEx6">Пароль еще раз</label>
+                <div class="md-form">
+                  <mdb-input type="password" label="Пароль еще раз" icon="lock grey-text" v-model="signupForm.confirmPass"/>
                 </div>
               </div>
             </div>
 
-            <div class="row justify-content-center mt-2">
+            <div class="row justify-content-center mt-2 text-center pb-2">
               <div class="col-md-10">
                 <button class="btn btn-primary btn-block mb-3">Отправить</button>
                 <p>или</p>
@@ -72,12 +60,40 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
+import { mdbInput } from "mdbvue";
+
 export default {
   name: "Signup",
+  components: {
+    mdbInput
+  },
   data() {
     return {
-      vkontakte: this.$store.getters.authLinks.vk,
-      google: this.$store.getters.authLinks.google
+      vkontakte: this.$store.getters.getUrls.vk,
+      google: this.$store.getters.getUrls.google,
+      signupForm: {
+        name: '',
+        surname: '',
+        nickname: '',
+        email: '',
+        pass: '',
+        confirmPass: ''
+      }
+    }
+  },
+  methods: {
+    ...mapActions([
+      'signUp'
+    ]),
+    register() {
+      console.log(this.signupForm);
+      this.signUp(this.signupForm)
+        .then(() => {
+          this.$router.push('rooms');
+        }).catch(error => {
+          console.log('Error: ' + error);
+        });
     }
   }
 }
