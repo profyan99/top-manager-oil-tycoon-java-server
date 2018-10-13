@@ -9,12 +9,10 @@ import Icon from 'vue-awesome/components/Icon'
 import store from './store/index'
 import { sync } from 'vuex-router-sync'
 import 'font-awesome/css/font-awesome.css';
-
-Vue.component('icon', Icon);
-
+import Notifications from 'vue-notification'
 
 Vue.use(VueRouter);
-
+Vue.use(Notifications);
 
 Vue.config.productionTip = false;
 

@@ -1,5 +1,9 @@
 <template>
 <div>
+  <notifications
+  group="signin-notifications"
+  position="bottom right">
+  </notifications>
   <div class="container-fluid" id="signin">
     <div class="row d-flex justify-content-center">
       <div class="col-md-4">
@@ -10,10 +14,10 @@
               <div class="row justify-content-center">
                 <div class="col-md-10">
                   <div class="md-form mt-5">
-                    <mdb-input type="text" label="Логин" icon="user grey-text" v-model="signinForm.login"/>
+                    <mdb-input type="text" label="Логин" icon="user grey-text" v-model="signinForm.login" />
                   </div>
                   <div class="md-form mt-5">
-                    <mdb-input type="password" label="Пароль" icon="lock grey-text" v-model="signinForm.pass"/>
+                    <mdb-input type="password" label="Пароль" icon="lock grey-text" v-model="signinForm.pass" />
                   </div>
                   <div class="form-row justify-content-around mt-2">
                     <div>
@@ -59,12 +63,18 @@
     </div>
   </div>
 </div>
-
 </template>
 
 <script>
-import { mapActions } from 'vuex';
-import { mdbInput } from "mdbvue";
+import {
+  mapActions,
+  mapGetters
+} from 'vuex';
+import {
+  mdbInput
+} from "mdbvue";
+
+import { isSignInValid } from '../validators.js'
 
 export default {
   name: 'Login',
@@ -82,18 +92,43 @@ export default {
       }
     }
   },
-  methods: {
-    ...mapActions([
-      'signIn'
-    ]),
-    login() {
-      console.log(this.signinForm);
-      this.signIn(this.signinForm)
+  created() {
+    if (this.isLoggedIn == false) {
+      this.$router.push('rooms');
+    } else {
+      this.getDataProfile()
         .then(() => {
           this.$router.push('rooms');
-        }).catch(error => {
-          console.log('Error: ' + error);
+        }).catch((error) => {
+          console.log('error', error);
         });
+    }
+  },
+  methods: {
+    ...mapGetters([
+      'isLoggedIn'
+    ]),
+    ...mapActions([
+      'signIn',
+      'getDataProfile'
+    ]),
+    login() {
+      let errs = isSignInValid(this.signinForm);
+      if (!errs.isValid) {
+        this.$notify({
+          group: 'signin-notifications',
+          title: 'Ошибка',
+          type: 'error',
+          text: errs.text
+        });
+      } else {
+        this.signIn(this.signinForm)
+          .then(() => {
+            this.$router.push('rooms');
+          }).catch(error => {
+            console.log('Error: ' + error);
+          });
+      }
     }
   }
 }

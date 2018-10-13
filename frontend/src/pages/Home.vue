@@ -71,7 +71,7 @@ export default {
   },
   methods: {
     start() {
-      if(!this.$store.getters.isLoggedIn) {
+      if(this.$store.getters.isLoggedIn == false) {
         this.$router.push('signin');
       } else {
         this.$router.push('rooms');

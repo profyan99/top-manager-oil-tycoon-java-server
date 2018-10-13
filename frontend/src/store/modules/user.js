@@ -17,22 +17,18 @@ const mutations = {
 };
 
 const actions = {
-  getData({
-    commit,
-    store
-  }) {
-    axios.get(store.getters.getUrls.profile, {
-      data: {}
-    }).then(response => {
-      commit(types.SET_PROFILE, response.data);
-    }).catch(error => {
-      console.log("error: ", error.response);
+  getDataProfile({commit, getters}) {
+    return new Promise((resolve, reject) => {
+      axios.get(getters.getUrls.profile)
+        .then(response => {
+          commit(types.SET_PROFILE, response.data);
+          resolve();
+        }).catch((error) => {
+          reject("Network error");
+        });
     });
   },
-  signIn({
-    commit,
-    getters
-  }, loginForm) {
+  signIn({commit,getters}, loginForm) {
     return new Promise((resolve, reject) => {
       axios.post(getters.getUrls.signIn, loginForm)
         .then(response => {
@@ -41,7 +37,7 @@ const actions = {
           resolve();
         }).catch(() => {
           reject("Network error");
-        })
+        });
     });
   },
   signUp({
