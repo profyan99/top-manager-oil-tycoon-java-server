@@ -2,18 +2,20 @@
 <div>
   <notifications
   group="signin-notifications"
-  position="bottom right">
+  position="bottom right"
+  width="50vh"
+  >
   </notifications>
   <div class="container-fluid" id="signin">
     <div class="row d-flex justify-content-center">
       <div class="col-md-4">
-        <div class="card mt-5">
+        <div class="card mt-5 animated fadeIn">
           <div class="card-body">
             <form class="p-4" @submit.prevent="login">
               <h2 class="dark-grey-text text-center mb-5"><strong>Авторизация</strong></h2>
-              <div class="row justify-content-center">
+              <div class="row justify-content-center animated slideInDown fast">
                 <div class="col-md-10">
-                  <div class="md-form mt-5">
+                  <div class="md-form mt-">
                     <mdb-input type="text" label="Логин" icon="user grey-text" v-model="signinForm.login" />
                   </div>
                   <div class="md-form mt-5">
@@ -33,9 +35,9 @@
                 </div>
               </div>
 
-              <div class="row justify-content-center mt-5 text-center pb-3">
+              <div class="row justify-content-center mt-5 text-center pb-3 animated slideInUp fast">
                 <div class="col-md-10">
-                  <button class="btn btn-primary btn-block mb-3">Войти</button>
+                  <button class="btn btn-primary btn-block mb-3 animated slideInDown fast">Войти</button>
                   <div class="mt-4">
                     <p>Не зарегистрированы?
                       <router-link :to="{ name: 'signup'}">Регистрация</router-link>
@@ -136,6 +138,7 @@ export default {
 <style scoped>
 #signin {
   background: #1D766F;
-  height: 100vh;
+  position: fixed;
+  height: 100%;
 }
 </style>

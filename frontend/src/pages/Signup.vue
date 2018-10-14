@@ -5,11 +5,11 @@
   <div class="container-fluid" id="mains">
     <div class="row d-flex justify-content-center">
       <div class="col-md-4">
-        <div class="card mt-5">
+        <div class="card mt-5 animated fadeIn">
           <div class="card-body">
             <form class="p-3" @submit.prevent="register">
               <h2 class="dark-grey-text text-center"><strong>Регистрация</strong></h2>
-              <div class="row justify-content-center">
+              <div class="row justify-content-center animated slideInDown fast">
                 <div class="col-md-10">
                   <div class="md-form mt-5">
                     <mdb-input type="text" label="Имя" icon="user grey-text" v-model="signupForm.name" />
@@ -32,7 +32,7 @@
                 </div>
               </div>
 
-              <div class="row justify-content-center mt-2 text-center pb-2">
+              <div class="row justify-content-center mt-2 text-center pb-2  animated slideInUp fast">
                 <div class="col-md-10">
                   <button class="btn btn-primary btn-block mb-3">Отправить</button>
                   <p>или</p>
@@ -113,7 +113,8 @@ export default {
       'isLoggedIn'
     ]),
     ...mapActions([
-      'signUp'
+      'signUp',
+      'getDataProfile'
     ]),
     register() {
       let errs = isSignUpValid(this.signupForm);
@@ -140,6 +141,7 @@ export default {
 <style scoped>
 #mains {
   background: #1D766F;
-  height: 100vh;
+  position: fixed;
+  height: 100%;
 }
 </style>

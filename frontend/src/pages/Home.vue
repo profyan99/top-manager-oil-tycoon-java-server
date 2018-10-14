@@ -1,77 +1,127 @@
 <template>
 <div>
   <header>
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top scrolling-navbar">
-      <div class="container">
-        <a href="#" class="navbar-brand">
-            <span class="font-weight-bold">
-              TOP MANAGER
-              <span class="tm-dark-color ">Oil Tycoon</span>
-            </span>
+    <navbar position="top" expand="large" dark>
+      <mdb-navbar-brand href="#">
+        <span class="font-weight-bold">
+          TOP MANAGER
+          <span class="tm-dark-color ">Oil Tycoon</span>
+        </span>
+      </mdb-navbar-brand>
+      <navbar-collapse>
+        <navbar-nav>
+          <navbar-item href="#" active>Главная</navbar-item>
+          <navbar-item href="#">Об игре</navbar-item>
+          <navbar-item href="#">Контакты</navbar-item>
+        </navbar-nav>
+        <div class="text-inline mr-5 p-0">
+          <div v-if="isLoggedIn">
 
-          </a>
-      </div>
-
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navId" aria-controls="navId"
-        aria-expanded="false" aria-label="Toggle Navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
-      <div class="collapse navbar-collapse" id="navId">
-        <ul class="navbar-nav mr-auto smooth-scroll">
-          <li class="nav-item">
-            <a href="#" class="nav-link waves-effect waves-light">Главная</a>
-          </li>
-          <li class="nav-item">
-            <a href="#" class="nav-link waves-effect waves-light">Об игре</a>
-          </li>
-          <li class="nav-item">
-            <a href="#" class="nav-link waves-effect waves-light">Контакты</a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-
-    <div class="view" id="main">
-      <div class="mask rgba-teal-strong">
-        <div class="container-fluid d-flex align-items-center text-center justify-content-center h-100">
-          <div class="row ">
-            <div class="col-md-12">
+            <dropdown>
+              <dropdown-toggle slot="toggle">
+                {{ userProfile.name }} {{ userProfile.surname }}
+              </dropdown-toggle>
+              <dropdown-menu>
+                  <dropdown-item>Профиль</dropdown-item>
+                  <dropdown-item>Настройки</dropdown-item>
+                  <dropdown-item>Выйти</dropdown-item>
+              </dropdown-menu>
+            </dropdown>
+          </div>
+          <div v-else>
+            <navbar-nav>
+              <router-link :to="{ name: 'signin'}">
+                <navbar-item>Вход</navbar-item>
+              </router-link>
+              <router-link :to="{ name: 'signup'}">
+                <navbar-item>Регистрация</navbar-item>
+              </router-link>
+            </navbar-nav>
+          </div>
+        </div>
+      </navbar-collapse>
+    </navbar>
+  </header>
+  <div class="view" id="main">
+    <div class="mask rgba-teal-strong">
+      <div class="container-fluid d-flex align-items-center text-center justify-content-center h-100">
+        <div class="row ">
+          <div class="col-md-12">
+            <div class="animated slideInDown">
               <h2 class="h1 font-weight-bold white-text pt-5 mb-2">
                   ЭКОНОМИЧЕСКИЙ СИМУЛЯТОР
               </h2>
               <h4 class="white-text mb-5 pt-2">
                 Попробуй себя в роли нефтяного магната
               </h4>
-
-              <img src="/img/bg.jpg" alt="">
-
-
-              <button class="btn btn-lg waves-effect waves-light" id="startBtn" @click="start">
-                  СТАРТ
-              </button>
-
-              </div>
             </div>
+
+
+            <button class="btn btn-lg waves-effect waves-light animated slideInUp" id="startBtn" @click="start">
+                СТАРТ
+            </button>
+
           </div>
         </div>
       </div>
-  </header>
+    </div>
+  </div>
 </div>
 </template>
 <script>
+import {
+  Navbar,
+  NavbarItem,
+  NavbarNav,
+  NavbarCollapse,
+  mdbNavbarBrand,
+  Footer,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle
+} from 'mdbvue';
 
 
 export default {
   name: 'home',
+  components: {
+    Navbar,
+    NavbarItem,
+    NavbarNav,
+    NavbarCollapse,
+    mdbNavbarBrand,
+    Footer,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownToggle
+  },
   data() {
     return {
       bg: ''
     }
   },
+  computed: {
+    isLoggedIn: function() {
+      return this.$store.getters.isLoggedIn;
+    },
+    userProfile: function() {
+      if(this.isLoggedIn) {
+        return this.$store.getters.profile;
+      }
+    }
+  },
   methods: {
     start() {
-      if(this.$store.getters.isLoggedIn == false) {
+      // this.$notify({
+      //   group: 'system-notifications',
+      //   title: 'Ошибка',
+      //   type: 'warn',
+      //   text: 'WHAT??',
+      //   duration: -1,
+      // });
+      if (this.$store.getters.isLoggedIn == false) {
         this.$router.push('signin');
       } else {
         this.$router.push('rooms');
@@ -82,18 +132,18 @@ export default {
 </script>
 <style>
 header,
-#main {
-  height: 100vh;
-}
+#main {}
 
 #main {
   background-image: url("./../assets/img/bg.jpg");
   background-size: cover;
+  height: 100vh;
 }
 
+/*
 .navbar-nav li {
   margin-right: 20pt;
-}
+} */
 
 .tm-dark-color {
   color: #202020;

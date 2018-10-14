@@ -1,13 +1,14 @@
 <template>
 <div>
+
   <div class="container-fluid" id="signin">
     <div class="row d-flex justify-content-center">
       <div class="col-md-4">
-        <div class="card mt-5">
+        <div class="card mt-5 animated fadeIn">
           <div class="card-body">
             <form class="p-4" @submit.prevent="forgotPass">
               <h3 class="dark-grey-text text-center mb-5"><strong>Восстановление пароля</strong></h3>
-              <div class="row justify-content-center">
+              <div class="row justify-content-center animated slideInDown fast">
                 <div class="col-md-10">
                   <p>Введите пожалуйста адрес электронной почты от вашего аккаунта. Вам будет отправлена ссылка на восстановление пароля от вашей учетной записи.</p>
                   <div class="md-form mt-5">
@@ -16,7 +17,7 @@
                 </div>
               </div>
 
-              <div class="row justify-content-center mt-5 text-center pb-3">
+              <div class="row justify-content-center mt-5 text-center pb-3 animated slideInUp fast">
                 <div class="col-md-10">
                   <button class="btn btn-primary btn-block mb-3">Восстановить</button>
                 </div>
@@ -30,8 +31,12 @@
 </div>
 </template>
 <script>
-import { mapActions } from 'vuex';
-import { mdbInput } from "mdbvue";
+import {
+  mapActions
+} from 'vuex';
+import {
+  mdbInput
+} from "mdbvue";
 
 export default {
   name: 'ForgotPass',
