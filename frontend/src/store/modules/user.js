@@ -22,6 +22,7 @@ const actions = {
       axios.get(getters.getUrls.profile)
         .then(response => {
           commit(types.SET_PROFILE, response.data);
+          commit(types.SET_LOGGED_IN, true);
           resolve();
         }).catch((error) => {
           reject("Network error");

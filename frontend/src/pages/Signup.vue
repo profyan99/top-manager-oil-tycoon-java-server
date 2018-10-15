@@ -97,7 +97,7 @@ export default {
     }
   },
   created() {
-    if (this.isLoggedIn == false) {
+    if (this.isLoggedIn == true) {
       this.$router.push('rooms');
     } else {
       this.getDataProfile()

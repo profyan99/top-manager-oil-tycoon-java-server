@@ -5,6 +5,7 @@ import com.topmanager.oiltycoon.social.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -25,13 +26,16 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
 
     public AuthenticationSuccessHandler() {
         super();
-        setUseReferer(true);
+        setDefaultTargetUrl("http://localhost:8080/signin");
+        setAlwaysUseDefaultTargetUrl(true);
     }
 
     public AuthenticationSuccessHandler(String defaultTargetUrl) {
         super(defaultTargetUrl);
-        setUseReferer(true);
+        setDefaultTargetUrl("http://localhost:8080/signin");
+        setAlwaysUseDefaultTargetUrl(true);
     }
+
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -45,8 +49,6 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
             user = ((SocialUserDetailsImpl) principal).getUser();
         }
         response.getOutputStream().print(objectMapper.writeValueAsString(user));
-        //response.sendRedirect(request.getHeader("Referer"));
         super.onAuthenticationSuccess(request,response,authentication);
-
     }
 }
