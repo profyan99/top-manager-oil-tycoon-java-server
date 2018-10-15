@@ -15,8 +15,6 @@ import org.springframework.social.config.annotation.EnableSocial;
 import org.springframework.social.config.annotation.SocialConfigurer;
 import org.springframework.social.connect.*;
 import org.springframework.social.connect.jdbc.JdbcUsersConnectionRepository;
-import org.springframework.social.facebook.api.Facebook;
-import org.springframework.social.facebook.connect.FacebookConnectionFactory;
 import org.springframework.social.google.api.Google;
 import org.springframework.social.google.connect.GoogleConnectionFactory;
 import org.springframework.social.security.AuthenticationNameUserIdSource;
@@ -53,14 +51,14 @@ public class SocialConfig implements SocialConfigurer {
         googleConnectionFactory.setScope(environment.getProperty("google.clientScope"));
 
 
-        VKontakteConnectionFactory vKontakteConnectionFactory = new VKontakteConnectionFactory(
+/*        VKontakteConnectionFactory vKontakteConnectionFactory = new VKontakteConnectionFactory(
                 environment.getProperty("vk.clientId"),
                 environment.getProperty("vk.clientSecret")
         );
-        vKontakteConnectionFactory.setScope(environment.getProperty("vk.clientScope"));
+        vKontakteConnectionFactory.setScope(environment.getProperty("vk.clientScope"));*/
 
         factoryConfigurer.addConnectionFactory(googleConnectionFactory);
-        factoryConfigurer.addConnectionFactory(vKontakteConnectionFactory);
+       // factoryConfigurer.addConnectionFactory(vKontakteConnectionFactory);
 
     }
 
@@ -80,12 +78,12 @@ public class SocialConfig implements SocialConfigurer {
         return connectionRepository;
     }
 
-    @Bean
+   /* @Bean
     @Scope(value = "request", proxyMode = ScopedProxyMode.INTERFACES)
     public VKontakte vkontakte(ConnectionRepository repository) {
         Connection<VKontakte> connection = repository.findPrimaryConnection(VKontakte.class);
         return connection != null ? connection.getApi() : null;
-    }
+    }*/
 
     @Bean
     @Scope(value = "request", proxyMode = ScopedProxyMode.INTERFACES)

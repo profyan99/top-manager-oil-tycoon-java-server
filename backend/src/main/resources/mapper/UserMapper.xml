@@ -70,13 +70,13 @@
     </update>
 
     <insert id="createVerificationToken">
-        INSERT INTO verification_token (token, user_id, confirmDate)
+        INSERT INTO verification_token (token, userId, confirmDate)
         VALUES (#{token}, #{user.id}, #{confirmDate})
     </insert>
 
     <select id="getVerificationToken" resultMap="VerificationTokenResultMap">
         SELECT vt.id as v_id,
-               vt.user_id,
+               vt.userId,
                vt.confirmDate,
                vt.token,
                u.id,
@@ -87,7 +87,7 @@
                u.password,
                r.role
         FROM verification_token vt
-                 LEFT JOIN user u on vt.user_id = u.id
+                 LEFT JOIN user u on vt.userId = u.id
                  LEFT JOIN user_role r on u.id = r.userId
         WHERE vt.token = #{uuid}
     </select>
