@@ -2,15 +2,21 @@
 <div>
   <header>
     <navbar position="top" expand="large" dark>
-      <mdb-navbar-brand href="#">
-        <span class="font-weight-bold">
-            TOP MANAGER
-            <span class="tm-dark-color ">Oil Tycoon</span>
-        </span>
-      </mdb-navbar-brand>
+
+      <router-link :to="{ name: 'home'}" tag="div">
+        <mdb-navbar-brand href="#">
+          <span class="font-weight-bold">
+              TOP MANAGER
+              <span class="tm-dark-color ">Oil Tycoon</span>
+          </span>
+        </mdb-navbar-brand>
+      </router-link>
+
       <navbar-collapse>
         <navbar-nav>
-          <navbar-item href="#" active>Главная</navbar-item>
+          <router-link :to="{ name: 'home'}" tag="div">
+            <navbar-item href="#" active>Главная</navbar-item>
+          </router-link>
           <navbar-item href="#">Об игре</navbar-item>
           <navbar-item href="#">Контакты</navbar-item>
         </navbar-nav>
@@ -58,10 +64,6 @@ import {
   DropdownToggle
 } from 'mdbvue';
 
-import {
-  mapActions
-} from 'vuex';
-
 export default {
   name: 'NavTop',
   components: {
@@ -88,19 +90,6 @@ export default {
         return this.$store.getters.profile;
       }
     }
-  },
-  created() {
-    if (this.isLoggedIn == false) {
-      this.getDataProfile()
-        .catch((error) => {
-          console.log('error', error);
-        });
-    }
-  },
-  methods: {
-    ...mapActions([
-      'getDataProfile'
-    ])
   }
 }
 </script>

@@ -1,13 +1,8 @@
 <template>
 <div id="app">
-  <notifications
-  group="system-notifications"
-  position="top center"
-  width="30%"
-  classes="vue-notification-custom"
-  :max="1">
+  <notifications group="system-notifications" position="top center" width="30%" classes="vue-notification-custom" :max="1">
   </notifications>
-  <nav-top></nav-top>
+  <nav-top v-if="isNotFoundPage"></nav-top>
   <router-view>
 
   </router-view>
@@ -16,11 +11,18 @@
 
 <script>
 import NavTop from './NavTop.vue'
+import axios from 'axios'
+
 export default {
+  name: 'app',
   components: {
     NavTop
   },
-  name: 'app'
+  computed: {
+    isNotFoundPage() {
+      return 'notFound' != this.$route.name;
+    }
+  }
 };
 </script>
 
@@ -33,6 +35,7 @@ export default {
   height: 100%;
   background: #1D766F;
 }
+
 .vue-notification-custom {
   padding: 10px;
   margin: 0 5px 5px;
@@ -43,5 +46,4 @@ export default {
   background: #ff384d !important;
   border-left: 5px solid #d61d31;
 }
-
 </style>

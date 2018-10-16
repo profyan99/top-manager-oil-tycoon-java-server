@@ -1,6 +1,5 @@
 <template>
 <div>
-  <nav-top></nav-top>
   <div class="view" id="main">
     <div class="mask rgba-teal-strong">
       <div class="container-fluid d-flex align-items-center text-center justify-content-center h-100">

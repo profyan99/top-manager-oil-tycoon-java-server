@@ -3,8 +3,7 @@ import * as types from '../util/mutationTypes.js'
 
 const state = {
   user: null,
-  isLoggedIn: false,
-  authErr: null
+  isLoggedIn: false
 };
 
 const mutations = {
@@ -14,22 +13,32 @@ const mutations = {
   },
   [types.SET_LOGGED_IN](state, value) {
     state.isLoggedIn = value;
+  },
+  [types.LOG_OUT](state) {
+    state.isLoggedIn = false;
+    state.user = null;
   }
 };
 
 const actions = {
-  getDataProfile({commit, getters}) {
+  getDataProfile({
+    commit,
+    getters
+  }) {
     return new Promise((resolve, reject) => {
       axios.get(getters.getUrls.profile)
         .then(response => {
           commit(types.SET_PROFILE, response.data);
           resolve();
         }).catch((error) => {
-          reject("Network error");
+          reject(error);
         });
     });
   },
-  signIn({commit,getters}, loginForm) {
+  signIn({
+    commit,
+    getters
+  }, loginForm) {
     return new Promise((resolve, reject) => {
       axios.post(getters.getUrls.signIn, loginForm)
         .then(response => {
@@ -51,8 +60,39 @@ const actions = {
           resolve();
         }).catch(() => {
           reject("Network error");
+        });
+    });
+  },
+  verifyUser({
+    getters,
+    dispatch
+  }, tokenInput) {
+    return new Promise((resolve, reject) => {
+      axios.get(getters.getUrls.verification, {
+          params: {
+            token: tokenInput
+          },
+          validateStatus: function (status) {
+            return status == 200;
+          }
         })
-    })
+        .then((response) => {
+          dispatch('getDataProfile');
+          // .then((response) => {
+          //   console.log('Error: ', response);
+          // }).catch((error) => {
+          //   console.log('Error: ',error, ' ', error.response);
+          //   reject(error);
+          // });
+          resolve();
+        }).catch((error) => {
+          console.log('Error: ',error);
+          reject(error);
+        });
+    });
+  },
+  logOut({commit}) {
+    commit(types.LOG_OUT);
   }
 };
 

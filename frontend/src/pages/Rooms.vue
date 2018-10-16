@@ -17,7 +17,6 @@ export default {
   },
   created() {
     if(this.$store.getters.profile.roles.includes('UNVERIFIED')) {
-      console.log('INNN');
       this.$notify({
         group: 'system-notifications',
         title: 'Подтверждение регистрации',

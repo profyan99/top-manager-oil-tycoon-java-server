@@ -4,7 +4,8 @@ const state = {
   vkAuthLink: backendUrl + '/auth/vkontakte',
   profileUrl: '/api/profile',
   signInUrl: '/api/signin',
-  signUpUrl: '/api/signup'
+  signUpUrl: '/api/signup',
+  verificationEmailUrl: '/api/verification'
 };
 
 const mutations = {
@@ -22,7 +23,8 @@ const getters = {
       vk: state.vkAuthLink,
       profile: state.profileUrl,
       signIn: state.signInUrl,
-      signUp: state.signUpUrl
+      signUp: state.signUpUrl,
+      verification: state.verificationEmailUrl
     };
   }
 };
