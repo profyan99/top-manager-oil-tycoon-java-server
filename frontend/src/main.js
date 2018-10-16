@@ -5,7 +5,6 @@ import App from './components/App.vue'
 import VueRouter from 'vue-router'
 import routes from './routes.js'
 import 'vue-awesome/icons'
-import Icon from 'vue-awesome/components/Icon'
 import store from './store/index'
 import { sync } from 'vuex-router-sync'
 import 'font-awesome/css/font-awesome.css';

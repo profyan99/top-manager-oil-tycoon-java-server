@@ -7,6 +7,7 @@
   classes="vue-notification-custom"
   :max="1">
   </notifications>
+  <nav-top></nav-top>
   <router-view>
 
   </router-view>
@@ -14,8 +15,11 @@
 </template>
 
 <script>
-
+import NavTop from './NavTop.vue'
 export default {
+  components: {
+    NavTop
+  },
   name: 'app'
 };
 </script>

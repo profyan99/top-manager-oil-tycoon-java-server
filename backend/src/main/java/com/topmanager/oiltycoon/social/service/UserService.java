@@ -207,7 +207,8 @@ public class UserService {
                 user.getUserName(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getRoles()
+                user.getRoles(),
+                user.getEmail()
         );
     }
 }

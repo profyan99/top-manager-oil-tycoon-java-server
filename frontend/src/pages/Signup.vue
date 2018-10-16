@@ -128,6 +128,16 @@ export default {
       } else {
         this.signUp(this.signupForm)
           .then(() => {
+            if(this.profile.roles.includes('UNVERIFIED')) {
+              this.$notify({
+                group: 'system-notifications',
+                title: 'Подтверждение регистрации',
+                type: 'warn',
+                text: 'На ваш электронный адрес <b>'+this.profile.email+'</b> \
+                было выслано письмо с ссылкой на подтверждение регистрации аккаунта.',
+                duration: -1,
+              });
+            }
             this.$router.push('rooms');
           }).catch(error => {
             console.log('Error: ' + error);

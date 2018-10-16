@@ -10,6 +10,7 @@ const state = {
 const mutations = {
   [types.SET_PROFILE](state, profile) {
     state.user = profile;
+    state.isLoggedIn = true;
   },
   [types.SET_LOGGED_IN](state, value) {
     state.isLoggedIn = value;
@@ -22,7 +23,6 @@ const actions = {
       axios.get(getters.getUrls.profile)
         .then(response => {
           commit(types.SET_PROFILE, response.data);
-          commit(types.SET_LOGGED_IN, true);
           resolve();
         }).catch((error) => {
           reject("Network error");
@@ -34,7 +34,6 @@ const actions = {
       axios.post(getters.getUrls.signIn, loginForm)
         .then(response => {
           commit(types.SET_PROFILE, response.data);
-          commit(types.SET_LOGGED_IN, true);
           resolve();
         }).catch(() => {
           reject("Network error");
@@ -49,7 +48,6 @@ const actions = {
       axios.post(getters.getUrls.signUp, registerForm)
         .then(response => {
           commit(types.SET_PROFILE, response.data);
-          commit(types.SET_LOGGED_IN, true);
           resolve();
         }).catch(() => {
           reject("Network error");

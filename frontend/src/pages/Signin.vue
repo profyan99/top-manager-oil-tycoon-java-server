@@ -108,7 +108,8 @@ export default {
   },
   methods: {
     ...mapGetters([
-      'isLoggedIn'
+      'isLoggedIn',
+      'profile'
     ]),
     ...mapActions([
       'signIn',
