@@ -78,6 +78,9 @@ import {
 
 import { isSignInValid } from '../validators.js'
 
+import { showVerifyEmailNotification, showErrorNotification } from '../store/util/functions'
+
+
 export default {
   name: 'Login',
   components: {
@@ -118,15 +121,13 @@ export default {
     login() {
       let errs = isSignInValid(this.signinForm);
       if (!errs.isValid) {
-        this.$notify({
-          group: 'signin-notifications',
-          title: 'Ошибка',
-          type: 'error',
-          text: errs.text
-        });
+        showErrorNotification(errs.text);
       } else {
         this.signIn(this.signinForm)
           .then(() => {
+            if(this.profile.roles.includes('UNVERIFIED')) {
+              showVerifyEmailNotification();
+            }
             this.$router.push('rooms');
           }).catch(error => {
             console.log('Error: ' + error);

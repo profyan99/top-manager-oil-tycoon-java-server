@@ -1,26 +1,19 @@
-import axios from 'axios'
+import Vue from 'vue'
+import router from './router'
 import { backendUrl } from './store/modules/misc.js'
 import store from "./store"
 
-const api = axios.create({
-    baseURL: backendUrl,
-    withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json;charset=UTF-8',
-        'Access-Control-Allow-Origin': '*',
-    }
-});
 
-api.interceptors.response.use(undefined, function(err) {
-  console.log("EROR INTERCEPTOR....", err.status);
-  return new Promise(function(resolve, reject) {
-    //&& err.data.errors[0].errorCode == 'AUTHENTICATION_ERROR'
-    if (err.status === 403) {
-      console.log("inner");
+Vue.http.interceptors.push((request, next) => {
+    request.credentials = true;
+    next();
+});
+Vue.http.interceptors.push(function(request) {
+  return function(response) {
+    if (response.status == 403 &&
+      response.body.errors[0].errorCode == 'AUTHENTICATION_ERROR') {
       store.dispatch("logOut");
+      router.push('signin');
     }
-    throw err;
-  });
+  };
 });
-
-export default api;

@@ -77,6 +77,8 @@ import {
   isSignUpValid
 } from '../validators.js'
 
+import { showVerifyEmailNotification, showErrorNotification } from '../store/util/functions'
+
 export default {
   name: "Signup",
   components: {
@@ -119,24 +121,12 @@ export default {
     register() {
       let errs = isSignUpValid(this.signupForm);
       if (!errs.isValid) {
-        this.$notify({
-          group: 'signup-notifications',
-          title: 'Ошибка',
-          type: 'error',
-          text: errs.text
-        });
+        showErrorNotification(errs.text);
       } else {
         this.signUp(this.signupForm)
           .then(() => {
             if(this.profile.roles.includes('UNVERIFIED')) {
-              this.$notify({
-                group: 'system-notifications',
-                title: 'Подтверждение регистрации',
-                type: 'warn',
-                text: 'На ваш электронный адрес <b>'+this.profile.email+'</b> \
-                было выслано письмо с ссылкой на подтверждение регистрации аккаунта.',
-                duration: -1,
-              });
+              showVerifyEmailNotification();
             }
             this.$router.push('rooms');
           }).catch(error => {

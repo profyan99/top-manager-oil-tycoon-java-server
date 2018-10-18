@@ -1,5 +1,5 @@
-import axios from '../../http-common.js'
 import * as types from '../util/mutationTypes.js'
+import Vue from 'vue'
 
 const state = {
   user: null,
@@ -26,12 +26,12 @@ const actions = {
     getters
   }) {
     return new Promise((resolve, reject) => {
-      axios.get(getters.getUrls.profile)
+      Vue.http.get(getters.getUrls.profile)
         .then(response => {
           commit(types.SET_PROFILE, response.data);
           resolve();
-        }).catch((error) => {
-          reject(error);
+        }, response => {
+          reject(response);
         });
     });
   },
@@ -40,11 +40,11 @@ const actions = {
     getters
   }, loginForm) {
     return new Promise((resolve, reject) => {
-      axios.post(getters.getUrls.signIn, loginForm)
+      Vue.http.post(getters.getUrls.profile, loginForm)
         .then(response => {
           commit(types.SET_PROFILE, response.data);
           resolve();
-        }).catch(() => {
+        }, () => {
           reject("Network error");
         });
     });
@@ -54,11 +54,11 @@ const actions = {
     getters
   }, registerForm) {
     return new Promise((resolve, reject) => {
-      axios.post(getters.getUrls.signUp, registerForm)
+      Vue.http.post(getters.getUrls.signUp, registerForm)
         .then(response => {
           commit(types.SET_PROFILE, response.data);
           resolve();
-        }).catch(() => {
+        }, () => {
           reject("Network error");
         });
     });
@@ -68,30 +68,25 @@ const actions = {
     dispatch
   }, tokenInput) {
     return new Promise((resolve, reject) => {
-      axios.get(getters.getUrls.verification, {
+      Vue.http.get(getters.getUrls.verification, {
           params: {
             token: tokenInput
-          },
-          validateStatus: function (status) {
-            return status == 200;
           }
         })
-        .then((response) => {
-          dispatch('getDataProfile');
-          // .then((response) => {
-          //   console.log('Error: ', response);
-          // }).catch((error) => {
-          //   console.log('Error: ',error, ' ', error.response);
-          //   reject(error);
-          // });
+        .then(() => {
+          dispatch('getDataProfile')
+            .catch((error) => {
+              reject(error);
+            });
           resolve();
-        }).catch((error) => {
-          console.log('Error: ',error);
-          reject(error);
+        }, response => {
+          reject(response);
         });
     });
   },
-  logOut({commit}) {
+  logOut({
+    commit
+  }) {
     commit(types.LOG_OUT);
   }
 };

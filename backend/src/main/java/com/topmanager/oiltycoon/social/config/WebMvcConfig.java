@@ -13,6 +13,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry
                 .addMapping("/**")
                 .allowCredentials(true)
+                .allowedHeaders("*")
+                .allowedMethods("*")
                 .allowedOrigins("http://localhost:8080");
     }
 }

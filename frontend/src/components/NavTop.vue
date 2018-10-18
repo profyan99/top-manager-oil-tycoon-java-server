@@ -6,7 +6,7 @@
       <router-link :to="{ name: 'home'}" tag="div">
         <mdb-navbar-brand href="#">
           <span class="font-weight-bold">
-              TOP MANAGER
+              TOP MANAGER {{selected}}
               <span class="tm-dark-color ">Oil Tycoon</span>
           </span>
         </mdb-navbar-brand>
@@ -79,7 +79,9 @@ export default {
     DropdownToggle
   },
   data() {
-    return {}
+    return {
+      selected: -1
+    }
   },
   computed: {
     isLoggedIn: function() {
@@ -89,6 +91,13 @@ export default {
       if(this.isLoggedIn) {
         return this.$store.getters.profile;
       }
+    }
+  },
+  methods: {
+    menu(selected) {
+      console.log("EXIT: ", selected);
+      this.$store.actions.dispatch('logOut');
+      this.$router.push('home');
     }
   }
 }
