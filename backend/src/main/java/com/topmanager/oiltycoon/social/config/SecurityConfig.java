@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.social.config;
 
+import com.topmanager.oiltycoon.social.security.LogoutSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +36,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private AuthenticationEntryPoint authenticationEntryPoint;
 
+    private LogoutSuccessHandler logoutSuccessHandler;
+
     @Autowired
     public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
         this.authenticationEntryPoint = authenticationEntryPoint;
@@ -53,6 +56,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     public void setAuthenticationFailureHandler(AuthenticationFailureHandler authenticationFailureHandler) {
         this.authenticationFailureHandler = authenticationFailureHandler;
+    }
+
+    @Autowired
+    public void setLogoutSuccessHandler(LogoutSuccessHandler logoutSuccessHandler) {
+        this.logoutSuccessHandler = logoutSuccessHandler;
     }
 
     @Override
@@ -78,8 +86,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .successHandler(authenticationSuccessHandler)
                     .failureHandler(authenticationFailureHandler)
                 .and().logout()
-                    .disable()
-                .exceptionHandling()
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID")
+                    .logoutUrl("/api/logout")
+                    .logoutSuccessHandler(logoutSuccessHandler)
+                    .permitAll()
+                .and().exceptionHandling()
                    .authenticationEntryPoint(authenticationEntryPoint)
                 .and().csrf()
                     .disable();

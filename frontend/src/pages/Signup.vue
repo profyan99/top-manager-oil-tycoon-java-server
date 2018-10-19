@@ -121,7 +121,7 @@ export default {
     register() {
       let errs = isSignUpValid(this.signupForm);
       if (!errs.isValid) {
-        showErrorNotification(errs.text);
+        showErrorNotification(errs.text)
       } else {
         this.signUp(this.signupForm)
           .then(() => {

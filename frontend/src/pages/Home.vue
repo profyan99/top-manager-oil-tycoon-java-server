@@ -58,11 +58,6 @@ header,
   height: 100vh;
 }
 
-/*
-.navbar-nav li {
-  margin-right: 20pt;
-} */
-
 .tm-dark-color {
   color: #202020;
 }

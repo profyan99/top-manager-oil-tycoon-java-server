@@ -103,6 +103,7 @@ public class UserService {
         if(verificationToken.getConfirmDate().isBefore(LocalDateTime.now())) {
             throw new RestException(ErrorCode.CONFIRM_TIME_EXPIRED);
         }
+
         user.getRoles().remove(UserRole.UNVERIFIED);
         userDao.update(user);
     }
@@ -163,6 +164,7 @@ public class UserService {
                 new UsernamePasswordAuthenticationToken(user.getUserName(), user.getPassword(), authorities));
 
     }
+
 
     public User createUserFromSignUpForm(SignUpRequestDto dto) {
         return new User(

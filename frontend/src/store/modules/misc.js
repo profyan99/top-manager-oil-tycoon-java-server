@@ -5,7 +5,8 @@ const state = {
   profileUrl: 'api/profile',
   signInUrl: 'api/signin',
   signUpUrl: 'api/signup',
-  verificationEmailUrl: 'api/verification/',
+  verificationEmailUrl: 'api/verification',
+  logOutUrl: 'api/logout',
   errors: {
     ERROR_WITH_DATABASE: "ERROR_WITH_DATABASE",
     ERROR_WITH_AUTHENTICATION: "ERROR_WITH_AUTHENTICATION",
@@ -37,7 +38,8 @@ const getters = {
       profile: state.profileUrl,
       signIn: state.signInUrl,
       signUp: state.signUpUrl,
-      verification: state.verificationEmailUrl
+      verification: state.verificationEmailUrl,
+      logout: state.logOutUrl
     };
   },
   getErrors(state) {

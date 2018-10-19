@@ -6,7 +6,7 @@
       <router-link :to="{ name: 'home'}" tag="div">
         <mdb-navbar-brand href="#">
           <span class="font-weight-bold">
-              TOP MANAGER {{selected}}
+              TOP MANAGER
               <span class="tm-dark-color ">Oil Tycoon</span>
           </span>
         </mdb-navbar-brand>
@@ -30,7 +30,7 @@
               <dropdown-menu>
                 <dropdown-item>Профиль</dropdown-item>
                 <dropdown-item>Настройки</dropdown-item>
-                <dropdown-item>Выйти</dropdown-item>
+                <dropdown-item @click.native="exit">Выйти</dropdown-item>
               </dropdown-menu>
             </dropdown>
           </div>
@@ -64,6 +64,10 @@ import {
   DropdownToggle
 } from 'mdbvue';
 
+import {
+  mapActions
+} from 'vuex';
+
 export default {
   name: 'NavTop',
   components: {
@@ -80,7 +84,6 @@ export default {
   },
   data() {
     return {
-      selected: -1
     }
   },
   computed: {
@@ -94,10 +97,12 @@ export default {
     }
   },
   methods: {
-    menu(selected) {
-      console.log("EXIT: ", selected);
-      this.$store.actions.dispatch('logOut');
-      this.$router.push('home');
+    ...mapActions([
+      'logOut'
+    ]),
+    exit() {
+      this.logOut();
+      this.$router.push({name: 'home'});
     }
   }
 }

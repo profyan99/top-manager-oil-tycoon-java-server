@@ -76,18 +76,24 @@ const actions = {
         .then(() => {
           dispatch('getDataProfile')
             .catch((error) => {
-              reject(error);
+              reject(error.body.errors);
             });
           resolve();
         }, response => {
-          reject(response);
+          reject(response.body.errors);
         });
     });
   },
   logOut({
+    getters,
     commit
   }) {
-    commit(types.LOG_OUT);
+    Vue.http.post(getters.getUrls.logout)
+      .then(response => {
+        commit(types.LOG_OUT);
+      }, (error) => {
+        console.log('Error: ', error);
+      });
   }
 };
 
