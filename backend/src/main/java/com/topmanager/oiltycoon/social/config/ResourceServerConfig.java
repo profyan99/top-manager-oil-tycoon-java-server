@@ -1,5 +1,7 @@
 package com.topmanager.oiltycoon.social.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -19,11 +21,13 @@ import javax.servlet.http.HttpServletRequest;
 @EnableResourceServer
 public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
+    private static final Logger logger = LoggerFactory.getLogger(ResourceServerConfig.class);
+
     private DefaultTokenServices defaultTokenServices;
 
     private TokenStore tokenStore;
 
-    @Value("${resource.id:spring-boot-application}")
+    @Value("${security.jwt.resource-ids}")
     private String resourceId;
 
     @Autowired
@@ -60,7 +64,13 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         public boolean matches(HttpServletRequest httpServletRequest) {
             String auth = httpServletRequest.getHeader("Authorization");
             boolean haveOauth2Token = (auth != null) && auth.startsWith("Bearer");
+            if(!haveOauth2Token) {
+                logger.debug("Don't have oauth2Token");
+            }
             boolean haveAccessToken = httpServletRequest.getParameter("access_token")!=null;
+            if(!haveAccessToken) {
+                logger.debug("Don't have access_token");
+            }
             return haveOauth2Token || haveAccessToken;
         }
     }

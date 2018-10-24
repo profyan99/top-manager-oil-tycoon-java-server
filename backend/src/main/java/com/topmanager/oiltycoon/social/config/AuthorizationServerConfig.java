@@ -11,14 +11,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
@@ -34,6 +38,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     private AuthenticationManager authenticationManager;
 
     private PasswordEncoder passwordEncoder;
+
+    private UserDetailsService userDetailsService;
 
     @Value("${security.access_token.validity_period}")
     int accessTokenValiditySeconds = 3600;
@@ -73,11 +79,17 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         this.authenticationManager = authenticationManager;
     }
 
+    @Autowired
+    public void setUserDetailsService(UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
+
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         endpoints
                 .tokenStore(tokenStore())
                 .tokenServices(tokenServices())
+                .userDetailsService(userDetailsService)
                 .accessTokenConverter(accessTokenConverter())
                 .authenticationManager(authenticationManager);
     }
@@ -93,10 +105,17 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     }
 
     @Bean
+    @Primary
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+
+        DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
+        DefaultUserAuthenticationConverter userTokenConverter = new DefaultUserAuthenticationConverter();
+        userTokenConverter.setUserDetailsService(userDetailsService);
+        accessTokenConverter.setUserTokenConverter(userTokenConverter);
+
         converter.setSigningKey(signinKey);
-        converter.setVerifierKey(signinKey);
+        converter.setAccessTokenConverter(accessTokenConverter);
         return converter;
     }
 
@@ -106,6 +125,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
+        defaultTokenServices.setTokenEnhancer(accessTokenConverter());
         return defaultTokenServices;
     }
 
@@ -113,17 +133,16 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients
-                /*.inMemory()
-                .withClient("normal-app")
-                .authorizedGrantTypes("authorization_code", "implicit")
-                .authorities("ROLE_CLIENT")
-                .scopes("read", "write")
-                .resourceIds(resourceId)
+                .inMemory()
+                /*.withClient("anonymous")
+                .authorizedGrantTypes("authorization_code")
+                .authorities(UserRole.ANONYMOUS.name())
+                .scopes(scopeRead, scopeWrite)
+                .resourceIds(resourceIds)
                 .autoApprove(true)
                 .accessTokenValiditySeconds(accessTokenValiditySeconds)
                 .refreshTokenValiditySeconds(refreshTokenValiditySeconds)
-                .and()*/
-                .inMemory()
+                    .and()*/
                 .withClient(clientId)
                 .authorizedGrantTypes(grantType)
                 .authorities(UserRole.PLAYER.name())
@@ -131,13 +150,13 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .resourceIds(resourceIds)
                 .accessTokenValiditySeconds(accessTokenValiditySeconds)
                 .refreshTokenValiditySeconds(refreshTokenValiditySeconds)
-                .secret(passwordEncoder.encode(clientSecret));//passwordEncoder.encode(secret)
+                .secret(passwordEncoder.encode(clientSecret));
     }
-    /*
+
     @Override
     public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
         oauthServer
-                .tokenKeyAccess("isAnonymous() || hasAuthority('ROLE_TRUSTED_CLIENT')")
-                .checkTokenAccess("hasAuthority('ROLE_TRUSTED_CLIENT')");
-    }*/
+                .tokenKeyAccess("isAnonymous() || hasAuthority('"+UserRole.PLAYER.name()+"')")
+                .checkTokenAccess("hasAuthority('"+UserRole.PLAYER.name()+"')");
+    }
 }
