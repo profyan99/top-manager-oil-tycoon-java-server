@@ -1,14 +1,23 @@
 package com.topmanager.oiltycoon.social.config;
 
+import com.topmanager.oiltycoon.RestExceptionHandler;
 import com.topmanager.oiltycoon.social.security.LogoutSuccessHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,7 +35,10 @@ import org.springframework.social.security.SpringSocialConfigurer;
         prePostEnabled = true,
         securedEnabled = true,
         jsr250Enabled = true)
+@EnableWebSecurity( debug = true )
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
     private AuthenticationSuccessHandler authenticationSuccessHandler;
 
@@ -75,28 +87,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 return socialAuthenticationFilter;
             }
         });
-
         http
-                .cors()
-                .and().authorizeRequests()
-                    .antMatchers("/auth/**", "/api/signup", "/api/verification",
-                            "/api/forgot-password","/api/reset-password").permitAll()
-                    .anyRequest().authenticated()
-                .and().formLogin().loginPage("/api/signin")
-                    .successHandler(authenticationSuccessHandler)
-                    .failureHandler(authenticationFailureHandler)
-                .and().logout()
-                    .clearAuthentication(true)
-                    .deleteCookies("JSESSIONID")
-                    .logoutUrl("/api/logout")
-                    .logoutSuccessHandler(logoutSuccessHandler)
-                    .permitAll()
+                .cors().and()
+                .authorizeRequests()
+                .antMatchers("/auth/**").permitAll()
+                .antMatchers(HttpMethod.OPTIONS).permitAll()
+                .anyRequest().authenticated()
+                .and()
+                    .httpBasic()
+                    .authenticationEntryPoint(authenticationEntryPoint)
                 .and().exceptionHandling()
-                   .authenticationEntryPoint(authenticationEntryPoint)
-                .and().csrf()
-                    .disable();
+                    .authenticationEntryPoint(authenticationEntryPoint)
+                .and()
+                    .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        //Apply SocialSecurityFilterChain
         http.apply(socialConfigurer);
     }
 
@@ -112,5 +117,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder(10);
     }
 
+    @Override
+    @Bean
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
 
 }

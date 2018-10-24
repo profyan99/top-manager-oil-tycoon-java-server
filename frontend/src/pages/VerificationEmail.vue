@@ -2,21 +2,19 @@
 <div class="">
   <div class="view" id="main">
     <div class="mask rgba-teal-strong">
-      <div class="container-fluid d-flex align-items-center text-center justify-content-center h-100">
-        <div class="row ">
-          <div class="col-md-12">
-            <div class="animated slideInDown">
-              <h2 class="h1 font-weight-bold white-text pt-5 mb-2">
-                  Подтверждение регистрации
-              </h2>
-              <h4 class="white-text mb-5 pt-2" v-show="status != -1">
-                {{ message[status] }}
-              </h4>
-              <router-link :to="{ name: 'home'}">
-                <button class="btn btn-lg waves-effect waves-light animated slideInUp" id="startBtn">
-                  НА ГЛАВНУЮ
-                </button>
-              </router-link>
+      <div class="container-fluid h-100 align-items-center text-center justify-content-center d-flex">
+        <div class="row row d-flex justify-content-center w-100">
+          <div class="col-md-4">
+            <div class="card mt-5 animated fadIn">
+              <div class="card-body text-center">
+                <h3 class="card-title"><strong>Подтверждение регистрации</strong></h3>
+                <p class=" mb-5 mt-4">{{ message[status] }}</p>
+                <router-link :to="{ name: 'home'}">
+                  <button class="btn waves-effect waves-light animated slideInUp" id="startBtn">
+                    НА ГЛАВНУЮ
+                  </button>
+                </router-link>
+              </div>
             </div>
           </div>
         </div>
@@ -55,6 +53,7 @@ export default {
         } else if (errorCode == this.$store.getters.getErrors.CONFIRM_TIME_EXPIRED) {
           this.status = 2;
         } else {
+          this.status = 1;
           console.log('Ошибка:: ', errorCode, ' msg: ', error[0].message);
         }
       });

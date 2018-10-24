@@ -15,6 +15,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowCredentials(true)
                 .allowedHeaders("*")
                 .allowedMethods("*")
-                .allowedOrigins("http://localhost:8080");
+                .allowedOrigins("*");
+                //TODO test
+               // .allowedOrigins("http://localhost:8080");
     }
 }
