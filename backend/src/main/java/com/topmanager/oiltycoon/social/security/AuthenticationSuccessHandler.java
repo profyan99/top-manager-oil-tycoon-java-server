@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.topmanager.oiltycoon.social.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -49,13 +50,14 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
 
     public AuthenticationSuccessHandler() {
         super();
-        setDefaultTargetUrl(frontendUrl+"/signin");
+        logger.error(":: "+(frontendUrl+"/signin"));
+        setDefaultTargetUrl("http://localhost:8080/signin");
         setAlwaysUseDefaultTargetUrl(true);
     }
 
     public AuthenticationSuccessHandler(String defaultTargetUrl) {
         super(defaultTargetUrl);
-        setDefaultTargetUrl(frontendUrl+"/signin");
+        setDefaultTargetUrl("http://localhost:8080/signin");
         setAlwaysUseDefaultTargetUrl(true);
     }
 

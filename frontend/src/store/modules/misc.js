@@ -7,6 +7,8 @@ const state = {
   signUpUrl: 'api/signup',
   verificationEmailUrl: 'api/verification',
   logOutUrl: 'api/logout',
+  authenticateUrl: 'oauth/token',
+  authSecret: 'dHJ1c3RlZC1jbGllbnQ6WFk3a216b056bDEwMA==',
   errors: {
     ERROR_WITH_DATABASE: "ERROR_WITH_DATABASE",
     ERROR_WITH_AUTHENTICATION: "ERROR_WITH_AUTHENTICATION",
@@ -39,11 +41,15 @@ const getters = {
       signIn: state.signInUrl,
       signUp: state.signUpUrl,
       verification: state.verificationEmailUrl,
-      logout: state.logOutUrl
+      logout: state.logOutUrl,
+      authenticate: state.authenticateUrl
     };
   },
   getErrors(state) {
     return state.errors;
+  },
+  getAuthSecret(state) {
+    return state.authSecret;
   }
 };
 

@@ -37,12 +37,12 @@ export function isSignInValid(model) {
     text: ''
   };
 
-  if (isEmpty(model.pass) ||
-    isEmpty(model.login)) {
+  if (isEmpty(model.password) ||
+    isEmpty(model.username)) {
     errors.isValid = false;
     errors.text = 'Не все поля заполнены';
-  } else if (model.pass.length < 6 ||
-    model.login.length < 6) {
+  } else if (model.password.length < 6 ||
+    model.username.length < 6) {
     errors.isValid = false;
     errors.text = 'Пароль и логин должны быть не короче 6 символов';
   }

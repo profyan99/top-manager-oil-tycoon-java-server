@@ -16,10 +16,10 @@
               <div class="row justify-content-center animated slideInDown fast">
                 <div class="col-md-10">
                   <div class="md-form mt-">
-                    <mdb-input type="text" label="Логин" icon="user grey-text" v-model="signinForm.login" />
+                    <mdb-input type="text" label="Логин" icon="user grey-text" v-model="signinForm.username" />
                   </div>
                   <div class="md-form mt-5">
-                    <mdb-input type="password" label="Пароль" icon="lock grey-text" v-model="signinForm.pass" />
+                    <mdb-input type="password" label="Пароль" icon="lock grey-text" v-model="signinForm.password" />
                   </div>
                   <div class="form-row justify-content-around mt-2">
                     <div>
@@ -91,8 +91,8 @@ export default {
       vkontakte: this.$store.getters.getUrls.vk,
       google: this.$store.getters.getUrls.google,
       signinForm: {
-        login: '',
-        pass: '',
+        username: '',
+        password: '',
         rememberMe: false
       }
     }
@@ -115,22 +115,23 @@ export default {
       'profile'
     ]),
     ...mapActions([
-      'signIn',
+      'authenticate',
       'getDataProfile'
     ]),
-    login() {
+    async login() {
       let errs = isSignInValid(this.signinForm);
       if (!errs.isValid) {
         showErrorNotification(errs.text);
       } else {
-        this.signIn(this.signinForm)
-          .then(() => {
+        this.authenticate(this.signinForm)
+          .then(async () => {
+            console.log("signIn then: ", (this.profile.roles));
             if(this.profile.roles.includes('UNVERIFIED')) {
               showVerifyEmailNotification();
             }
             this.$router.push('rooms');
           }).catch(error => {
-            console.log('Error: ' + error);
+            console.log('Error login: ' + error);
           });
       }
     }

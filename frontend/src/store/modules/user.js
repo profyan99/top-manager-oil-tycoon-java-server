@@ -3,7 +3,9 @@ import Vue from 'vue'
 
 const state = {
   user: null,
-  isLoggedIn: false
+  isLoggedIn: false,
+  accessToken: null,
+  refreshToken: null
 };
 
 const mutations = {
@@ -16,23 +18,66 @@ const mutations = {
   },
   [types.LOG_OUT](state) {
     state.isLoggedIn = false;
+    state.accessToken = null;
+    state.refreshToken = null;
     state.user = null;
+  },
+  [types.SET_ACCESS_TOKEN](state, token) {
+    state.accessToken = token;
+  },
+  [types.SET_REFRESH_TOKEN](state, token) {
+    state.refreshToken = token;
   }
 };
 
 const actions = {
-  getDataProfile({
+  async getDataProfile({
     commit,
     getters
   }) {
-    return new Promise((resolve, reject) => {
-      Vue.http.get(getters.getUrls.profile)
-        .then(response => {
+    return new Promise(async (resolve, reject) => {
+      await Vue.http.get(getters.getUrls.profile)
+        .then(async response => {
           commit(types.SET_PROFILE, response.data);
           resolve();
-        }, response => {
+        }, async response => {
           reject(response);
         });
+    });
+  },
+  async authenticate({
+    commit,
+    getters,
+    dispatch
+  }, credentials) {
+    return new Promise(async (resolve, reject) => {
+      let cred = {
+        username: credentials.username,
+        password: credentials.password,
+        grant_type: 'password'
+      }
+      Vue.http.post(getters.getUrls.authenticate, cred, {
+        headers: {
+          Authorization: 'Basic ' + getters.getAuthSecret
+        },
+        emulateJSON: true
+      }).then(async response => {
+        commit(types.SET_ACCESS_TOKEN, response.data.access_token);
+        commit(types.SET_REFRESH_TOKEN, response.data.refresh_token);
+        await dispatch('getDataProfile')
+          .then(() => {
+            console.log("RESOLVE after: ", getters.profile.username);
+            resolve();
+          })
+          .catch((error) => {
+            console.log("REJECT getDataProfile");
+            reject(error.body.errors);
+          });
+      }, async (error) => {
+        console.log("REJECT post");
+        console.log(error);
+        reject();
+      });
     });
   },
   signIn({
@@ -85,21 +130,17 @@ const actions = {
     });
   },
   logOut({
-    getters,
     commit
   }) {
-    Vue.http.post(getters.getUrls.logout)
-      .then(response => {
-        commit(types.LOG_OUT);
-      }, (error) => {
-        console.log('Error: ', error);
-      });
+    commit(types.LOG_OUT);
   }
 };
 
 const getters = {
   profile: (state) => state.user,
-  isLoggedIn: (state) => state.isLoggedIn
+  isLoggedIn: (state) => state.isLoggedIn,
+  accessToken: (state) => state.accessToken,
+  refreshToken: (state) => state.refreshToken
 };
 
 export default {

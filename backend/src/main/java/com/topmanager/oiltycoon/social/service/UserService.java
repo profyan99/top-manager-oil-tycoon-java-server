@@ -179,10 +179,13 @@ public class UserService {
 
     private int getCurrentUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        logger.debug("::::: getCurrentUserId: "+principal.toString()+ " ::: "+(principal instanceof UserDetails));
         if (principal instanceof UserDetails) {
+            logger.debug("::::: instance of userDetails");
             String id = ((SocialUserDetails) principal).getUserId();
             return Integer.parseInt(id);
         }
+        logger.debug(":::::: throws AUTH exception");
         throw new RestException(ErrorCode.ERROR_WITH_AUTHENTICATION);
     }
 
