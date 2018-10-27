@@ -61,6 +61,6 @@ public class SocialUserDetailsImpl implements SocialUserDetails {
 
     @Override
     public boolean isEnabled() {
-        return !user.getRoles().contains(UserRole.UNVERIFIED);
+        return true;
     }
 }

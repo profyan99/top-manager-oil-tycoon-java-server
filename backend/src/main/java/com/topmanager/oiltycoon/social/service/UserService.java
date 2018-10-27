@@ -12,20 +12,15 @@ import com.topmanager.oiltycoon.social.model.UserRole;
 import com.topmanager.oiltycoon.social.model.VerificationToken;
 import com.topmanager.oiltycoon.social.security.exception.ErrorCode;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
-import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.core.GrantedAuthorityDefaults;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.social.security.SocialUserDetails;
 import org.springframework.stereotype.Service;
 
@@ -68,7 +63,7 @@ public class UserService {
 
 
 
-    public UserDto create(SignUpRequestDto dto) {
+    public void create(SignUpRequestDto dto) {
         if(userDao.findByEmail(dto.getEmail()).isPresent()) {
             throw new RestException(ErrorCode.EMAIL_NOT_UNIQUE);
         }
@@ -77,8 +72,6 @@ public class UserService {
         }
         User user = createUserFromSignUpForm(dto);
         createAndSendVerify(user);
-        authenticateUser(user);
-        return userDtoFromUserModel(user);
     }
 
     public void createAndSendVerify(User user) {
@@ -92,7 +85,6 @@ public class UserService {
             sendVerification(user, Utils.MailMessage.REGISTRATION_CONFIRM);
         }
     }
-
 
 
     public void verification(String uuid) {
@@ -179,13 +171,11 @@ public class UserService {
 
     private int getCurrentUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        logger.debug("::::: getCurrentUserId: "+principal.toString()+ " ::: "+(principal instanceof UserDetails));
+        logger.debug("getCreds: "+principal+" :: "+principal.getClass());
         if (principal instanceof UserDetails) {
-            logger.debug("::::: instance of userDetails");
             String id = ((SocialUserDetails) principal).getUserId();
             return Integer.parseInt(id);
         }
-        logger.debug(":::::: throws AUTH exception");
         throw new RestException(ErrorCode.ERROR_WITH_AUTHENTICATION);
     }
 

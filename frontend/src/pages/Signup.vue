@@ -77,7 +77,7 @@ import {
   isSignUpValid
 } from '../validators.js'
 
-import { showVerifyEmailNotification, showErrorNotification } from '../store/util/functions'
+import { showAfterSuccessRegistration, showErrorNotification } from '../store/util/functions'
 
 export default {
   name: "Signup",
@@ -101,13 +101,6 @@ export default {
   created() {
     if (this.isLoggedIn == true) {
       this.$router.push('rooms');
-    } else {
-      this.getDataProfile()
-        .then(() => {
-          this.$router.push('rooms');
-        }).catch((error) => {
-          console.log('error', error);
-        });
     }
   },
   methods: {
@@ -125,10 +118,8 @@ export default {
       } else {
         this.signUp(this.signupForm)
           .then(() => {
-            if(this.profile.roles.includes('UNVERIFIED')) {
-              showVerifyEmailNotification();
-            }
-            this.$router.push('rooms');
+            showAfterSuccessRegistration(this);
+            this.$router.push('signin');
           }).catch(error => {
             console.log('Error: ' + error);
           });

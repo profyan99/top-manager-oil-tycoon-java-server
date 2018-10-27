@@ -31,26 +31,26 @@ const mutations = {
 };
 
 const actions = {
-  async getDataProfile({
+  getDataProfile({
     commit,
     getters
   }) {
-    return new Promise(async (resolve, reject) => {
-      await Vue.http.get(getters.getUrls.profile)
-        .then(async response => {
+    return new Promise((resolve, reject) => {
+      Vue.http.get(getters.getUrls.profile)
+        .then(response => {
           commit(types.SET_PROFILE, response.data);
           resolve();
-        }, async response => {
+        }, response => {
           reject(response);
         });
     });
   },
-  async authenticate({
+  authenticate({
     commit,
     getters,
     dispatch
   }, credentials) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let cred = {
         username: credentials.username,
         password: credentials.password,
@@ -61,47 +61,31 @@ const actions = {
           Authorization: 'Basic ' + getters.getAuthSecret
         },
         emulateJSON: true
-      }).then(async response => {
+      }).then(response => {
         commit(types.SET_ACCESS_TOKEN, response.data.access_token);
         commit(types.SET_REFRESH_TOKEN, response.data.refresh_token);
-        await dispatch('getDataProfile')
-          .then(() => {
-            console.log("RESOLVE after: ", getters.profile.username);
-            resolve();
-          })
-          .catch((error) => {
-            console.log("REJECT getDataProfile");
-            reject(error.body.errors);
-          });
-      }, async (error) => {
-        console.log("REJECT post");
-        console.log(error);
-        reject();
+      }).then(() => {
+        return dispatch('getDataProfile')
+      }).then(() => {
+        resolve();
+      }).catch((error) => {
+        reject(error.body.errors);
       });
     });
   },
-  signIn({
-    commit,
-    getters
-  }, loginForm) {
-    return new Promise((resolve, reject) => {
-      Vue.http.post(getters.getUrls.profile, loginForm)
-        .then(response => {
-          commit(types.SET_PROFILE, response.data);
-          resolve();
-        }, () => {
-          reject("Network error");
-        });
-    });
-  },
   signUp({
-    commit,
     getters
   }, registerForm) {
     return new Promise((resolve, reject) => {
-      Vue.http.post(getters.getUrls.signUp, registerForm)
-        .then(response => {
-          commit(types.SET_PROFILE, response.data);
+      let data = {
+        firstName: registerForm.name,
+        lastName: registerForm.surname,
+        userName: registerForm.nickname,
+        email: registerForm.email,
+        password: registerForm.pass
+      };
+      Vue.http.put(getters.getUrls.signUp, data)
+        .then(() => {
           resolve();
         }, () => {
           reject("Network error");
@@ -133,7 +117,42 @@ const actions = {
     commit
   }) {
     commit(types.LOG_OUT);
-  }
+  },
+  checkExpiredToken({
+    dispatch
+  }, response, request) {
+    return new Promise((resolve, reject) => {
+      if (response.status === 401 && response.data.error.code === 'GEN-TOKEN-EXPIRED') {
+        dispatch('refreshToken', request)
+          .then((response) => resolve(response));
+      }
+      resolve(response);
+    });
+  },
+  refreshToken({
+    getters,
+    commit
+  }, request) {
+    return new Promise((resolve, reject) => {
+      let data = {
+        grant_type: 'refresh_token',
+        refresh_token: getters.refreshToken
+      };
+      Vue.http.post(getters.getUrls.authenticate, data, {
+        headers: {
+          Authorization: 'Basic ' + getters.getAuthSecret
+        },
+        emulateJSON: true
+      }).then(response => {
+        commit(types.SET_ACCESS_TOKEN, response.data.access_token);
+        Vue.http(request).then((newResponse) => {
+          resolve(newResponse);
+        }, error => {
+          reject(error);
+        });
+      })
+    });
+  },
 };
 
 const getters = {

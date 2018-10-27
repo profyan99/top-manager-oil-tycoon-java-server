@@ -4,6 +4,7 @@ import com.topmanager.oiltycoon.Utils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.Email;
@@ -17,12 +18,12 @@ import javax.validation.constraints.NotNull;
 public class SignUpRequestDto {
     @NotNull(message = Utils.NAME_NOT_VALID_MESSAGE)
     @NotBlank(message = Utils.NAME_NOT_VALID_MESSAGE)
-    @Range(min = 6, max = 25, message = Utils.NAME_NOT_VALID_MESSAGE)
+    @Length(min = 6, max = 25, message = Utils.NAME_NOT_VALID_MESSAGE)
     private String userName;
 
     @NotNull(message = Utils.NAME_NOT_VALID_MESSAGE)
     @NotBlank(message = Utils.NAME_NOT_VALID_MESSAGE)
-    @Range(min = 6, max = 25, message = Utils.NAME_NOT_VALID_MESSAGE)
+    @Length(min = 6, max = 25, message = Utils.NAME_NOT_VALID_MESSAGE)
     private String password;
 
     private String firstName;

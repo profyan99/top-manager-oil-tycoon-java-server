@@ -30,7 +30,8 @@ public class UserController {
 
     @PutMapping(path = "signup", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> signup(@RequestBody @Valid SignUpRequestDto signUpRequestDto) {
-        return ResponseEntity.ok(userService.create(signUpRequestDto));
+        userService.create(signUpRequestDto);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping(path = "profile")

@@ -1,10 +1,6 @@
 <template>
 <div>
-  <notifications
-  group="signin-notifications"
-  position="bottom right"
-  width="50vh"
-  >
+  <notifications group="signin-notifications" position="bottom right" width="50vh">
   </notifications>
   <div class="container-fluid" id="signin">
     <div class="row d-flex justify-content-center">
@@ -76,9 +72,14 @@ import {
   mdbInput
 } from "mdbvue";
 
-import { isSignInValid } from '../validators.js'
+import {
+  isSignInValid
+} from '../validators.js'
 
-import { showVerifyEmailNotification, showErrorNotification } from '../store/util/functions'
+import {
+  showVerifyEmailNotification,
+  showErrorNotification
+} from '../store/util/functions'
 
 
 export default {
@@ -109,25 +110,26 @@ export default {
         });
     }
   },
-  methods: {
+  computed: {
     ...mapGetters([
       'isLoggedIn',
       'profile'
-    ]),
+    ])
+  },
+  methods: {
     ...mapActions([
       'authenticate',
       'getDataProfile'
     ]),
-    async login() {
+    login() {
       let errs = isSignInValid(this.signinForm);
       if (!errs.isValid) {
         showErrorNotification(errs.text);
       } else {
         this.authenticate(this.signinForm)
-          .then(async () => {
-            console.log("signIn then: ", (this.profile.roles));
-            if(this.profile.roles.includes('UNVERIFIED')) {
-              showVerifyEmailNotification();
+          .then(() => {
+            if (this.profile.roles.includes('UNVERIFIED')) {
+              showVerifyEmailNotification(this);
             }
             this.$router.push('rooms');
           }).catch(error => {
