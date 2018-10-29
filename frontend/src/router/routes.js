@@ -5,6 +5,8 @@ import Rooms from './../pages/Rooms.vue'
 import ForgotPass from './../pages/ForgotPass.vue'
 import NotFound from './../pages/NotFound.vue'
 import VerificationEmail from './../pages/VerificationEmail.vue'
+import Profile from './../pages/Profile.vue'
+import Settings from './../pages/Settings.vue'
 
 export default [{
     name: 'home',
@@ -52,6 +54,22 @@ export default [{
     name:'VerificationEmail',
     path: '/verification',
     component: VerificationEmail
+  },
+  {
+    name: 'settings',
+    path: '/settings',
+    component: Settings,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    name: 'profile',
+    path: '/profile/:userName',
+    component: Profile,
+    meta: {
+      requiresAuth: true
+    }
   }
 
 ]

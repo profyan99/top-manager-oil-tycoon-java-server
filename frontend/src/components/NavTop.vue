@@ -28,8 +28,8 @@
                 {{ userProfile.firstName }} {{ userProfile.lastName }}
               </dropdown-toggle>
               <dropdown-menu>
-                <dropdown-item>Профиль</dropdown-item>
-                <dropdown-item>Настройки</dropdown-item>
+                <dropdown-item @click.native="profile">Профиль</dropdown-item>
+                <dropdown-item @click.native="settings">Настройки</dropdown-item>
                 <dropdown-item @click.native="exit">Выйти</dropdown-item>
               </dropdown-menu>
             </dropdown>
@@ -103,6 +103,12 @@ export default {
     exit() {
       this.logOut();
       this.$router.push({name: 'home'});
+    },
+    profile() {
+      this.$router.push({name: 'profile', params: { userName: this.userProfile.userName }});
+    },
+    settings() {
+      this.$router.push({name: 'settings'});
     }
   }
 }
