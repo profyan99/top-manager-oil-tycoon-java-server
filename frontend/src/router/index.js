@@ -6,7 +6,7 @@ import {
 } from 'vuex-router-sync'
 import store from './../store/index.js'
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 const router = new VueRouter({
   mode: 'history',

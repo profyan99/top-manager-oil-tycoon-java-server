@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import router from './router'
-import { backendUrl } from './store/modules/misc.js'
 import store from "./store"
 
 

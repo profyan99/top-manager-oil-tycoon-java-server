@@ -55,7 +55,7 @@ const actions = {
         username: credentials.username,
         password: credentials.password,
         grant_type: 'password'
-      }
+      };
       Vue.http.post(getters.getUrls.authenticate, cred, {
         headers: {
           Authorization: 'Basic ' + getters.getAuthSecret
