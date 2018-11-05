@@ -15,7 +15,7 @@
             </div>
 
 
-            <button class="btn btn-lg waves-effect waves-light animated slideInUp" id="startBtn" @click="start">
+            <button class="btn btn-lg waves-effect waves-light animated slideInUp global-dark-btn"  @click="start">
                 СТАРТ
             </button>
 
@@ -49,8 +49,6 @@ export default {
 }
 </script>
 <style>
-header,
-#main {}
 
 #main {
   background-image: url("./../assets/img/bg.jpg");
@@ -62,8 +60,8 @@ header,
   color: #202020;
 }
 
-#startBtn {
-  background-color: #202020;
+.global-dark-btn {
+  background-color: #202020 !important;
 }
 
 </style>

@@ -87,8 +87,8 @@ const actions = {
       Vue.http.put(getters.getUrls.signUp, data)
         .then(() => {
           resolve();
-        }, () => {
-          reject("Network error");
+        }, (error) => {
+          reject(error.body.errors);
         });
     });
   },
@@ -151,6 +151,28 @@ const actions = {
           reject(error);
         });
       })
+    });
+  },
+  updateProfile({
+    getters,
+    commit
+  }, form) {
+    return new Promise((resolve, reject) => {
+      let data = {
+        userName: getters.profile.userName,
+        firstName: (form.name == '') ? getters.profile.firstName : form.name,
+        lastName: (form.surname == '') ? getters.profile.lastName : form.surname,
+        oldPassword: form.oldPass,
+        newPassword: form.newPass
+      };
+
+      Vue.http.post(getters.getUrls.profile, data)
+      .then(response => {
+        commit(types.SET_PROFILE, response.data);
+        resolve();
+      }, (error) => {
+        reject(error.body.errors);
+      });
     });
   },
 };

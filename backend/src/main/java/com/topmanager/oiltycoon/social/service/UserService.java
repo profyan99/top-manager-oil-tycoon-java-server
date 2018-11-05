@@ -104,18 +104,24 @@ public class UserService {
         User user = userDao.findById(getCurrentUserId()).orElseThrow(
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
         );
-        if(!user.getPassword().equals(passwordEncoder.encode(dto.getOldPassword()))) {
-            throw new RestException(ErrorCode.INVALID_OLD_PASSWORD);
+        if(!dto.getNewPassword().isEmpty() && !dto.getOldPassword().isEmpty()) {
+
+            if(!passwordEncoder.matches(dto.getOldPassword(),user.getPassword())
+            || dto.getOldPassword().length() < 6 || dto.getOldPassword().length() > 25) {
+                throw new RestException(ErrorCode.INVALID_OLD_PASSWORD);
+            }
         }
-        if(userDao.findByUserName(dto.getUserName()).isPresent()) {
-            throw new RestException(ErrorCode.USERNAME_NOT_UNIQUE);
+        if(!user.getUserName().equals(dto.getUserName())) {
+            if(userDao.findByUserName(dto.getUserName()).isPresent()) {
+                throw new RestException(ErrorCode.USERNAME_NOT_UNIQUE);
+            }
         }
+
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setUserName(dto.getUserName());
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         userDao.update(user);
-        authenticateUser(user);
         return userDtoFromUserModel(user);
     }
 
@@ -136,7 +142,6 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         userDao.update(user);
-        authenticateUser(user);
         return userDtoFromUserModel(user);
     }
 
@@ -146,17 +151,6 @@ public class UserService {
         );
         userDao.delete(user);
     }
-
-
-
-    private void authenticateUser(User user) {
-        Set<GrantedAuthority> authorities = new HashSet<>();
-        user.getRoles().forEach(r -> authorities.add(new SimpleGrantedAuthority(r.name())));
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(user.getUserName(), user.getPassword(), authorities));
-
-    }
-
 
     public User createUserFromSignUpForm(SignUpRequestDto dto) {
         return new User(

@@ -1,5 +1,7 @@
 <template lang="html">
 <div class="">
+  <notifications group="signup-notifications" position="bottom right">
+  </notifications>
   <div class="view" id="main">
     <div class="mask rgba-teal-strong">
       <div class="container-fluid h-100 d-flex mt-5">
@@ -9,7 +11,9 @@
               <div class="card-body">
                 <list-group>
                   <list-group-item v-for="(item, index) in settingsItems"
-                  :action="true" :active="item.active" @click.native="settingsSelect(index)">
+                  :action="true" :active="item.active"
+                   @click.native="settingsSelect(index)"
+                   :key="item.title">
                     {{ item.title }}
                   </list-group-item>
 
@@ -19,10 +23,11 @@
           </div>
           <div class="col-md-8 d-flex h-75">
             <div class="card w-100 animated fadeInDown fast">
-              <div class="card-body">
-                <h2 class="card-title pl-5 pb-2"><strong>Настройки</strong></h2>
+              <div class="card-body pl-5">
+                <h2 class="card-title pb-2"><strong>Настройки</strong></h2>
                 <hr>
                 <div class="pt-2">
+                  <h4 class="dark-grey-text"><strong>{{ settingsItems[currentEl].title }}</strong></h4>
                   <component :is="currentComponent"></component>
                 </div>
               </div>
@@ -41,45 +46,61 @@ import {
   ListGroupItem
 } from "mdbvue";
 
+import AccountSettings from '../components/settings/AccountSettings'
+import GameSettings from '../components/settings/GameSettings'
+import NotificationSettings from '../components/settings/NotificationSettings'
+import SecuritySettings from '../components/settings/SecuritySettings'
+import SocialSettings from '../components/settings/SocialSettings'
+
 export default {
   name: 'Settings',
   data() {
     return {
-      currentComponent: null,
+      currentComponent: AccountSettings,
       currentEl: 0,
-      settingsItems: [
-        {
+      settingsItems: [{
           title: "Аккаунт",
-          active: true
+          active: true,
+          component: AccountSettings
         },
         {
           title: "Безопасность",
-          active: false
+          active: false,
+          component: SecuritySettings
         },
         {
           title: "Игровые настройки",
-          active: false
+          active: false,
+          component: GameSettings
         },
         {
           title: "Уведомления",
-          active: false
+          active: false,
+          component: NotificationSettings
         },
         {
           title: "Социальные сети",
-          active: false
+          active: false,
+          component: SocialSettings
         }
       ]
     }
   },
   components: {
     ListGroup,
-    ListGroupItem
+    ListGroupItem,
+    AccountSettings,
+    GameSettings,
+    NotificationSettings,
+    SecuritySettings,
+    SocialSettings
   },
   methods: {
     settingsSelect(selected) {
       this.settingsItems[this.currentEl].active = false;
       this.settingsItems[selected].active = true;
       this.currentEl = selected;
+      this.currentComponent = this.settingsItems[selected].component;
     }
   }
 }

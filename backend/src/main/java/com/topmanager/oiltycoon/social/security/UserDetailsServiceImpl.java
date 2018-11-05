@@ -2,6 +2,8 @@ package com.topmanager.oiltycoon.social.security;
 
 import com.topmanager.oiltycoon.social.dao.UserDao;
 import com.topmanager.oiltycoon.social.model.User;
+import com.topmanager.oiltycoon.social.security.exception.ErrorCode;
+import com.topmanager.oiltycoon.social.security.exception.RestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +27,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String s) throws RestException {
         logger.debug("LoadUserByUsername[Pure]: "+s);
-        User user = userDao.findByUserName(s).orElseThrow(()->new UsernameNotFoundException("Account not found"));
+        User user = userDao.findByUserName(s).orElseThrow(()->new RestException(ErrorCode.ACCOUNT_NOT_FOUND));
         return new SocialUserDetailsImpl(user);
     }
 }

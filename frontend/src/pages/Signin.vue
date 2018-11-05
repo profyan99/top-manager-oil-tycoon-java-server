@@ -124,7 +124,7 @@ export default {
     login() {
       let errs = isSignInValid(this.signinForm);
       if (!errs.isValid) {
-        showErrorNotification(errs.text);
+        showErrorNotification(this, errs.text);
       } else {
         this.authenticate(this.signinForm)
           .then(() => {

@@ -48,3 +48,27 @@ export function isSignInValid(model) {
   }
   return errors;
 }
+
+export function isEditProfileValid(model) {
+  let errors = {
+    isValid: true,
+    text: ''
+  };
+
+  if (isEmpty(model.oldPass) && !isEmpty(model.newPass) ||
+    !isEmpty(model.oldPass) && isEmpty(model.newPass)) {
+    errors.isValid = false;
+    errors.text = 'Если вы хотите изменить пароль, то оба поля с паролем должны быть заполнены';
+  } else if (checkLength(model.name) ||
+    checkLength(model.surname) ||
+    checkLength(model.newPass) ||
+    checkLength(model.oldPass)) {
+    errors.isValid = false;
+    errors.text = 'Данные должны быть не короче 6 символов';
+  }
+  return errors;
+}
+
+function checkLength(field) {
+  return !isEmpty(field) && field.length < 6;
+}

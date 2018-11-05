@@ -19,8 +19,8 @@ export function showAfterSuccessRegistration(context) {
   });
 }
 
-export function showErrorNotification(text) {
-  this.$notify({
+export function showErrorNotification(context, text) {
+  context.$notify({
     group: 'signup-notifications',
     title: 'Ошибка',
     type: 'error',
