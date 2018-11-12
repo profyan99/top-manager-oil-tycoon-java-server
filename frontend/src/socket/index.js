@@ -1,0 +1,39 @@
+import SockJS from "sockjs-client";
+//import Stomp from '@stomp/stompjs'
+import Stomp from "webstomp-client";
+import store from '../store'
+import {
+  SET_SOCKET_CONNECTED
+} from '../store/util/mutationTypes.js'
+
+
+var stompClient = null;
+
+export function socketConnect() {
+  let socket = new SockJS(store.getters.getUrls.socket + '?access_token=' + store.getters.accessToken);
+  stompClient = Stomp.over(socket);
+  /*var headers = {
+    'Authorization': 'Bearer ' + store.getters.accessToken
+  };*/
+  return new Promise((resolve, reject) => {
+    stompClient.connect({}, function(frame) {
+      store.commit(SET_SOCKET_CONNECTED, true);
+      console.log("Socket connected", frame);
+      subscribeTopics();
+      resolve();
+    }, function(error) {
+      console.log(error);
+      reject(error);
+    });
+  });
+}
+
+function subscribeTopics() {
+  stompClient.subscribe(store.getters.getSocketTopics.room, function(message) {
+    console.log("Message", JSON.parse(message.body));
+  });
+}
+
+export function sendMessage(message) {
+  stompClient.send(store.getters.getSocketEndpoints.room, JSON.stringify(message), {});
+}

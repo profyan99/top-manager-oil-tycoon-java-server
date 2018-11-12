@@ -1,4 +1,7 @@
 export const backendUrl = 'http://localhost:8088';
+const baseSocketTopic = '/topic';
+const baseSocketEndpoint = '/app';
+
 const state = {
   googleAuthLink: backendUrl + '/auth/google',
   vkAuthLink: backendUrl + '/auth/vkontakte',
@@ -8,6 +11,13 @@ const state = {
   verificationEmailUrl: 'api/verification',
   logOutUrl: 'api/logout',
   authenticateUrl: 'oauth/token',
+  socketUrl: backendUrl+'/room',
+  socketTopics: {
+      room: baseSocketTopic + '/room'
+  },
+  socketEndpoints: {
+      room: baseSocketEndpoint + '/room'
+  },
   authSecret: 'dHJ1c3RlZC1jbGllbnQ6WFk3a216b056bDEwMA==',
   errors: {
     ERROR_WITH_DATABASE: "ERROR_WITH_DATABASE",
@@ -42,9 +52,12 @@ const getters = {
       signUp: state.signUpUrl,
       verification: state.verificationEmailUrl,
       logout: state.logOutUrl,
-      authenticate: state.authenticateUrl
+      authenticate: state.authenticateUrl,
+      socket: state.socketUrl
     };
   },
+  getSocketTopics: (state) => state.socketTopics,
+  getSocketEndpoints: (state) => state.socketEndpoints,
   getErrors(state) {
     return state.errors;
   },

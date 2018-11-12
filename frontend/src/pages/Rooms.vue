@@ -8,6 +8,8 @@ import {
   mapGetters
 } from 'vuex';
 
+import * as socket from '../socket'
+
 export default {
   name: 'Rooms',
   data() {
@@ -26,6 +28,9 @@ export default {
         duration: -1,
       });
     }
+    socket.socketConnect().then(() => {
+      socket.sendMessage("Hello from frontend!");
+    });
   },
   methods: {
     ...mapGetters([
