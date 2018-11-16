@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 @Component
+@Primary
 public class RestAccessDeniedHandler implements AccessDeniedHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RestAccessDeniedHandler.class);
@@ -35,7 +36,7 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AccessDeniedException e)
             throws IOException, ServletException {
 
-        logger.error("Access Denied Handler");
+        logger.debug("Access Denied Handler");
 
         httpServletResponse.getOutputStream().print(objectMapper.writeValueAsString(
                 new ErrorResponseDto(Collections.singletonList(new ErrorDto(ErrorCode.AUTHENTICATION_ERROR.name(),

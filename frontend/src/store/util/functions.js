@@ -9,12 +9,12 @@ export function showVerifyEmailNotification(context) {
   });
 }
 
-export function showAfterSuccessRegistration(context) {
+export function showSuccessNotification(context, text) {
   context.$notify({
     group: 'system-notifications',
     title: 'Войдите в аккаунт',
     type: 'success',
-    text: 'Регистрация прошла успешно. Войдите в свой аккаунт.',
+    text: text,
     duration: 5000,
   });
 }

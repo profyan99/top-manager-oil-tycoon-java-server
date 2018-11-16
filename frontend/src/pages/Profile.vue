@@ -53,4 +53,7 @@ export default {
 </script>
 
 <style lang="css" scoped>
+#startBtn {
+  background-color: #202020;
+}
 </style>

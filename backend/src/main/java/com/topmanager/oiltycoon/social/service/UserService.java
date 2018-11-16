@@ -62,7 +62,6 @@ public class UserService {
     }
 
 
-
     public void create(SignUpRequestDto dto) {
         if(userDao.findByEmail(dto.getEmail()).isPresent()) {
             throw new RestException(ErrorCode.EMAIL_NOT_UNIQUE);
@@ -92,6 +91,9 @@ public class UserService {
                 () -> new RestException(ErrorCode.VERIFICATION_TOKEN_NOT_FOUND)
         );
         User user = verificationToken.getUser();
+        if(user.getId() != getCurrentUserId()) {
+            throw new RestException(ErrorCode.VERIFICATION_TOKEN_NOT_FOUND);
+        }
         if(verificationToken.getConfirmDate().isBefore(LocalDateTime.now())) {
             throw new RestException(ErrorCode.CONFIRM_TIME_EXPIRED);
         }
@@ -139,6 +141,9 @@ public class UserService {
         User user = verificationToken.getUser();
         if(verificationToken.getConfirmDate().isBefore(LocalDateTime.now())) {
             throw new RestException(ErrorCode.CONFIRM_TIME_EXPIRED);
+        }
+        if(!dto.getNewPassword().equals(dto.getNewPasswordConfirm())) {
+            throw new RestException(ErrorCode.PASSWORDS_IS_NOT_EQUALS);
         }
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         userDao.update(user);

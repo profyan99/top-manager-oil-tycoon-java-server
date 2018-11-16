@@ -1,7 +1,5 @@
 <template>
 <div>
-  <notifications group="signin-notifications" position="bottom right" width="50vh">
-  </notifications>
   <div class="container-fluid" id="signin">
     <div class="row d-flex justify-content-center">
       <div class="col-md-4">
@@ -98,23 +96,26 @@ export default {
       }
     }
   },
-  created() {
-    if (this.isLoggedIn == true) {
-      this.$router.push('rooms');
-    } else {
-      this.getDataProfile()
-        .then(() => {
-          this.$router.push('rooms');
-        }).catch((error) => {
-          console.log('error', error);
-        });
-    }
-  },
   computed: {
     ...mapGetters([
       'isLoggedIn',
       'profile'
     ])
+  },
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      let query = vm.$route.query;
+      if(query.access_token && query.refresh_token) {
+        vm.$store.commit('setAccessToken', query.access_token);
+        vm.$store.commit('setRefreshToken', query.refresh_token);
+        vm.$store.dispatch("getDataProfile")
+          .then(() => {
+            vm.$router.push('rooms');
+          }).catch((error) => {
+            console.log('error', error);
+          });
+      }
+    })
   },
   methods: {
     ...mapActions([
@@ -131,9 +132,20 @@ export default {
             if (this.profile.roles.includes('UNVERIFIED')) {
               showVerifyEmailNotification(this);
             }
+            if (this.$store.getters.profile.roles.includes('UNVERIFIED')) {
+              this.$notify({
+                group: 'system-notifications',
+                title: 'Подтверждение регистрации',
+                type: 'warn',
+                text: 'На ваш электронный адрес <b>' + this.$store.getters.profile.email + '</b> \
+                было выслано письмо с ссылкой на подтверждение регистрации аккаунта.',
+                duration: -1,
+              });
+            }
             this.$router.push('rooms');
           }).catch(error => {
-            console.log('Error login: ' + error);
+            console.log('Error login: ', error);
+            showErrorNotification(this, error);
           });
       }
     }

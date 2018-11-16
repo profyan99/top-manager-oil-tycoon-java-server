@@ -4,13 +4,15 @@ import createPersistedState from 'vuex-persistedstate'
 
 import user from './modules/user'
 import misc from './modules/misc'
+import room from './modules/room'
 
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
 	modules: {
 		user,
-		misc
+		misc,
+		room
 	},
 	plugins: [createPersistedState({
 		paths:['user']

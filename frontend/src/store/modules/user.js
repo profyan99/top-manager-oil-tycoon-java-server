@@ -69,7 +69,20 @@ const actions = {
       }).then(() => {
         resolve();
       }).catch((error) => {
-        reject(error.body.errors);
+        console.log("error", error);
+        let err = '';
+        if (error.body.error !== undefined) {
+          if (error.body.error_description == "Bad credentials") {
+            err = 'Неверный пароль'
+          } else if (error.body.error_description == "Account not found") {
+            err = 'Аккаунт не найден'
+          } else {
+            err = 'Неизвестная ошибка'
+          }
+        } else if (error.body.errors !== undefined) {
+          err = getters.getErrors[error.body.errors[0].errorCode];
+        }
+        reject(err);
       });
     });
   },
@@ -88,7 +101,12 @@ const actions = {
         .then(() => {
           resolve();
         }, (error) => {
-          reject(error.body.errors);
+          console.log("Error: ", error);
+          var err = '';
+          if (error.body.errors !== undefined) {
+            err = error.body.errors[0].message;
+          }
+          reject(err);
         });
     });
   },
@@ -167,12 +185,45 @@ const actions = {
       };
 
       Vue.http.post(getters.getUrls.profile, data)
-      .then(response => {
-        commit(types.SET_PROFILE, response.data);
-        resolve();
-      }, (error) => {
-        reject(error.body.errors);
-      });
+        .then(response => {
+          commit(types.SET_PROFILE, response.data);
+          resolve();
+        }, (error) => {
+          reject(error.body.errors);
+        });
+    });
+  },
+  forgotPassword({getters}, emailInput) {
+    return new Promise((resolve, reject) => {
+      Vue.http.post(getters.getUrls.forgotPassword, {}, {
+          params: {
+            email: emailInput
+          }
+        })
+        .then(() => {
+          resolve();
+        }, response => {
+          reject(response.body.errors);
+        });
+    });
+  },
+  resetPassword({
+    getters
+  }, form) {
+    return new Promise((resolve, reject) => {
+      let data = {
+        newPassword: form.pass,
+        newPasswordConfirm: form.confirmPass,
+        token: form.token
+      };
+      console.log("Data: ", data);
+
+      Vue.http.post(getters.getUrls.resetPassword, data)
+        .then(() => {
+          resolve();
+        }, (error) => {
+          reject(error.body.errors[0].message);
+        });
     });
   },
 };

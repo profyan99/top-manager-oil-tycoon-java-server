@@ -9,8 +9,9 @@ import Notifications from 'vue-notification'
 import router from './router'
 import VueResource from 'vue-resource'
 import { backendUrl } from './store/modules/misc.js'
+import VueCookies from 'vue-cookies'
 
-
+Vue.use(VueCookies);
 Vue.use(VueResource);
 Vue.use(Notifications);
 Vue.config.productionTip = false;

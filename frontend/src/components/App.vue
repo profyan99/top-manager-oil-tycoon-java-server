@@ -1,6 +1,8 @@
 <template>
 <div id="app">
-  <notifications group="system-notifications" position="top center" width="30%" classes="vue-notification-custom" :max="1">
+  <notifications group="system-notifications" position="top center" width="30%" :max="1">
+  </notifications>
+  <notifications group="signup-notifications" position="bottom right" width="50vh">
   </notifications>
   <nav-top v-if="isNotFoundPage"></nav-top>
   <router-view>
@@ -11,7 +13,8 @@
 
 <script>
 import NavTop from './NavTop.vue'
-import axios from 'axios'
+
+// classes="vue-notification-custom"
 
 export default {
   name: 'app',

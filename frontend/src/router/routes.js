@@ -3,6 +3,7 @@ import Signin from './../pages/Signin.vue'
 import Signup from './../pages/Signup.vue'
 import Rooms from './../pages/Rooms.vue'
 import ForgotPass from './../pages/ForgotPass.vue'
+import ResetPass from './../pages/ResetPass.vue'
 import NotFound from './../pages/NotFound.vue'
 import VerificationEmail from './../pages/VerificationEmail.vue'
 import Profile from './../pages/Profile.vue'
@@ -39,8 +40,16 @@ export default [{
   },
   {
     name: 'forgotPass',
-    path: '/forgotpass',
+    path: '/forgot-password',
     component: ForgotPass,
+    meta: {
+      guest: true
+    }
+  },
+  {
+    name: 'resetPass',
+    path: '/reset-password',
+    component: ResetPass,
     meta: {
       guest: true
     }

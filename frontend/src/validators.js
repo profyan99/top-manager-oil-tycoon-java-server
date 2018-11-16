@@ -7,26 +7,51 @@ export function isSignUpValid(model) {
     text: ''
   };
 
-  if (!Validator.isEmail(model.email)) {
-    errors.isValid = false;
-    errors.text = 'Неверный формат электронной почты';
-  } else if (isEmpty(model.pass) ||
+  if (isEmpty(model.pass) ||
     isEmpty(model.confirmPass) ||
     isEmpty(model.name) ||
     isEmpty(model.surname) ||
     isEmpty(model.nickname)) {
     errors.isValid = false;
     errors.text = 'Не все поля заполнены';
-  } else if (!isEmpty(model.pass) && !isEmpty(model.confirmPass) &&
+  } else if (model.pass.length < 6 ||
+    model.name.length < 3 ||
+    model.surname.length < 3 ||
+    model.nickname.length < 6) {
+    errors.isValid = false;
+    errors.text = 'Данные должны быть не короче 6 символов. <br> А имя и фамилия не короче 3.';
+  } else {
+    errors = isPasswordValid(model);
+    if (errors.isValid) {
+      errors = isEmailValid(model.email);
+    }
+  }
+  return errors;
+}
+
+export function isEmailValid(email) {
+  let errors = {
+    isValid: true,
+    text: ''
+  };
+
+  if (!Validator.isEmail(email)) {
+    errors.isValid = false;
+    errors.text = 'Неверный формат электронной почты';
+  }
+  return errors;
+}
+
+export function isPasswordValid(model) {
+  let errors = {
+    isValid: true,
+    text: ''
+  };
+
+  if (!isEmpty(model.pass) && !isEmpty(model.confirmPass) &&
     model.pass !== model.confirmPass) {
     errors.isValid = false;
     errors.text = 'Пароли не совпадают';
-  } else if (model.pass.length < 6 ||
-    model.name.length < 6 ||
-    model.surname.length < 6 ||
-    model.nickname.length < 6) {
-    errors.isValid = false;
-    errors.text = 'Данные должны быть не короче 6 символов';
   }
   return errors;
 }

@@ -11,6 +11,8 @@ const state = {
   verificationEmailUrl: 'api/verification',
   logOutUrl: 'api/logout',
   authenticateUrl: 'oauth/token',
+  forgotPassword: 'api/forgot-password',
+  resetPassword: 'api/reset-password',
   socketUrl: backendUrl+'/room',
   socketTopics: {
       room: baseSocketTopic + '/room'
@@ -53,7 +55,9 @@ const getters = {
       verification: state.verificationEmailUrl,
       logout: state.logOutUrl,
       authenticate: state.authenticateUrl,
-      socket: state.socketUrl
+      socket: state.socketUrl,
+      resetPassword: state.resetPassword,
+      forgotPassword: state.forgotPassword
     };
   },
   getSocketTopics: (state) => state.socketTopics,

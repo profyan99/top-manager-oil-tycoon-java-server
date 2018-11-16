@@ -17,6 +17,9 @@
           <router-link :to="{ name: 'home'}" tag="div">
             <navbar-item href="#" active>Главная</navbar-item>
           </router-link>
+          <router-link :to="{ name: 'rooms'}" tag="div" v-if="isLoggedIn">
+            <navbar-item href="#" active>Комнаты</navbar-item>
+          </router-link>
           <navbar-item href="#">Об игре</navbar-item>
           <navbar-item href="#">Контакты</navbar-item>
         </navbar-nav>

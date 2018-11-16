@@ -91,4 +91,6 @@ public class SocialConfig implements SocialConfigurer {
         Connection<Google> connection = repository.findPrimaryConnection(Google.class);
         return connection != null ? connection.getApi() : null;
     }
+
+
 }

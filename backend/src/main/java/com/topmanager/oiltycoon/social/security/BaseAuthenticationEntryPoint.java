@@ -35,7 +35,7 @@ public class BaseAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException e) throws IOException {
-        logger.error("Commence entry point");
+        logger.debug("Commence entry point");
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.getOutputStream().print(objectMapper.writeValueAsString(
                 new ErrorResponseDto(Collections.singletonList(new ErrorDto(ErrorCode.AUTHENTICATION_ERROR.name(),

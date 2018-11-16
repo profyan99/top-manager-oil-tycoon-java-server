@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -18,7 +19,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserCache;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.cache.SpringCacheBasedUserCache;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -27,6 +30,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.social.UserIdSource;
 import org.springframework.social.security.SocialAuthenticationFilter;
 import org.springframework.social.security.SpringSocialConfigurer;
 
@@ -49,6 +53,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private AuthenticationEntryPoint authenticationEntryPoint;
 
     private LogoutSuccessHandler logoutSuccessHandler;
+
+    private UserIdSource userIdSource;
+
+    @Autowired
+    public void setUserIdSource(UserIdSource userIdSource) {
+        this.userIdSource = userIdSource;
+    }
 
     @Autowired
     public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
@@ -83,14 +94,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             @Override
             public <O extends SocialAuthenticationFilter> O postProcess(O socialAuthenticationFilter) {
                 socialAuthenticationFilter.setAuthenticationSuccessHandler(authenticationSuccessHandler);
-                //socialAuthenticationFilter.setAuthenticationFailureHandler(authenticationFailureHandler);
                 return socialAuthenticationFilter;
             }
         });
         http
                 .cors().and()
                 .authorizeRequests()
-                .antMatchers("/auth/**", "/api/signup").permitAll()
+                .antMatchers("/auth/**", "/api/signup", "/api/forgot-password", "/api/reset-password").permitAll()
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
                 .anyRequest().authenticated()
                 .and()
@@ -102,7 +112,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        http.apply(socialConfigurer);
+        http.apply(socialConfigurer.userIdSource(userIdSource));
     }
 
     @Override
@@ -121,6 +131,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
+    }
+
+    @Bean
+    public UserCache getUserCache() throws Exception {
+        return new SpringCacheBasedUserCache(new ConcurrentMapCache("UserCache", false));
     }
 
 }

@@ -1,13 +1,17 @@
 import * as types from '../util/mutationTypes.js'
-import Vue from 'vue'
+
 
 const state = {
-  connected: false
+  connected: false,
+  messages: []
 };
 
 const mutations = {
   [types.SET_SOCKET_CONNECTED](state, connected) {
     state.connected = connected;
+  },
+  [types.SET_NEW_MESSAGE](state, msg) {
+    state.messages.push(msg);
   }
 };
 
@@ -16,7 +20,8 @@ const actions = {
 };
 
 const getters = {
-  isConnected: (state) => state.connected
+  isConnected: (state) => state.connected,
+  getMessages: (state) => state.messages
 };
 
 export default {

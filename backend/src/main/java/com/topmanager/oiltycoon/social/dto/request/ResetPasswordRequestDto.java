@@ -19,9 +19,13 @@ public class ResetPasswordRequestDto {
     @NotBlank(message = Utils.NAME_NOT_VALID_MESSAGE)
     private String token;
 
-
     @NotNull(message = Utils.NAME_NOT_VALID_MESSAGE)
     @NotBlank(message = Utils.NAME_NOT_VALID_MESSAGE)
     @Length(min = 6, max = 25, message = Utils.NAME_NOT_VALID_MESSAGE)
     private String newPassword;
+
+    @NotNull(message = Utils.NAME_NOT_VALID_MESSAGE)
+    @NotBlank(message = Utils.NAME_NOT_VALID_MESSAGE)
+    @Length(min = 6, max = 25, message = Utils.NAME_NOT_VALID_MESSAGE)
+    private String newPasswordConfirm;
 }

@@ -34,7 +34,7 @@ public class UserDaoImpl extends BaseDao implements UserDao {
             return Optional.ofNullable(getUserMapper(session).findByUserName(userName));
         } catch (RuntimeException e) {
             logger.error("Couldn't find by userName: " + e.toString());
-            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+            throw new RestException(ErrorCode.ERROR_WITH_DATABASE);
         }
     }
 
@@ -46,7 +46,7 @@ public class UserDaoImpl extends BaseDao implements UserDao {
             session.commit();
         } catch (RuntimeException e) {
             logger.error("Couldn't create user: " + e.toString());
-            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+            throw new RestException(ErrorCode.ERROR_WITH_DATABASE);
         }
     }
 
@@ -56,7 +56,7 @@ public class UserDaoImpl extends BaseDao implements UserDao {
             return Optional.ofNullable(getUserMapper(session).findById(userId));
         } catch (RuntimeException e) {
             logger.error("Couldn't find by id: " + e.toString());
-            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+            throw new RestException(ErrorCode.ERROR_WITH_DATABASE);
         }
     }
 
@@ -66,7 +66,7 @@ public class UserDaoImpl extends BaseDao implements UserDao {
             return Optional.ofNullable(getUserMapper(session).findByEmail(email));
         } catch (RuntimeException e) {
             logger.error("Couldn't find by email: " + e.toString());
-            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+            throw new RestException(ErrorCode.ERROR_WITH_DATABASE);
         }
     }
 
@@ -77,7 +77,7 @@ public class UserDaoImpl extends BaseDao implements UserDao {
             session.commit();
         } catch (RuntimeException e) {
             logger.error("Couldn't update user: " + e.toString());
-            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+            throw new RestException(ErrorCode.ERROR_WITH_DATABASE);
         }
     }
 
@@ -88,7 +88,7 @@ public class UserDaoImpl extends BaseDao implements UserDao {
             session.commit();
         } catch (RuntimeException e) {
             logger.error("Couldn't create verification token: " + e.toString());
-            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+            throw new RestException(ErrorCode.ERROR_WITH_DATABASE);
         }
     }
 
@@ -98,7 +98,7 @@ public class UserDaoImpl extends BaseDao implements UserDao {
             return Optional.ofNullable(getUserMapper(session).getVerificationToken(uuid));
         } catch (RuntimeException e) {
             logger.error("Couldn't find verification token by uuid: " + e.toString());
-            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+            throw new RestException(ErrorCode.ERROR_WITH_DATABASE);
         }
     }
 
@@ -109,7 +109,7 @@ public class UserDaoImpl extends BaseDao implements UserDao {
             session.commit();
         } catch (RuntimeException e) {
             logger.error("Couldn't delete user: " + e.toString());
-            throw new RestException(ErrorCode.ERROR_WITH_DAtABASE);
+            throw new RestException(ErrorCode.ERROR_WITH_DATABASE);
         }
     }
 }

@@ -1,7 +1,5 @@
 <template>
 <div>
-  <notifications group="signup-notifications" position="bottom right">
-  </notifications>
   <div class="container-fluid" id="mains">
     <div class="row d-flex justify-content-center">
       <div class="col-md-4">
@@ -50,7 +48,7 @@
                   </div>
                   <hr>
                   <p>
-                    Нажимая <em>Отправить</em>, вы соглашаетесь с парвилами сервиса.
+                    Нажимая <em>Отправить</em>, вы соглашаетесь с правилами сервиса.
                   </p>
                 </div>
               </div>
@@ -77,7 +75,7 @@ import {
   isSignUpValid
 } from '../validators.js'
 
-import { showAfterSuccessRegistration, showErrorNotification } from '../store/util/functions'
+import { showSuccessNotification, showErrorNotification } from '../store/util/functions'
 
 export default {
   name: "Signup",
@@ -118,10 +116,10 @@ export default {
       } else {
         this.signUp(this.signupForm)
           .then(() => {
-            showAfterSuccessRegistration(this);
+            showSuccessNotification(this, 'Регистрация прошла успешно.<br>Вы можете войти в свой аккаунт.');
             this.$router.push('signin');
           }).catch(error => {
-            console.log('Error: ' + error);
+            showErrorNotification(this, error);
           });
       }
     }

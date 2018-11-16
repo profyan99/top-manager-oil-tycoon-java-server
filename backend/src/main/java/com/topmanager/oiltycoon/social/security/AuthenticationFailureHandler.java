@@ -31,7 +31,7 @@ public class AuthenticationFailureHandler extends SimpleUrlAuthenticationFailure
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
 
-        logger.error("Failure Handler");
+        logger.debug("Failure Handler");
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.getOutputStream().print(objectMapper.writeValueAsString(
                 new ErrorResponseDto(Collections.singletonList(new ErrorDto(ErrorCode.AUTHENTICATION_ERROR.name(),

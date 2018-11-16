@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -31,6 +32,8 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
     @Value("${security.jwt.resource-ids}")
     private String resourceId;
 
+    private AuthenticationEntryPoint authenticationEntryPoint;
+
     @Autowired
     public void setDefaultTokenServices(DefaultTokenServices defaultTokenServices) {
         this.defaultTokenServices = defaultTokenServices;
@@ -41,10 +44,15 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         this.tokenStore = tokenStore;
     }
 
+    @Autowired
+    public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
+        this.authenticationEntryPoint = authenticationEntryPoint;
+    }
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
         resources
+                .authenticationEntryPoint(authenticationEntryPoint)
                 .resourceId(resourceId)
                 .tokenServices(defaultTokenServices)
                 .tokenStore(tokenStore);

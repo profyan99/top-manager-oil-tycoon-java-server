@@ -2,7 +2,6 @@ package com.topmanager.oiltycoon.social.config;
 
 
 import com.topmanager.oiltycoon.social.model.UserRole;
-import com.topmanager.oiltycoon.social.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,21 +12,14 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
-import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
-import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
-
-import javax.sql.DataSource;
 
 @Configuration
 @EnableAuthorizationServer
@@ -68,7 +60,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Value("${security.jwt.resource-ids}")
     private String resourceIds;
 
-
     @Autowired
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
@@ -94,11 +85,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .authenticationManager(authenticationManager);
     }
 
-   /* @Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients.jdbc(dataSource);
-    }*/
-
     @Bean
     public TokenStore tokenStore() {
         return new JwtTokenStore(accessTokenConverter());
@@ -108,15 +94,19 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Primary
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-
         DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
-        DefaultUserAuthenticationConverter userTokenConverter = new DefaultUserAuthenticationConverter();
-        userTokenConverter.setUserDetailsService(userDetailsService);
-        accessTokenConverter.setUserTokenConverter(userTokenConverter);
-
+        accessTokenConverter.setUserTokenConverter(getUserAuthenticationConverter(userDetailsService));
         converter.setSigningKey(signinKey);
         converter.setAccessTokenConverter(accessTokenConverter);
         return converter;
+    }
+
+    @Bean
+    public UserAuthenticationConverter getUserAuthenticationConverter(UserDetailsService usr) {
+        DefaultUserAuthenticationConverter userTokenConverter = new DefaultUserAuthenticationConverter();
+        userTokenConverter.setUserDetailsService(usr);
+        logger.debug("UserAuthConverter bean: " + ((usr == null) ? ("null") : (usr.toString())));
+        return userTokenConverter;
     }
 
     @Bean
@@ -156,7 +146,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
         oauthServer
-                .tokenKeyAccess("isAnonymous() || hasAuthority('"+UserRole.PLAYER.name()+"')")
-                .checkTokenAccess("hasAuthority('"+UserRole.PLAYER.name()+"')");
+                .tokenKeyAccess("isAnonymous() || hasAuthority('" + UserRole.PLAYER.name() + "')")
+                .checkTokenAccess("hasAuthority('" + UserRole.PLAYER.name() + "')");
     }
 }

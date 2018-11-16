@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.social.config;
 
+import com.topmanager.oiltycoon.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowCredentials(true)
                 .allowedHeaders("*")
                 .allowedMethods("*")
-                .allowedOrigins("http://localhost:8080");
+                .allowedOrigins(Utils.BASE_URL);
     }
 }

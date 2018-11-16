@@ -1,28 +1,47 @@
 <template>
 <div>
-
-  <div class="container-fluid" id="signin">
-    <div class="row d-flex justify-content-center">
-      <div class="col-md-4">
-        <div class="card mt-5 animated fadeIn">
-          <div class="card-body">
-            <form class="p-4" @submit.prevent="forgotPass">
-              <h3 class="dark-grey-text text-center mb-5"><strong>Восстановление пароля</strong></h3>
-              <div class="row justify-content-center animated slideInDown fast">
-                <div class="col-md-10">
-                  <p>Введите пожалуйста адрес электронной почты от вашего аккаунта. Вам будет отправлена ссылка на восстановление пароля от вашей учетной записи.</p>
-                  <div class="md-form mt-5">
-                    <mdb-input type="text" label="Почта" icon="envelope grey-text" v-model="email" />
+  <div class="view" id="main">
+    <div class="mask rgba-teal-strong">
+      <div class="container-fluid h-100 align-items-center justify-content-center d-flex">
+        <div class="row row d-flex justify-content-center w-100">
+          <div class="col-md-4">
+            <div class="card mt-5 animated fadeIn">
+              <div class="card-body">
+                <h3 class="dark-grey-text text-center mb-5"><strong>Восстановление пароля</strong></h3>
+                <div v-if="success" class="p-4">
+                  <p class="mb-5" v-if="success">
+                    На вашу почту отправлено письмо с ссылкой на восстановление пароля.
+                    Время действия ссылки 1 день.
+                  </p>
+                  <div class=" text-center">
+                    <router-link :to="{ name: 'home'}">
+                      <button class="btn waves-effect waves-light animated slideInUp" id="startBtn">
+                        НА ГЛАВНУЮ
+                      </button>
+                    </router-link>
                   </div>
-                </div>
-              </div>
 
-              <div class="row justify-content-center mt-5 text-center pb-3 animated slideInUp fast">
-                <div class="col-md-10">
-                  <button class="btn btn-primary btn-block mb-3">Восстановить</button>
                 </div>
+                <form class="p-4" @submit.prevent="forgotPass" v-else>
+                  <div class="row justify-content-center animated slideInDown fast">
+                    <div class="col-md-10">
+                      <p>Введите, пожалуйста, адрес электронной почты от вашего аккаунта.
+                        Вам будет отправлена ссылка на восстановление пароля от вашей учетной записи.
+                      </p>
+                      <div class="md-form mt-5">
+                        <mdb-input type="text" label="Почта" icon="envelope grey-text" v-model="email" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row justify-content-center mt-5 text-center pb-3 animated slideInUp fast">
+                    <div class="col-md-10">
+                      <button class="btn btn-primary btn-block mb-3">Восстановить</button>
+                    </div>
+                  </div>
+                </form>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
@@ -38,6 +57,15 @@ import {
   mdbInput
 } from "mdbvue";
 
+import {
+  showErrorNotification,
+  showSuccessNotification
+} from '../store/util/functions'
+
+import {
+  isEmailValid
+} from "../validators"
+
 export default {
   name: 'ForgotPass',
   components: {
@@ -45,19 +73,34 @@ export default {
   },
   data() {
     return {
-      email: ''
+      email: '',
+      success: false
     }
   },
   methods: {
+    ...mapActions([
+      'forgotPassword'
+    ]),
     forgotPass() {
-
+      let error = isEmailValid(this.email);
+      if (!error.isValid) {
+        showErrorNotification(this, error.text);
+      } else {
+        this.forgotPassword(this.email)
+          .then(() => {
+            this.success = true;
+            //showSuccessNotification(this, 'На вашу почту отправлено письмо с ссылкой на восстановление пароля.');
+          }).catch(error => {
+            console.log('Error forgotPass: ', error);
+            showErrorNotification(this, error);
+          });
+      }
     }
   }
 }
 </script>
 <style scoped>
-#signin {
-  background: #1D766F;
-  height: 100vh;
+#startBtn {
+  background-color: #202020;
 }
 </style>

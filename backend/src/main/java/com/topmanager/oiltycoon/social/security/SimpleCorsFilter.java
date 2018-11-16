@@ -1,9 +1,8 @@
 package com.topmanager.oiltycoon.social.security;
 
-import com.topmanager.oiltycoon.social.config.ResourceServerConfig;
+import com.topmanager.oiltycoon.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -20,11 +19,8 @@ public class SimpleCorsFilter implements Filter {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleCorsFilter.class);
 
-    @Value("${frontend.url}")
-    private String fontendUrl;
-
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig) {
         logger.debug("Init filter config");
     }
 
@@ -32,7 +28,7 @@ public class SimpleCorsFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        response.setHeader("Access-Control-Allow-Origin", fontendUrl);
+        response.setHeader("Access-Control-Allow-Origin", Utils.BASE_URL);
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Headers", "x-requested-with, authorization, content-type");

@@ -3,7 +3,7 @@ import SockJS from "sockjs-client";
 import Stomp from "webstomp-client";
 import store from '../store'
 import {
-  SET_SOCKET_CONNECTED
+  SET_SOCKET_CONNECTED, SET_NEW_MESSAGE
 } from '../store/util/mutationTypes.js'
 
 
@@ -12,9 +12,6 @@ var stompClient = null;
 export function socketConnect() {
   let socket = new SockJS(store.getters.getUrls.socket + '?access_token=' + store.getters.accessToken);
   stompClient = Stomp.over(socket);
-  /*var headers = {
-    'Authorization': 'Bearer ' + store.getters.accessToken
-  };*/
   return new Promise((resolve, reject) => {
     stompClient.connect({}, function(frame) {
       store.commit(SET_SOCKET_CONNECTED, true);
@@ -30,6 +27,7 @@ export function socketConnect() {
 
 function subscribeTopics() {
   stompClient.subscribe(store.getters.getSocketTopics.room, function(message) {
+    store.commit(SET_NEW_MESSAGE, JSON.parse(message.body));
     console.log("Message", JSON.parse(message.body));
   });
 }
