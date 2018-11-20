@@ -1,9 +1,9 @@
 <template lang="html">
   <div class="">
     <div class="row">
-      <div class="col-md-6">
-        <form @submit.prevent="editProfile">
-          <div class="row justify-content-center animated slideInDown fast">
+      <div class="col-md-6 d-flex align-content-between flex-wrap">
+        <form @submit.prevent="editProfile" class="w-100">
+          <div class="d-flex row justify-content-center animated slideInDown fast">
             <div class="col">
               <div class="md-form mt-5">
                 <mdb-input type="text" label="Имя" :placeholder="profile.firstName" icon="user grey-text" v-model="form.name" />
@@ -19,12 +19,12 @@
               </div>
             </div>
           </div>
-          <div class="row mt-5">
+          <div class="row  align-items-end h-25 mt-5">
             <div class="col-md-4">
-              <button class="btn btn-primary btn-block mb-3 animated slideInUp global-dark-btn">Изменить</button>
+              <button class="btn btn-primary btn-block animated slideInUp global-dark-btn">Изменить</button>
             </div>
             <div class="col">
-              <h6 class="mt-4 text-muted" v-show="success">Успешно</h6>
+              <h6 class="text-muted m-0" v-show="success">Успешно</h6>
             </div>
           </div>
         </form>

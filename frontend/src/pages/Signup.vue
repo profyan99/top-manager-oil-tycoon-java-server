@@ -1,58 +1,62 @@
 <template>
 <div>
-  <div class="container-fluid" id="mains">
-    <div class="row d-flex justify-content-center">
-      <div class="col-md-4">
-        <div class="card mt-5 animated fadeIn">
-          <div class="card-body">
-            <form class="p-3" @submit.prevent="register">
-              <h2 class="dark-grey-text text-center"><strong>Регистрация</strong></h2>
-              <div class="row justify-content-center animated slideInDown fast">
-                <div class="col-md-10">
-                  <div class="md-form mt-5">
-                    <mdb-input type="text" label="Имя" icon="user grey-text" v-model="signupForm.name" />
+  <div class="view" id="main">
+    <div class="mask rgba-teal-strong">
+      <div class="container-fluid h-100 d-flex mt-5">
+        <div class="flex-row w-100 d-flex justify-content-center mt-5">
+          <div class="col-md-4 h-100">
+            <div class="card w-100 animated fadeIn fast">
+              <div class="card-body">
+                <form class="p-3" @submit.prevent="register">
+                  <h2 class="dark-grey-text text-center"><strong>Регистрация</strong></h2>
+                  <div class="row justify-content-center animated slideInDown fast">
+                    <div class="col-md-10">
+                      <div class="md-form mt-5">
+                        <mdb-input type="text" label="Имя" icon="user grey-text" v-model="signupForm.name" />
+                      </div>
+                      <div class="md-form">
+                        <mdb-input type="text" label="Фамилия" icon="user grey-text" v-model="signupForm.surname" />
+                      </div>
+                      <div class="md-form">
+                        <mdb-input type="text" label="Никнейм" icon="user grey-text" v-model="signupForm.nickname" />
+                      </div>
+                      <div class="md-form">
+                        <mdb-input type="text" label="Почта" icon="envelope grey-text" v-model="signupForm.email" />
+                      </div>
+                      <div class="md-form">
+                        <mdb-input type="password" label="Пароль" icon="lock grey-text" v-model="signupForm.pass" />
+                      </div>
+                      <div class="md-form">
+                        <mdb-input type="password" label="Пароль еще раз" icon="lock grey-text" v-model="signupForm.confirmPass" />
+                      </div>
+                    </div>
                   </div>
-                  <div class="md-form">
-                    <mdb-input type="text" label="Фамилия" icon="user grey-text" v-model="signupForm.surname" />
-                  </div>
-                  <div class="md-form">
-                    <mdb-input type="text" label="Никнейм" icon="user grey-text" v-model="signupForm.nickname" />
-                  </div>
-                  <div class="md-form">
-                    <mdb-input type="text" label="Почта" icon="envelope grey-text" v-model="signupForm.email" />
-                  </div>
-                  <div class="md-form">
-                    <mdb-input type="password" label="Пароль" icon="lock grey-text" v-model="signupForm.pass" />
-                  </div>
-                  <div class="md-form">
-                    <mdb-input type="password" label="Пароль еще раз" icon="lock grey-text" v-model="signupForm.confirmPass" />
-                  </div>
-                </div>
-              </div>
 
-              <div class="row justify-content-center mt-2 text-center pb-2  animated slideInUp fast">
-                <div class="col-md-10">
-                  <button class="btn btn-primary btn-block mb-3">Отправить</button>
-                  <p>или</p>
-                  <div class="row">
-                    <div class="col-md-6">
-                      <a :href="vkontakte">
+                  <div class="row justify-content-center mt-2 text-center pb-2  animated slideInUp fast">
+                    <div class="col-md-10">
+                      <button class="btn btn-primary btn-block mb-3">Отправить</button>
+                      <p>или</p>
+                      <div class="row">
+                        <div class="col-md-6">
+                          <a :href="vkontakte">
                       <button type="button" class="btn btn-indigo btn-block"><i class="fa fa-vk "></i></button>
                     </a>
-                    </div>
-                    <div class="col-md-6">
-                      <a :href="google">
+                        </div>
+                        <div class="col-md-6">
+                          <a :href="google">
                       <button type="button" class="btn btn-danger btn-block"><i class="fa fa-google-plus "></i></button>
                     </a>
+                        </div>
+                      </div>
+                      <hr>
+                      <p>
+                        Нажимая <em>Отправить</em>, вы соглашаетесь с правилами сервиса.
+                      </p>
                     </div>
                   </div>
-                  <hr>
-                  <p>
-                    Нажимая <em>Отправить</em>, вы соглашаетесь с правилами сервиса.
-                  </p>
-                </div>
+                </form>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
@@ -75,7 +79,10 @@ import {
   isSignUpValid
 } from '../validators.js'
 
-import { showSuccessNotification, showErrorNotification } from '../store/util/functions'
+import {
+  showSuccessNotification,
+  showErrorNotification
+} from '../store/util/functions'
 
 export default {
   name: "Signup",

@@ -13,6 +13,7 @@ import java.util.Set;
 @ToString
 public class User {
     private int id;
+    private String ip;
     private String email;
     private String userName;
 
@@ -20,6 +21,7 @@ public class User {
     private String lastName;
     private String password;
     private Set<UserRole> roles;
+    private GameStats gameStats;
 
     public User(String email, String userName, String firstName, String lastName, String password, Set<UserRole> roles) {
         this.email = email;
@@ -30,4 +32,6 @@ public class User {
         this.roles = roles;
         this.id = 0;
     }
+
+
 }

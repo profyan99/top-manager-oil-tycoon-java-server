@@ -1,58 +1,62 @@
 <template>
 <div>
-  <div class="container-fluid" id="signin">
-    <div class="row d-flex justify-content-center">
-      <div class="col-md-4">
-        <div class="card mt-5 animated fadeIn">
-          <div class="card-body">
-            <form class="p-4" @submit.prevent="login">
-              <h2 class="dark-grey-text text-center mb-5"><strong>Авторизация</strong></h2>
-              <div class="row justify-content-center animated slideInDown fast">
-                <div class="col-md-10">
-                  <div class="md-form mt-">
-                    <mdb-input type="text" label="Логин" icon="user grey-text" v-model="signinForm.username" />
-                  </div>
-                  <div class="md-form mt-5">
-                    <mdb-input type="password" label="Пароль" icon="lock grey-text" v-model="signinForm.password" />
-                  </div>
-                  <div class="form-row justify-content-around mt-2">
-                    <div>
-                      <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="defaultLoginFormRemember" v-model="signinForm.rememberMe">
-                        <label class="custom-control-label" for="defaultLoginFormRemember">Запомнить</label>
+  <div class="view" id="main">
+    <div class="mask rgba-teal-strong">
+      <div class="container-fluid h-100 d-flex mt-5">
+        <div class="flex-row w-100 d-flex justify-content-center mt-5">
+          <div class="col-md-4 d-flex h-100">
+            <div class="card w-100 h-75 animated fadeIn fast">
+              <div class="card-body">
+                <form class="p-4" @submit.prevent="login">
+                  <h2 class="dark-grey-text text-center mb-5"><strong>Авторизация</strong></h2>
+                  <div class="row justify-content-center animated slideInDown fast">
+                    <div class="col-md-10">
+                      <div class="md-form mt-">
+                        <mdb-input type="text" label="Логин" icon="user grey-text" v-model="signinForm.username" />
+                      </div>
+                      <div class="md-form mt-5">
+                        <mdb-input type="password" label="Пароль" icon="lock grey-text" v-model="signinForm.password" />
+                      </div>
+                      <div class="form-row justify-content-around mt-2">
+                        <div>
+                          <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="defaultLoginFormRemember" v-model="signinForm.rememberMe">
+                            <label class="custom-control-label" for="defaultLoginFormRemember">Запомнить</label>
+                          </div>
+                        </div>
+                        <div>
+                          <router-link :to="{ name: 'forgotPass'}">Забыли пароль?</router-link>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <router-link :to="{ name: 'forgotPass'}">Забыли пароль?</router-link>
-                    </div>
                   </div>
-                </div>
-              </div>
 
-              <div class="row justify-content-center mt-5 text-center pb-3 animated slideInUp fast">
-                <div class="col-md-10">
-                  <button class="btn btn-primary btn-block mb-3 animated slideInDown fast">Войти</button>
-                  <div class="mt-4">
-                    <p>Не зарегистрированы?
-                      <router-link :to="{ name: 'signup'}">Регистрация</router-link>
-                    </p>
-                    <p>или</p>
-                    <div class="row">
-                      <div class="col-md-6">
-                        <a :href="vkontakte">
+                  <div class="row justify-content-center mt-5 text-center pb-3 animated slideInUp fast">
+                    <div class="col-md-10">
+                      <button class="btn btn-primary btn-block mb-3 animated slideInDown fast">Войти</button>
+                      <div class="mt-4">
+                        <p>Не зарегистрированы?
+                          <router-link :to="{ name: 'signup'}">Регистрация</router-link>
+                        </p>
+                        <p>или</p>
+                        <div class="row">
+                          <div class="col-md-6">
+                            <a :href="vkontakte">
                         <button type="button" class="btn btn-indigo btn-block"><i class="fa fa-vk "></i></button>
                       </a>
-                      </div>
-                      <div class="col-md-6">
-                        <a :href="google">
+                          </div>
+                          <div class="col-md-6">
+                            <a :href="google">
                         <button type="button" class="btn btn-danger btn-block"><i class="fa fa-google-plus "></i></button>
                       </a>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </form>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
@@ -105,7 +109,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       let query = vm.$route.query;
-      if(query.access_token && query.refresh_token) {
+      if (query.access_token && query.refresh_token) {
         vm.$store.commit('setAccessToken', query.access_token);
         vm.$store.commit('setRefreshToken', query.refresh_token);
         vm.$store.dispatch("getDataProfile")

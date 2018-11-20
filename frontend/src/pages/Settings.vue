@@ -1,7 +1,5 @@
 <template lang="html">
 <div class="">
-  <notifications group="signup-notifications" position="bottom right">
-  </notifications>
   <div class="view" id="main">
     <div class="mask rgba-teal-strong">
       <div class="container-fluid h-100 d-flex mt-5">
@@ -22,8 +20,8 @@
             </div>
           </div>
           <div class="col-md-8 d-flex h-75">
-            <div class="card w-100 animated fadeInDown fast">
-              <div class="card-body pl-5">
+            <div class="card w-100 animated fadeInDown fast px-5 py-2">
+              <div class="card-body h-100">
                 <h2 class="card-title pb-2"><strong>Настройки</strong></h2>
                 <hr>
                 <div class="pt-2">

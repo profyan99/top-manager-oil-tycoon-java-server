@@ -2,12 +2,12 @@
 <div class="">
   <div class="view" id="main">
     <div class="mask rgba-teal-strong">
-      <div class="container-fluid h-100 align-items-center text-center justify-content-center d-flex">
-        <div class="row row d-flex justify-content-center w-100">
-          <div class="col-md-4">
-            <div class="card mt-5 animated fadIn">
+      <div class="container-fluid h-100 d-flex mt-5">
+        <div class="flex-row w-100 d-flex justify-content-center mt-5">
+          <div class="col-md-4 h-100">
+            <div class="card w-100 animated fadeIn fast">
               <div class="card-body text-center">
-                <h3 class="card-title"><strong>Подтверждение регистрации</strong></h3>
+                <h3 class="card-title mb-5 mt-3"><strong>Подтверждение регистрации</strong></h3>
                 <p class=" mb-5 mt-4">{{ message[status] }}</p>
                 <router-link :to="{ name: 'home'}">
                   <button class="btn waves-effect waves-light animated slideInUp" id="startBtn">
