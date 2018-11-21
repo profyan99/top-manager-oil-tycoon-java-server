@@ -7,14 +7,46 @@
 
     <resultMap id="UserResultMap" type="User">
         <id column="id" property="id"/>
+        <result property="ip" column="ip"/>
         <result property="userName" column="userName"/>
         <result property="firstName" column="firstName"/>
         <result property="lastName" column="lastName"/>
         <result property="password" column="password"/>
         <result property="email" column="email"/>
+        <association property="gameStats" select="getGameStatsByUserId" column="id"/>
         <collection property="roles" ofType="UserRole">
             <result column="role"/>
         </collection>
+    </resultMap>
+
+    <resultMap id="GameStatsResultMap" type="GameStats">
+        <id property="id" column="g_id"/>
+        <result property="gamesAmount" column="gamesAmount"/>
+        <result property="winAmount" column="winAmount"/>
+        <result property="tournamentAmount" column="tournamentAmount"/>
+        <result property="maxRevenue" column="maxRevenue"/>
+        <result property="maxRIF" column="maxRIF"/>
+        <result property="hoursInGame" column="hoursInGame"/>
+        <result property="leaveGameAmount" column="leaveGameAmount"/>
+        <result property="complainAmount" column="complainAmount"/>
+        <association property="user" select="findById" column="userId"/>
+        <collection property="rewards" ofType="Reward" resultMap="RewardResultMap"/>
+        <collection property="achievements" ofType="Achievement" resultMap="AchievementResultMap"/>
+    </resultMap>
+
+    <resultMap id="RewardResultMap" type="Reward">
+        <id property="id" column="r_id"/>
+        <result property="date" column="r_date"/>
+        <result property="name" column="r_name"/>
+        <result property="description" column="r_description"/>
+        <association property="gameStats" column="r_gameStatsId" resultMap="GameStatsResultMap"/>
+    </resultMap>
+
+    <resultMap id="AchievementResultMap" type="Achievement">
+        <id property="id" column="a_id"/>
+        <result property="name" column="a_name"/>
+        <result property="description" column="a_description"/>
+        <association property="gameStats" column="a_gameStatsId" resultMap="GameStatsResultMap"/>
     </resultMap>
 
     <resultMap id="VerificationTokenResultMap" type="VerificationToken">
@@ -55,7 +87,47 @@
         <foreach collection="roles" item="r" index="index" open="(" separator="),(" close=")">
             #{id},
             #{r}
-        </foreach>
+        </foreach>;
+    </insert>
+
+    <insert id="createGameStats" useGeneratedKeys="true" keyColumn="g_id" keyProperty="gameStats.id">
+        INSERT INTO game_stats (gamesAmount,
+                                winAmount,
+                                tournamentAmount,
+                                maxRevenue,
+                                maxRIF,
+                                hoursInGame,
+                                leaveGameAmount,
+                                complainAmount,
+                                userId)
+        VALUES (#{gameStats.gamesAmount},
+                #{gameStats.winAmount},
+                #{gameStats.tournamentAmount},
+                #{gameStats.maxRevenue},
+                #{gameStats.maxRIF},
+                #{gameStats.hoursInGame},
+                #{gameStats.leaveGameAmount},
+                #{gameStats.complainAmount},
+                #{id});
+    </insert>
+
+    <insert id="createAchievements">
+        INSERT INTO user_achievement(a_name, a_description, a_gameStatsId) VALUES
+        <foreach collection="achievements" item="e" index="index" open="(" separator="),(" close=")">
+            #{e.name},
+            #{e.description},
+            #{id}
+        </foreach>;
+    </insert>
+
+    <insert id="createRewards">
+        INSERT INTO user_reward(r_date, r_name, r_description, r_gameStatsId) VALUES
+        <foreach collection="rewards" item="e" index="index" open="(" separator="),(" close=")">
+            #{e.date},
+            #{e.name},
+            #{e.description},
+            #{id}
+        </foreach>;
     </insert>
 
     <update id="update">
@@ -67,6 +139,19 @@
             #{id},
             #{r}
         </foreach>;
+    </update>
+    <update id="updateGameStats">
+        UPDATE game_stats SET gamesAmount = #{gamesAmount},
+                              winAmount = #{winAmount},
+                              tournamentAmount = #{tournamentAmount},
+                              maxRevenue = #{maxRevenue},
+                              maxRIF = #{maxRIF},
+                              hoursInGame = #{hoursInGame},
+                              leaveGameAmount = #{leaveGameAmount},
+                              complainAmount = #{complainAmount}
+        WHERE g_id = #{id};
+        DELETE FROM user_reward WHERE r_gameStatsId = #{id};
+        DELETE FROM user_achievement WHERE a_gameStatsId = #{id};
     </update>
 
     <insert id="createVerificationToken">
@@ -99,7 +184,34 @@
     </delete>
 
     <delete id="delete">
-        DELETE FROM user WHERE id=#{id}
+        DELETE
+        FROM user
+        WHERE id = #{id}
     </delete>
+
+    <select id="getGameStatsByUserId" resultMap="GameStatsResultMap">
+        SELECT g.g_id,
+               g.gamesAmount,
+               g.winAmount,
+               g.tournamentAmount,
+               g.maxRevenue,
+               g.maxRIF,
+               g.hoursInGame,
+               g.leaveGameAmount,
+               g.complainAmount,
+               g.userId,
+               a.a_id,
+               a.a_name,
+               a.a_description,
+               r.r_id,
+               r.r_name,
+               r.r_date,
+               r.r_description
+
+        FROM game_stats g
+                 LEFT JOIN user_achievement a on g.g_id = a.a_gameStatsId
+                 LEFT JOIN user_reward r on g.g_id = r.r_gameStatsId
+        WHERE g.userId = #{userId}
+    </select>
 
 </mapper>

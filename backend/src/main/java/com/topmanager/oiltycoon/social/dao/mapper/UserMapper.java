@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.social.dao.mapper;
 
+import com.topmanager.oiltycoon.social.model.GameStats;
 import com.topmanager.oiltycoon.social.model.User;
 import com.topmanager.oiltycoon.social.model.VerificationToken;
 
@@ -23,4 +24,12 @@ public interface UserMapper {
     void deleteVerificationToken(int id);
 
     void delete(User user);
+
+    void createAchievements(GameStats gameStats);
+
+    void createRewards(GameStats gameStats);
+
+    void createGameStats(User user);
+
+    void updateGameStats(GameStats gameStats);
 }

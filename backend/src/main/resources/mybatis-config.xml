@@ -14,6 +14,9 @@
 		<typeAlias type="com.topmanager.oiltycoon.social.model.User" alias="User"/>
 		<typeAlias type="com.topmanager.oiltycoon.social.model.UserRole" alias="UserRole"/>
 		<typeAlias type="com.topmanager.oiltycoon.social.model.VerificationToken" alias="VerificationToken"/>
+		<typeAlias type="com.topmanager.oiltycoon.social.model.Reward" alias="Reward"/>
+		<typeAlias type="com.topmanager.oiltycoon.social.model.Achievement" alias="Achievement"/>
+		<typeAlias type="com.topmanager.oiltycoon.social.model.GameStats" alias="GameStats"/>
 	</typeAliases>
 
 	<environments default="development">

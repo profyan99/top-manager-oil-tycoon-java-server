@@ -1,5 +1,7 @@
 package com.topmanager.oiltycoon.social.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDate;
 
 public class Reward {
@@ -7,4 +9,6 @@ public class Reward {
     private LocalDate date;
     private String name;
     private String description;
+    @JsonIgnore
+    private GameStats gameStats;
 }

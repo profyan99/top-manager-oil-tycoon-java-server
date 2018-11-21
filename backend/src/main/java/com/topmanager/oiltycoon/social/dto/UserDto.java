@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.social.dto;
 
+import com.topmanager.oiltycoon.social.dto.response.GameStatsDto;
 import com.topmanager.oiltycoon.social.model.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,4 +19,5 @@ public class UserDto {
     private String lastName;
     private Set<UserRole> roles;
     private String email;
+    private GameStatsDto gameStats;
 }

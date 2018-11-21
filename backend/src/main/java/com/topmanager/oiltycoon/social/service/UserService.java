@@ -6,10 +6,8 @@ import com.topmanager.oiltycoon.social.dto.UserDto;
 import com.topmanager.oiltycoon.social.dto.request.ProfileEditRequestDto;
 import com.topmanager.oiltycoon.social.dto.request.ResetPasswordRequestDto;
 import com.topmanager.oiltycoon.social.dto.request.SignUpRequestDto;
-import com.topmanager.oiltycoon.social.model.MailData;
-import com.topmanager.oiltycoon.social.model.User;
-import com.topmanager.oiltycoon.social.model.UserRole;
-import com.topmanager.oiltycoon.social.model.VerificationToken;
+import com.topmanager.oiltycoon.social.dto.response.GameStatsDto;
+import com.topmanager.oiltycoon.social.model.*;
 import com.topmanager.oiltycoon.social.security.exception.ErrorCode;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
 import org.slf4j.Logger;
@@ -63,10 +61,10 @@ public class UserService {
 
 
     public void create(SignUpRequestDto dto) {
-        if(userDao.findByEmail(dto.getEmail()).isPresent()) {
+        if (userDao.findByEmail(dto.getEmail()).isPresent()) {
             throw new RestException(ErrorCode.EMAIL_NOT_UNIQUE);
         }
-        if(userDao.findByUserName(dto.getUserName()).isPresent()) {
+        if (userDao.findByUserName(dto.getUserName()).isPresent()) {
             throw new RestException(ErrorCode.USERNAME_NOT_UNIQUE);
         }
         User user = createUserFromSignUpForm(dto);
@@ -80,7 +78,7 @@ public class UserService {
             mail = false;
         }
         userDao.create(user);
-        if(mail) {
+        if (mail) {
             sendVerification(user, Utils.MailMessage.REGISTRATION_CONFIRM);
         }
     }
@@ -91,10 +89,10 @@ public class UserService {
                 () -> new RestException(ErrorCode.VERIFICATION_TOKEN_NOT_FOUND)
         );
         User user = verificationToken.getUser();
-        if(user.getId() != getCurrentUserId()) {
+        if (user.getId() != getCurrentUserId()) {
             throw new RestException(ErrorCode.VERIFICATION_TOKEN_NOT_FOUND);
         }
-        if(verificationToken.getConfirmDate().isBefore(LocalDateTime.now())) {
+        if (verificationToken.getConfirmDate().isBefore(LocalDateTime.now())) {
             throw new RestException(ErrorCode.CONFIRM_TIME_EXPIRED);
         }
 
@@ -106,15 +104,15 @@ public class UserService {
         User user = userDao.findById(getCurrentUserId()).orElseThrow(
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
         );
-        if(!dto.getNewPassword().isEmpty() && !dto.getOldPassword().isEmpty()) {
+        if (!dto.getNewPassword().isEmpty() && !dto.getOldPassword().isEmpty()) {
 
-            if(!passwordEncoder.matches(dto.getOldPassword(),user.getPassword())
-            || dto.getOldPassword().length() < 6 || dto.getOldPassword().length() > 25) {
+            if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())
+                    || dto.getOldPassword().length() < 6 || dto.getOldPassword().length() > 25) {
                 throw new RestException(ErrorCode.INVALID_OLD_PASSWORD);
             }
         }
-        if(!user.getUserName().equals(dto.getUserName())) {
-            if(userDao.findByUserName(dto.getUserName()).isPresent()) {
+        if (!user.getUserName().equals(dto.getUserName())) {
+            if (userDao.findByUserName(dto.getUserName()).isPresent()) {
                 throw new RestException(ErrorCode.USERNAME_NOT_UNIQUE);
             }
         }
@@ -139,10 +137,10 @@ public class UserService {
                 () -> new RestException(ErrorCode.VERIFICATION_TOKEN_NOT_FOUND)
         );
         User user = verificationToken.getUser();
-        if(verificationToken.getConfirmDate().isBefore(LocalDateTime.now())) {
+        if (verificationToken.getConfirmDate().isBefore(LocalDateTime.now())) {
             throw new RestException(ErrorCode.CONFIRM_TIME_EXPIRED);
         }
-        if(!dto.getNewPassword().equals(dto.getNewPasswordConfirm())) {
+        if (!dto.getNewPassword().equals(dto.getNewPasswordConfirm())) {
             throw new RestException(ErrorCode.PASSWORDS_IS_NOT_EQUALS);
         }
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
@@ -164,13 +162,17 @@ public class UserService {
                 dto.getFirstName(),
                 dto.getLastName(),
                 dto.getPassword() == null ? null : passwordEncoder.encode(dto.getPassword()),
-                new HashSet<>(Arrays.asList(UserRole.PLAYER, UserRole.UNVERIFIED))
+                new HashSet<>(Arrays.asList(UserRole.PLAYER, UserRole.UNVERIFIED)),
+                new GameStats(
+                        0, 0, 0, new ArrayList<>(),
+                        0, 0, 0, 0, 0, new ArrayList<>()
+                )
         );
     }
 
     private int getCurrentUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        logger.debug("getCreds: "+principal+" :: "+principal.getClass());
+        logger.debug("getCreds: " + principal + " :: " + principal.getClass());
         if (principal instanceof UserDetails) {
             String id = ((SocialUserDetails) principal).getUserId();
             return Integer.parseInt(id);
@@ -196,13 +198,26 @@ public class UserService {
     }
 
     private UserDto userDtoFromUserModel(User user) {
+        GameStats gameStats = user.getGameStats();
         return new UserDto(
                 user.getId(),
                 user.getUserName(),
                 user.getFirstName(),
                 user.getLastName(),
                 user.getRoles(),
-                user.getEmail()
+                user.getEmail(),
+                new GameStatsDto(
+                        gameStats.getGamesAmount(),
+                        gameStats.getWinAmount(),
+                        gameStats.getTournamentAmount(),
+                        gameStats.getRewards(),
+                        gameStats.getMaxRevenue(),
+                        gameStats.getMaxRIF(),
+                        gameStats.getHoursInGame(),
+                        gameStats.getLeaveGameAmount(),
+                        gameStats.getComplainAmount(),
+                        gameStats.getAchievements()
+                )
         );
     }
 }

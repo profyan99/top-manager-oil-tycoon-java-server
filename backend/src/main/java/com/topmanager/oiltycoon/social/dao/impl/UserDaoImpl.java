@@ -43,6 +43,13 @@ public class UserDaoImpl extends BaseDao implements UserDao {
         try (SqlSession session = sessionFactory.openSession()) {
             getUserMapper(session).create(user);
             getUserMapper(session).createRoles(user);
+            getUserMapper(session).createGameStats(user);
+            if(!user.getGameStats().getAchievements().isEmpty()) {
+                getUserMapper(session).createAchievements(user.getGameStats());
+            }
+            if(!user.getGameStats().getRewards().isEmpty()) {
+                getUserMapper(session).createRewards(user.getGameStats());
+            }
             session.commit();
         } catch (RuntimeException e) {
             logger.error("Couldn't create user: " + e.toString());
@@ -74,6 +81,13 @@ public class UserDaoImpl extends BaseDao implements UserDao {
     public void update(User user) {
         try (SqlSession session = sessionFactory.openSession()) {
             getUserMapper(session).update(user);
+            getUserMapper(session).updateGameStats(user.getGameStats());
+            if(!user.getGameStats().getAchievements().isEmpty()) {
+                getUserMapper(session).createAchievements(user.getGameStats());
+            }
+            if(!user.getGameStats().getRewards().isEmpty()) {
+                getUserMapper(session).createRewards(user.getGameStats());
+            }
             session.commit();
         } catch (RuntimeException e) {
             logger.error("Couldn't update user: " + e.toString());

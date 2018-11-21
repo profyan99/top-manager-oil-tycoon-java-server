@@ -23,7 +23,8 @@ public class User {
     private Set<UserRole> roles;
     private GameStats gameStats;
 
-    public User(String email, String userName, String firstName, String lastName, String password, Set<UserRole> roles) {
+    public User(String email, String userName, String firstName, String lastName, String password, Set<UserRole> roles,
+                GameStats gameStats) {
         this.email = email;
         this.userName = userName;
         this.firstName = firstName;
@@ -31,6 +32,7 @@ public class User {
         this.password = password;
         this.roles = roles;
         this.id = 0;
+        this.gameStats = gameStats;
     }
 
 
