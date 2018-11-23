@@ -1,24 +1,31 @@
 package com.topmanager.oiltycoon.game.controller;
 
-import com.topmanager.oiltycoon.RestExceptionHandler;
-import com.topmanager.oiltycoon.game.dto.BaseMessageDto;
+import com.topmanager.oiltycoon.game.dto.response.RoomInfoDto;
+import com.topmanager.oiltycoon.game.service.RoomService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.messaging.Message;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
+
+import java.util.List;
 
 @Controller
 public class RoomController {
 
     private static final Logger logger = LoggerFactory.getLogger(RoomController.class);
 
-    @MessageMapping("/room")
-    @SendTo("/topic/room")
-    public BaseMessageDto room(BaseMessageDto message) {
-        logger.error("Input message: "+message.getMessage());
-        return new BaseMessageDto("Hello world");
+    private RoomService roomService;
+
+    @Autowired
+    public void setRoomService(RoomService roomService) {
+        this.roomService = roomService;
+    }
+
+    @MessageMapping("/roomList")
+    @SendToUser("/queue/roomList")
+    public List<RoomInfoDto> room() {
+        return roomService.getRoomsList();
     }
 }
