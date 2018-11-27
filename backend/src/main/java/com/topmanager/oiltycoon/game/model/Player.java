@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Player {
     private User user;
-
+    private long timeEndReload;
+    private boolean connected;
 }

@@ -100,6 +100,10 @@ public class UserService {
         userDao.update(user);
     }
 
+    public void updateGameStats(GameStats gameStats) {
+        //TODO get GameStats separate of user
+    }
+
     public UserDto edit(ProfileEditRequestDto dto) {
         User user = userDao.findById(getCurrentUserId()).orElseThrow(
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)

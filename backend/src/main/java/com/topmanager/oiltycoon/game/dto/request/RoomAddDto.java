@@ -17,4 +17,6 @@ public class RoomAddDto {
     private String scenario;
     private Requirement requirement;
     private int maxRounds;
+    private String password;
+    private int roomPeriodDelay;
 }

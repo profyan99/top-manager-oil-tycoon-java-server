@@ -14,6 +14,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -21,6 +22,7 @@ import java.util.Properties;
 @SpringBootApplication
 @MapperScan(basePackages = {"com.topmanager.oiltycoon.social.dao.mapper", "com.topmanger.oiltycoon.mapper"})
 @EnableAsync
+@EnableScheduling
 public class OiltycoonApplication {
 
 	private Environment env;

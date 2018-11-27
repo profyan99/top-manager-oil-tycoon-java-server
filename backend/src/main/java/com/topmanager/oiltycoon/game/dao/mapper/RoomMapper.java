@@ -7,6 +7,8 @@ import java.util.Set;
 public interface RoomMapper {
     Set<Room> findAllRooms();
 
+    Room findRoomById(int id);
+
     void addRoom(Room room);
 
     void deleteRoomById(Room room);

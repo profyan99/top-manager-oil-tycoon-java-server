@@ -13,7 +13,7 @@ import static com.topmanager.oiltycoon.game.model.GameState.PREPARE;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Room {
+public class Room{
     private int id;
     private String name;
     private int maxPlayers;
@@ -22,15 +22,17 @@ public class Room {
     private boolean isTournament;
     private boolean isScenario;
     private String scenario;
-    private Map<Integer, Player> players;
+    private Map<String, Player> players;
     private Requirement requirement;
     private GameState state;
     private int maxRounds;
     private int currentRound;
+    private String password;
+    private int roomPeriodDelay;
 
     public Room(String name, int maxPlayers, boolean isLocked, boolean isTournament, boolean isScenario, String scenario,
-                Requirement requirement, int maxRounds) {
+                Requirement requirement, int maxRounds, String password, int roomPeriodDelay) {
         this(0, name, maxPlayers, 0, isLocked, isTournament, isScenario, scenario,
-                new HashMap<>(), requirement, PREPARE, maxRounds, 0);
+                new HashMap<>(), requirement, PREPARE, maxRounds, 0, password, roomPeriodDelay);
     }
 }

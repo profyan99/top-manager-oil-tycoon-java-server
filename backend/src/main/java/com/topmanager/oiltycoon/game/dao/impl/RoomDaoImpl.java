@@ -79,4 +79,14 @@ public class RoomDaoImpl extends BaseDao implements RoomDao {
             throw new RestException(ErrorCode.ERROR_WITH_DATABASE);
         }
     }
+
+    @Override
+    public Optional<Room> findRoomById(int id) {
+        try (SqlSession session = sessionFactory.openSession()) {
+            return Optional.ofNullable(getRoomMapper(session).findRoomById(id));
+        } catch (RuntimeException e) {
+            logger.error("Couldn't find room by id: " + e.toString());
+            throw new RestException(ErrorCode.ERROR_WITH_DATABASE);
+        }
+    }
 }
