@@ -1,6 +1,7 @@
 package com.topmanager.oiltycoon.game.controller;
 
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
+import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
 import com.topmanager.oiltycoon.game.dto.response.RoomInfoDto;
 import com.topmanager.oiltycoon.game.service.RoomService;
 import com.topmanager.oiltycoon.social.security.annotation.IsAdmin;
@@ -20,9 +21,7 @@ import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 
-import static com.topmanager.oiltycoon.game.model.RoomDestination.ROOM_ADD;
-import static com.topmanager.oiltycoon.game.model.RoomDestination.ROOM_DELETE;
-import static com.topmanager.oiltycoon.game.model.RoomDestination.ROOM_LIST;
+import static com.topmanager.oiltycoon.game.model.RoomDestination.*;
 
 @Controller
 public class RoomController {
@@ -49,10 +48,18 @@ public class RoomController {
         return ResponseEntity.ok().build();
     }
 
+    @IsPlayer
+    @PostMapping(path = "/api"+ROOM_USER_CONNECT)
+    public ResponseEntity<?> connectToRoom(@RequestBody @Valid RoomConnectDto roomConnectDto) {
+        return ResponseEntity.ok(roomService.connectToRoom(roomConnectDto));
+    }
+
     @IsAdmin
     @DeleteMapping(path = "/api"+ROOM_DELETE, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> addRoom(@RequestParam int roomId) {
         roomService.deleteRoom(roomId);
         return ResponseEntity.ok().build();
     }
+
+
 }

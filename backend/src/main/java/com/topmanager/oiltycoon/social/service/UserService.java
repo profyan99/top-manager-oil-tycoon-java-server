@@ -100,7 +100,7 @@ public class UserService {
         userDao.update(user);
     }
 
-    public void updateGameStats(GameStats gameStats) {
+    public void updateGameStats(GameStatsDto gameStats) {
         //TODO get GameStats separate of user
     }
 
@@ -211,6 +211,7 @@ public class UserService {
                 user.getRoles(),
                 user.getEmail(),
                 new GameStatsDto(
+                        gameStats.getId(),
                         gameStats.getGamesAmount(),
                         gameStats.getWinAmount(),
                         gameStats.getTournamentAmount(),

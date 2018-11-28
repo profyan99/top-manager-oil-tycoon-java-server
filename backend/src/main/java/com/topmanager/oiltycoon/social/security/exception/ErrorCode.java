@@ -21,7 +21,8 @@ public enum ErrorCode {
     ROOM_IS_FULL("В комнате больше нет свободных мест."),
     GAME_HAS_ALREADY_STARTED("Игра уже началась"),
     INVALID_ROOM_PASSWORD("Неверный пароль от комнаты"),
-    PLAYER_NOT_SATISFY("Не достаточно прав для игры в этой комнате.")
+    PLAYER_NOT_SATISFY("Не достаточно прав для игры в этой комнате."),
+    INVALID_ROOM_ID("Неверный номер комнаты.")
     ;
 
 

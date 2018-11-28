@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class GameStatsDto {
+    private int id;
     private int gamesAmount;
     private int winAmount;
     private int tournamentAmount;

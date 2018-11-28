@@ -2,12 +2,17 @@ package com.topmanager.oiltycoon.game.service;
 
 import com.topmanager.oiltycoon.game.dao.RoomDao;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
+import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
+import com.topmanager.oiltycoon.game.dto.response.GameDto;
 import com.topmanager.oiltycoon.game.dto.response.PlayerInfoDto;
 import com.topmanager.oiltycoon.game.dto.response.RoomInfoDto;
+import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.game.service.impl.RoomProcessor;
+import com.topmanager.oiltycoon.social.dto.UserDto;
+import com.topmanager.oiltycoon.social.dto.response.GameStatsDto;
 import com.topmanager.oiltycoon.social.model.GameStats;
-import com.topmanager.oiltycoon.social.model.User;
+import com.topmanager.oiltycoon.social.security.exception.ErrorCode;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
 import com.topmanager.oiltycoon.social.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +30,6 @@ import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.topmanager.oiltycoon.game.model.RoomDestination.*;
@@ -85,6 +89,7 @@ public class RoomService {
     }
 
 
+
     public List<RoomInfoDto> getRoomsList() {
         return rooms.values()
                 .stream()
@@ -99,7 +104,6 @@ public class RoomService {
                 .anyMatch((roomProcessor -> roomProcessor.getRoomData().getName().equals(roomAdd.getName())))) {
             throw new RestException(ROOM_NAME_NOT_UNIQUE);
         }
-        //|| roomDao.existsByName(roomAdd.getName())
         Room room = new Room(
                 roomAdd.getName(),
                 roomAdd.getMaxPlayers(),
@@ -133,6 +137,19 @@ public class RoomService {
         updateRoomList();
     }
 
+    public GameDto connectToRoom(RoomConnectDto roomConnectDto) {
+        UserDto user = userService.getUserProfile();
+        RoomProcessor currentRoom = rooms.get(roomConnectDto.getRoomId());
+        if(currentRoom == null) {
+            throw new RestException(ErrorCode.INVALID_ROOM_ID);
+        }
+        currentRoom.onPlayerConnect(
+                new Player(user),
+                roomConnectDto.getPassword()
+        );
+        return new GameDto();
+    }
+
     private void updateRoomList() {
         messagingTemplate.convertAndSend(BROKER_DESTINATION_PREFIX + ROOM_LIST,
                 rooms
@@ -143,20 +160,20 @@ public class RoomService {
         );
     }
 
-    public void updateUserGameStats(GameStats gameStats) {
+    public void updateUserGameStats(GameStatsDto gameStats) {
         userService.updateGameStats(gameStats);
     }
 
     public void sendUserConnect(int roomId, PlayerInfoDto playerInfoDto) {
         messagingTemplate.convertAndSend(
-                BROKER_DESTINATION_PREFIX + ROOM_BASE + "/" + roomId + ROOM_USER_CONNECT,
+                BROKER_DESTINATION_PREFIX + ROOM_BASE_ENDPOINT + "/" + roomId + ROOM_USER_CONNECT,
                 playerInfoDto
         );
     }
 
-    public void sendUserDisonnect(int roomId, PlayerInfoDto playerInfoDto) {
+    public void sendUserDisconnect(int roomId, PlayerInfoDto playerInfoDto) {
         messagingTemplate.convertAndSend(
-                BROKER_DESTINATION_PREFIX + ROOM_BASE + "/" + roomId + ROOM_USER_DISONNECT,
+                BROKER_DESTINATION_PREFIX + ROOM_BASE_ENDPOINT + "/" + roomId + ROOM_USER_DISCONNECT,
                 playerInfoDto
         );
     }
