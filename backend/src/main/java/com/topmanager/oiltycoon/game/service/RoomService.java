@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.game.service;
 
+import com.topmanager.oiltycoon.game.controller.RoomController;
 import com.topmanager.oiltycoon.game.dao.RoomDao;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
@@ -15,10 +16,13 @@ import com.topmanager.oiltycoon.social.model.GameStats;
 import com.topmanager.oiltycoon.social.security.exception.ErrorCode;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
 import com.topmanager.oiltycoon.social.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
@@ -44,6 +48,8 @@ public class RoomService {
     private RoomSchedulingService roomSchedulingService;
     private PasswordEncoder passwordEncoder;
     private UserService userService;
+
+    private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
     public RoomService() {
         rooms = new HashMap<>();
@@ -166,14 +172,15 @@ public class RoomService {
 
     public void sendUserConnect(int roomId, PlayerInfoDto playerInfoDto) {
         messagingTemplate.convertAndSend(
-                BROKER_DESTINATION_PREFIX + ROOM_BASE_ENDPOINT + "/" + roomId + ROOM_USER_CONNECT,
+                BROKER_DESTINATION_PREFIX +ROOM_EVENT+ "/" + roomId,
                 playerInfoDto
         );
     }
 
     public void sendUserDisconnect(int roomId, PlayerInfoDto playerInfoDto) {
+        
         messagingTemplate.convertAndSend(
-                BROKER_DESTINATION_PREFIX + ROOM_BASE_ENDPOINT + "/" + roomId + ROOM_USER_DISCONNECT,
+                BROKER_DESTINATION_PREFIX + ROOM_EVENT + "/" + roomId,
                 playerInfoDto
         );
     }
@@ -181,16 +188,23 @@ public class RoomService {
     @EventListener
     public void handleSessionConnected(SessionConnectEvent event) {
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
+
         //messagingTemplate.convertAndSendToUser(headers.getUser().getName(),);
     }
 
     @EventListener
     public void handleSessionDisconnect(SessionDisconnectEvent event) {
-
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        int roomId = (int)headerAccessor.getSessionAttributes().getOrDefault("CONNECTED_ROOM", -1);
+        logger.debug(":: Session disconnect\nroomId: "+roomId+"\nname: "+headerAccessor.getUser().getName());
+        if(roomId != -1) {
+            rooms.get(roomId).onPlayerDisconnect(headerAccessor.getUser().getName());
+        }
     }
 
     @EventListener
     public void handleSessionSubscribeEvent(SessionSubscribeEvent event) {
+
     }
 
     @EventListener

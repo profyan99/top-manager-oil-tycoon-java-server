@@ -13,7 +13,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+import org.springframework.web.socket.messaging.SessionSubscribeEvent;
+import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import java.time.LocalDateTime;
 
@@ -210,6 +215,7 @@ public class RoomProcessor implements RoomRunnable {
     private void calcGame() {
 
     }
+
 
 
     @AllArgsConstructor
