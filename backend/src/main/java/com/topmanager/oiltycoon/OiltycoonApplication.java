@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -23,6 +24,7 @@ import java.util.Properties;
 @MapperScan(basePackages = {"com.topmanager.oiltycoon.social.dao.mapper", "com.topmanger.oiltycoon.mapper"})
 @EnableAsync
 @EnableScheduling
+@EnableJpaRepositories
 public class OiltycoonApplication {
 
 	private Environment env;

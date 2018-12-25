@@ -4,11 +4,14 @@ import com.topmanager.oiltycoon.RestExceptionHandler;
 import com.topmanager.oiltycoon.social.security.LogoutSuccessHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.scope.ScopedObject;
+import org.springframework.aop.scope.ScopedProxyFactoryBean;
+import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -55,6 +58,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private LogoutSuccessHandler logoutSuccessHandler;
 
     private UserIdSource userIdSource;
+
 
     @Autowired
     public void setUserIdSource(UserIdSource userIdSource) {
@@ -123,6 +127,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }

@@ -8,9 +8,9 @@
     <resultMap id="UserResultMap" type="User">
         <id column="id" property="id"/>
         <result property="ip" column="ip"/>
-        <result property="userName" column="userName"/>
-        <result property="firstName" column="firstName"/>
-        <result property="lastName" column="lastName"/>
+        <result property="userName" column="user_name"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
         <result property="password" column="password"/>
         <result property="email" column="email"/>
         <association property="gameStats" select="getGameStatsByUserId" column="id"/>
@@ -21,15 +21,15 @@
 
     <resultMap id="GameStatsResultMap" type="GameStats">
         <id property="id" column="g_id"/>
-        <result property="gamesAmount" column="gamesAmount"/>
-        <result property="winAmount" column="winAmount"/>
-        <result property="tournamentAmount" column="tournamentAmount"/>
-        <result property="maxRevenue" column="maxRevenue"/>
-        <result property="maxRIF" column="maxRIF"/>
-        <result property="hoursInGame" column="hoursInGame"/>
-        <result property="leaveGameAmount" column="leaveGameAmount"/>
-        <result property="complainAmount" column="complainAmount"/>
-        <association property="user" select="findById" column="userId"/>
+        <result property="gamesAmount" column="games_amount"/>
+        <result property="winAmount" column="win_amount"/>
+        <result property="tournamentAmount" column="tournament_amount"/>
+        <result property="maxRevenue" column="max_revenue"/>
+        <result property="maxRIF" column="maxrif"/>
+        <result property="hoursInGame" column="hours_in_game"/>
+        <result property="leaveGameAmount" column="leave_game_amount"/>
+        <result property="complainAmount" column="complain_amount"/>
+        <association property="user" select="findById" column="user_id"/>
         <collection property="rewards" ofType="Reward" resultMap="RewardResultMap"/>
         <collection property="achievements" ofType="Achievement" resultMap="AchievementResultMap"/>
     </resultMap>
@@ -57,33 +57,33 @@
     </resultMap>
 
     <select id="findByUserName" resultMap="UserResultMap">
-        SELECT u.id, u.userName, u.password, u.lastName, u.firstName, u.email, r.role
+        SELECT u.id, u.user_name, u.password, u.last_name, u.first_name, u.email, r.roles
         FROM user u
-                 LEFT JOIN user_role r on u.id = r.userId
-        WHERE u.userName = #{userName}
+                 LEFT JOIN user_roles r on u.id = r.user_id
+        WHERE u.user_name = #{userName}
     </select>
 
     <select id="findById" resultMap="UserResultMap">
-        SELECT u.id, u.userName, u.password, u.lastName, u.firstName, u.email, r.role
+        SELECT u.id, u.user_name, u.password, u.last_name, u.first_name, u.email, r.roles
         FROM user u
-                 LEFT JOIN user_role r on u.id = r.userId
+                 LEFT JOIN user_roles r on u.id = r.user_id
         WHERE u.id = #{userId}
     </select>
 
     <select id="findByEmail" resultMap="UserResultMap">
-        SELECT u.id, u.userName, u.password, u.lastName, u.firstName, u.email, r.role
+        SELECT u.id, u.user_name, u.password, u.last_name, u.first_name, u.email, r.roles
         FROM user u
-                 LEFT JOIN user_role r on u.id = r.userId
+                 LEFT JOIN user_roles r on u.id = r.user_id
         WHERE u.email = #{email}
     </select>
 
     <insert id="create" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
-        INSERT INTO user (email, userName, firstName, lastName, password)
+        INSERT INTO user (email, user_name, first_name, last_name, password)
         VALUES (#{email}, #{userName}, #{firstName}, #{lastName}, #{password})
     </insert>
 
     <insert id="createRoles">
-        INSERT INTO user_role(userId, role) VALUES
+        INSERT INTO user_roles(user_id, roles) VALUES
         <foreach collection="roles" item="r" index="index" open="(" separator="),(" close=")">
             #{id},
             #{r}
@@ -91,15 +91,15 @@
     </insert>
 
     <insert id="createGameStats" useGeneratedKeys="true" keyColumn="g_id" keyProperty="gameStats.id">
-        INSERT INTO game_stats (gamesAmount,
-                                winAmount,
-                                tournamentAmount,
-                                maxRevenue,
+        INSERT INTO game_stats (games_amount,
+                                win_amount,
+                                tournament_amount,
+                                max_revenue,
                                 maxRIF,
-                                hoursInGame,
-                                leaveGameAmount,
-                                complainAmount,
-                                userId)
+                                hours_in_game,
+                                leave_game_amount,
+                                complain_amount,
+                                user_id)
         VALUES (#{gameStats.gamesAmount},
                 #{gameStats.winAmount},
                 #{gameStats.tournamentAmount},
@@ -112,46 +112,44 @@
     </insert>
 
     <insert id="createAchievements">
-        INSERT INTO user_achievement(a_name, a_description, a_gameStatsId) VALUES
+        INSERT INTO achievement(name, description) VALUES
         <foreach collection="achievements" item="e" index="index" open="(" separator="),(" close=")">
             #{e.name},
-            #{e.description},
-            #{id}
+            #{e.description}
         </foreach>;
     </insert>
 
     <insert id="createRewards">
-        INSERT INTO user_reward(r_date, r_name, r_description, r_gameStatsId) VALUES
+        INSERT INTO reward(date, name, description) VALUES
         <foreach collection="rewards" item="e" index="index" open="(" separator="),(" close=")">
             #{e.date},
             #{e.name},
-            #{e.description},
-            #{id}
+            #{e.description}
         </foreach>;
     </insert>
 
     <update id="update">
-        UPDATE user SET firstName = #{firstName}, lastName = #{lastName}, password = #{password}, userName = #{userName}
+        UPDATE user SET first_name = #{firstName}, last_name = #{lastName}, password = #{password}, user_name = #{userName}
         WHERE id = #{id};
-        DELETE FROM user_role WHERE userId = #{id};
-        INSERT INTO user_role(userId, role) VALUES
+        DELETE FROM user_roles WHERE user_id = #{id};
+        INSERT INTO user_roles(user_id, roles) VALUES
         <foreach collection="roles" item="r" index="index" open="(" separator="),(" close=")">
             #{id},
             #{r}
         </foreach>;
     </update>
     <update id="updateGameStats">
-        UPDATE game_stats SET gamesAmount = #{gamesAmount},
-                              winAmount = #{winAmount},
-                              tournamentAmount = #{tournamentAmount},
-                              maxRevenue = #{maxRevenue},
-                              maxRIF = #{maxRIF},
-                              hoursInGame = #{hoursInGame},
-                              leaveGameAmount = #{leaveGameAmount},
-                              complainAmount = #{complainAmount}
-        WHERE g_id = #{id};
-        DELETE FROM user_reward WHERE r_gameStatsId = #{id};
-        DELETE FROM user_achievement WHERE a_gameStatsId = #{id};
+        UPDATE game_stats SET games_amount = #{gamesAmount},
+                              win_amount = #{winAmount},
+                              tournament_amount = #{tournamentAmount},
+                              max_revenue = #{maxRevenue},
+                              maxrif = #{maxRIF},
+                              hours_in_game = #{hoursInGame},
+                              leave_game_amount = #{leaveGameAmount},
+                              complain_amount = #{complainAmount}
+        WHERE id = #{id};
+        DELETE FROM reward WHERE id IN (SELECT rewards_id FROM game_stats_rewards WHERE game_stats_id = #{id});
+        DELETE FROM achievement WHERE id IN (SELECT achievements_id FROM game_stats_achievements WHERE game_stats_id = #{id});
     </update>
 
     <insert id="createVerificationToken">
@@ -165,15 +163,15 @@
                vt.confirmDate,
                vt.token,
                u.id,
-               u.userName,
-               u.firstName,
-               u.lastName,
+               u.user_name,
+               u.first_name,
+               u.last_name,
                u.email,
                u.password,
-               r.role
+               r.roles
         FROM verification_token vt
                  LEFT JOIN user u on vt.userId = u.id
-                 LEFT JOIN user_role r on u.id = r.userId
+                 LEFT JOIN user_roles r on u.id = r.user_id
         WHERE vt.token = #{uuid}
     </select>
 
@@ -190,28 +188,30 @@
     </delete>
 
     <select id="getGameStatsByUserId" resultMap="GameStatsResultMap">
-        SELECT g.g_id,
-               g.gamesAmount,
-               g.winAmount,
-               g.tournamentAmount,
-               g.maxRevenue,
-               g.maxRIF,
-               g.hoursInGame,
-               g.leaveGameAmount,
-               g.complainAmount,
-               g.userId,
-               a.a_id,
-               a.a_name,
-               a.a_description,
-               r.r_id,
-               r.r_name,
-               r.r_date,
-               r.r_description
+        SELECT g.id,
+               g.games_amount,
+               g.win_amount,
+               g.tournament_amount,
+               g.max_revenue,
+               g.maxrif,
+               g.hours_in_game,
+               g.leave_game_amount,
+               g.complain_amount,
+               g.user_id,
+               a.id,
+               a.name,
+               a.description,
+               r.id,
+               r.name,
+               r.date,
+               r.description
 
         FROM game_stats g
-                 LEFT JOIN user_achievement a on g.g_id = a.a_gameStatsId
-                 LEFT JOIN user_reward r on g.g_id = r.r_gameStatsId
-        WHERE g.userId = #{userId}
+                 LEFT JOIN achievement a on
+                        a.id IN (SELECT achievements_id FROM game_stats_achievements WHERE game_stats_id = g.id)
+                 LEFT JOIN reward r on
+                        r.id IN (SELECT rewards_id FROM game_stats_rewards WHERE game_stats_id = g.id)
+        WHERE g.user_id = #{userId}
     </select>
 
 </mapper>

@@ -59,6 +59,12 @@ public class UserService {
         return userDtoFromUserModel(user);
     }
 
+    public User getUser() {
+        return userDao.findById(getCurrentUserId()).orElseThrow(
+                () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
+        );
+    }
+
 
     public void create(SignUpRequestDto dto) {
         if (userDao.findByEmail(dto.getEmail()).isPresent()) {
@@ -100,7 +106,7 @@ public class UserService {
         userDao.update(user);
     }
 
-    public void updateGameStats(GameStatsDto gameStats) {
+    public void updateGameStats(GameStats gameStats) {
         //TODO get GameStats separate of user
     }
 

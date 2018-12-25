@@ -1,24 +1,23 @@
 package com.topmanager.oiltycoon.game.service;
 
-import com.topmanager.oiltycoon.game.controller.RoomController;
 import com.topmanager.oiltycoon.game.dao.RoomDao;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
-import com.topmanager.oiltycoon.game.dto.response.GameDto;
+import com.topmanager.oiltycoon.game.dto.response.GameInfoDto;
 import com.topmanager.oiltycoon.game.dto.response.PlayerInfoDto;
 import com.topmanager.oiltycoon.game.dto.response.RoomInfoDto;
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.game.service.impl.RoomProcessor;
-import com.topmanager.oiltycoon.social.dto.UserDto;
-import com.topmanager.oiltycoon.social.dto.response.GameStatsDto;
 import com.topmanager.oiltycoon.social.model.GameStats;
+import com.topmanager.oiltycoon.social.model.User;
 import com.topmanager.oiltycoon.social.security.exception.ErrorCode;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
 import com.topmanager.oiltycoon.social.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -35,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.topmanager.oiltycoon.game.model.RoomDestination.*;
 import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.ROOM_NAME_NOT_UNIQUE;
@@ -55,10 +55,10 @@ public class RoomService {
         rooms = new HashMap<>();
     }
 
-    @Autowired
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
+//    @Autowired
+//    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+//        this.passwordEncoder = passwordEncoder;
+//    }
 
     @Autowired
     public void setRoomDao(RoomDao roomDao) {
@@ -66,6 +66,7 @@ public class RoomService {
     }
 
     @Autowired
+    @Lazy
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
@@ -82,9 +83,8 @@ public class RoomService {
 
     @PostConstruct
     public void init() {
-        rooms.putAll(roomDao
-                .findAllRooms()
-                .stream()
+        rooms.putAll(
+                StreamSupport.stream(roomDao.findAll().spliterator(), false)
                 .map((room) -> new RoomProcessor(new RoomProcessor.RoomProcessorParams(room, this, passwordEncoder)))
                 .peek(roomProcessor -> roomSchedulingService.addRoomRunnable(roomProcessor))
                 .collect(Collectors.toMap(
@@ -92,9 +92,8 @@ public class RoomService {
                         roomProcessor -> roomProcessor)
                 )
         );
+
     }
-
-
 
     public List<RoomInfoDto> getRoomsList() {
         return rooms.values()
@@ -122,7 +121,7 @@ public class RoomService {
                 passwordEncoder.encode(roomAdd.getPassword()),
                 roomAdd.getRoomPeriodDelay()
         );
-        roomDao.addRoom(room);
+        room = roomDao.save(room);
         RoomProcessor roomProcessor = new RoomProcessor(new RoomProcessor.RoomProcessorParams(room, this, passwordEncoder));
         rooms.put(room.getId(), roomProcessor);
         roomSchedulingService.addRoomRunnable(roomProcessor);
@@ -132,19 +131,19 @@ public class RoomService {
     public void deleteRoom(int roomId) {
         Room deletedRoom = rooms.get(roomId).getRoomData();
         if (deletedRoom == null) {
-            deletedRoom = roomDao.findRoomById(roomId).orElseThrow(
+            deletedRoom = roomDao.findById(roomId).orElseThrow(
                     () -> new RestException(ROOM_NOT_FOUND)
             );
         }
-        roomSchedulingService.removeRoomRunnble(rooms.get(roomId));
-        roomDao.deleteRoomById(deletedRoom);
+        roomSchedulingService.removeRoomRunnable(rooms.get(roomId));
+        roomDao.delete(deletedRoom);
         //TODO stop and handle users
         rooms.remove(roomId);
         updateRoomList();
     }
 
-    public GameDto connectToRoom(RoomConnectDto roomConnectDto) {
-        UserDto user = userService.getUserProfile();
+    public GameInfoDto connectToRoom(RoomConnectDto roomConnectDto) {
+        User user = userService.getUser();
         RoomProcessor currentRoom = rooms.get(roomConnectDto.getRoomId());
         if(currentRoom == null) {
             throw new RestException(ErrorCode.INVALID_ROOM_ID);
@@ -153,7 +152,7 @@ public class RoomService {
                 new Player(user),
                 roomConnectDto.getPassword()
         );
-        return new GameDto();
+        return new GameInfoDto();
     }
 
     private void updateRoomList() {
@@ -166,7 +165,7 @@ public class RoomService {
         );
     }
 
-    public void updateUserGameStats(GameStatsDto gameStats) {
+    public void updateUserGameStats(GameStats gameStats) {
         userService.updateGameStats(gameStats);
     }
 
@@ -178,7 +177,7 @@ public class RoomService {
     }
 
     public void sendUserDisconnect(int roomId, PlayerInfoDto playerInfoDto) {
-        
+
         messagingTemplate.convertAndSend(
                 BROKER_DESTINATION_PREFIX + ROOM_EVENT + "/" + roomId,
                 playerInfoDto

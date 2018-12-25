@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,11 @@ import static com.topmanager.oiltycoon.game.model.GameState.PREPARE;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Room{
+@Entity
+public class Room {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String name;
     private int maxPlayers;
@@ -22,8 +27,21 @@ public class Room{
     private boolean isTournament;
     private boolean isScenario;
     private String scenario;
+
+    @MapKey(name="userName")
+    @OneToMany(mappedBy = "room",
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private Map<String, Player> players;
+
+    @OneToOne(mappedBy = "room",
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private Requirement requirement;
+
     private GameState state;
     private int maxRounds;
     private int currentRound;

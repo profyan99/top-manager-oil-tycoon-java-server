@@ -2,7 +2,7 @@ package com.topmanager.oiltycoon.game.controller;
 
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
-import com.topmanager.oiltycoon.game.dto.response.GameDto;
+import com.topmanager.oiltycoon.game.dto.response.GameInfoDto;
 import com.topmanager.oiltycoon.game.dto.response.RoomInfoDto;
 import com.topmanager.oiltycoon.game.service.RoomService;
 import com.topmanager.oiltycoon.social.dto.ErrorDto;
@@ -17,7 +17,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
@@ -73,7 +72,7 @@ public class RoomController {
     }
 
     @SubscribeMapping(ROOM_EVENT + "/{room}")
-    public GameDto connectRoom(@DestinationVariable int room, SimpMessageHeaderAccessor headerAccessor) {
+    public GameInfoDto connectRoom(@DestinationVariable int room, SimpMessageHeaderAccessor headerAccessor) {
         logger.debug(":: Subscribe event ["+ROOM_EVENT+"/"+room+"] by "+headerAccessor.getUser().getName());
         Map<String, Object> sessionAtributes = headerAccessor.getSessionAttributes();
         return roomService.connectToRoom(new RoomConnectDto(room, (String) sessionAtributes.get("PASSWORD")));

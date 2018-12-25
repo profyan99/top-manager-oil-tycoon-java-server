@@ -8,6 +8,7 @@ import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.game.service.RoomRunnable;
 import com.topmanager.oiltycoon.game.service.RoomService;
 import com.topmanager.oiltycoon.social.dto.response.GameStatsDto;
+import com.topmanager.oiltycoon.social.model.GameStats;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -124,7 +125,7 @@ public class RoomProcessor implements RoomRunnable {
             }
             if (roomData.getRequirement() != null) {
                 Requirement requirement = roomData.getRequirement();
-                GameStatsDto userGameStats = player.getUser().getGameStats();
+                GameStats userGameStats = player.getUser().getGameStats();
                 if (requirement.getMinHoursInGameAmount() > userGameStats.getHoursInGame()
                         && userGameStats.getAchievements().containsAll(requirement.getRequireAchievements())
                         && requirement.getRequireRoles().containsAll(requirement.getRequireRoles())) {

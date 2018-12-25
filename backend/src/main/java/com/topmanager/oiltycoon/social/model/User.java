@@ -5,14 +5,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.persistence.*;
 import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@Entity
 public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
+
     private String ip;
     private String email;
     private String userName;
@@ -20,7 +25,14 @@ public class User {
     private String firstName;
     private String lastName;
     private String password;
+
+    @ElementCollection(fetch = FetchType.EAGER)
     private Set<UserRole> roles;
+
+    @OneToOne(mappedBy = "user",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            optional = false)
     private GameStats gameStats;
 
     public User(String email, String userName, String firstName, String lastName, String password, Set<UserRole> roles,

@@ -1,12 +1,16 @@
 package com.topmanager.oiltycoon.game.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 
-@AllArgsConstructor
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
 @ToString
-public class PlayerInfoDto {
+public class PlayerInfoDto extends BaseRoomResponseDto {
     //TODO complete necessary user information
+
+
+    public PlayerInfoDto() {
+        super(ResponseDtoType.PLAYER_INFO);
+    }
 }

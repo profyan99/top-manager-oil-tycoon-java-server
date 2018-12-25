@@ -1,20 +1,13 @@
 package com.topmanager.oiltycoon.game.dao;
 
 import com.topmanager.oiltycoon.game.model.Room;
+import org.springframework.data.repository.CrudRepository;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 import java.util.Set;
 
-public interface RoomDao {
-    Set<Room> findAllRooms();
-
-    Optional<Room> findRoomById(int id);
-
-    void addRoom(Room room);
-
-    void deleteRoomById(Room room);
-
-    void updateRoom(Room room);
-
+@Transactional
+public interface RoomDao extends CrudRepository<Room, Integer> {
     boolean existsByName(String name);
 }

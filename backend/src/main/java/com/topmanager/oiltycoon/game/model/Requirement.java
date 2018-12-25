@@ -6,13 +6,30 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
 public class Requirement {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
+
     private int minHoursInGameAmount;
-    private List<Achievement> requireAchievements;
-    private List<UserRole> requireRoles;
+
+    @OneToMany(
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private Set<Achievement> requireAchievements;
+
+    @ElementCollection
+    private Set<UserRole> requireRoles;
+
+    @OneToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "room_id", nullable = false)
+    private Room room;
 }
