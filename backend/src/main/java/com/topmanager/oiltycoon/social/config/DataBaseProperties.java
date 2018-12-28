@@ -11,7 +11,6 @@ import org.springframework.core.env.Environment;
 import javax.sql.DataSource;
 
 @Configuration
-@PropertySource("classpath:mysql.jdbc.properties")
 public class DataBaseProperties {
 
     private Environment env;
@@ -26,10 +25,10 @@ public class DataBaseProperties {
     public DataSource dataSource() {
         return DataSourceBuilder
                 .create()
-                .url(env.getProperty("jdbc.url"))
-                .username(env.getProperty("jdbc.username"))
-                .password(env.getProperty("jdbc.password"))
-                .driverClassName(env.getProperty("jdbc.driverClassName"))
+                .url(env.getProperty("spring.datasource.url"))
+                .username(env.getProperty("spring.datasource.username"))
+                .password(env.getProperty("spring.datasource.password"))
+                .driverClassName(env.getProperty("spring.datasource.driver-class-name"))
                 .build();
     }
 }

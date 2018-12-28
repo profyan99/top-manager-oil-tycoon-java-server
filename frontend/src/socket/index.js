@@ -3,7 +3,8 @@ import SockJS from "sockjs-client";
 import Stomp from "webstomp-client";
 import store from '../store'
 import {
-  SET_SOCKET_CONNECTED, SET_NEW_MESSAGE
+  SET_SOCKET_CONNECTED,
+  SET_NEW_MESSAGE
 } from '../store/util/mutationTypes.js'
 
 
@@ -26,10 +27,13 @@ export function socketConnect() {
 }
 
 function subscribeTopics() {
-  stompClient.subscribe(store.getters.getSocketTopics.room, function(message) {
+  stompClient.subscribe(store.getters.getSocketTopics.roomList, function(message) {
     store.commit(SET_NEW_MESSAGE, JSON.parse(message.body));
     console.log("Message", JSON.parse(message.body));
   });
+  stompClient.subscribe(store.getters.getSocketEndpoints.error, function(message) {
+    console.log("Error: ", message);
+  })
 }
 
 export function sendMessage(message) {

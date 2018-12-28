@@ -1,21 +1,18 @@
 package com.topmanager.oiltycoon.social.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
 
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@ToString
 @Entity
 public class GameStats {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private int gamesAmount;
@@ -41,12 +38,7 @@ public class GameStats {
     private List<Achievement> achievements;
 
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
-    public GameStats(int gamesAmount, int winAmount, int tournamentAmount, List<Reward> rewards, int maxRevenue,
-                     int maxRIF, int hoursInGame, int leaveGameAmount, int complainAmount, List<Achievement> achievements) {
-        this(0, gamesAmount, winAmount, tournamentAmount, rewards, maxRevenue, maxRIF, hoursInGame,
-                leaveGameAmount, complainAmount, achievements, new User());
-    }
 }

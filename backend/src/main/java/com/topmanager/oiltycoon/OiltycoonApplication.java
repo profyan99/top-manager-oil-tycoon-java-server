@@ -16,12 +16,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.InputStream;
 import java.util.Properties;
 
 @SpringBootApplication
-@MapperScan(basePackages = {"com.topmanager.oiltycoon.social.dao.mapper", "com.topmanger.oiltycoon.mapper"})
 @EnableAsync
 @EnableScheduling
 @EnableJpaRepositories
@@ -36,20 +37,6 @@ public class OiltycoonApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(OiltycoonApplication.class, args);
-	}
-
-	@Bean(name = "SimpleSqlFactory")
-	@Primary
-	public SqlSessionFactory mysqlSessionFactory() throws Exception {
-		String resource = "mybatis-config.xml";
-		InputStream inputStream = Resources.getResourceAsStream(resource);
-		return new SqlSessionFactoryBuilder().build(inputStream);
-	}
-
-	@Bean(name = "SimpleSqlSession")
-	@Primary
-	public SqlSessionTemplate sqlSession() throws Exception {
-		return new SqlSessionTemplate(mysqlSessionFactory());
 	}
 
 	@Bean
@@ -67,6 +54,12 @@ public class OiltycoonApplication {
 		props.put("mail.smtp.starttls.enable", env.getProperty("mail.tls"));
 		props.put("mail.debug", env.getProperty("mail.debug"));
 		return mailSender;
+	}
+
+	@Bean
+	@Primary
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder(10);
 	}
 
 

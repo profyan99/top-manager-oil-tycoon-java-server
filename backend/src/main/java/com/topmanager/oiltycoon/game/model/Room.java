@@ -1,8 +1,6 @@
 package com.topmanager.oiltycoon.game.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.HashMap;
@@ -11,14 +9,15 @@ import java.util.Map;
 
 import static com.topmanager.oiltycoon.game.model.GameState.PREPARE;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 public class Room {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
     private int maxPlayers;
@@ -30,7 +29,7 @@ public class Room {
 
     @MapKey(name="userName")
     @OneToMany(mappedBy = "room",
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )

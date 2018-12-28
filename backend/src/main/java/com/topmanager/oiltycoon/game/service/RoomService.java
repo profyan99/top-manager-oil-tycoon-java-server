@@ -42,23 +42,20 @@ import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.ROOM_
 
 @Service
 public class RoomService {
-    private Map<Integer, RoomProcessor> rooms;
+    private Map<Integer, RoomProcessor> rooms = new HashMap<>();
     private RoomDao roomDao;
     private SimpMessagingTemplate messagingTemplate;
     private RoomSchedulingService roomSchedulingService;
+
     private PasswordEncoder passwordEncoder;
     private UserService userService;
 
     private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
-    public RoomService() {
-        rooms = new HashMap<>();
+    @Autowired
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
-
-//    @Autowired
-//    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-//        this.passwordEncoder = passwordEncoder;
-//    }
 
     @Autowired
     public void setRoomDao(RoomDao roomDao) {
@@ -66,7 +63,6 @@ public class RoomService {
     }
 
     @Autowired
-    @Lazy
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
@@ -187,6 +183,7 @@ public class RoomService {
     @EventListener
     public void handleSessionConnected(SessionConnectEvent event) {
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
+        logger.debug(":: Session connected\nname: "+headers.getUser().getName()+"\nDest: "+headers.getDestination());
 
         //messagingTemplate.convertAndSendToUser(headers.getUser().getName(),);
     }
@@ -203,11 +200,15 @@ public class RoomService {
 
     @EventListener
     public void handleSessionSubscribeEvent(SessionSubscribeEvent event) {
+        StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
+        logger.debug(":: Session subscribe\nname: "+headers.getUser().getName()+"\nDest: "+headers.getDestination());
 
     }
 
     @EventListener
     public void handleSessionUnsubscribeEvent(SessionUnsubscribeEvent event) {
+        StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
+        logger.debug(":: Session unsubscribe\nname: "+headers.getUser().getName()+"\nDest: "+headers.getDestination());
 
     }
 

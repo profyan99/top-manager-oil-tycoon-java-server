@@ -1,21 +1,18 @@
 package com.topmanager.oiltycoon.social.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Set;
 
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
 @AllArgsConstructor
-@ToString
+@NoArgsConstructor
 @Entity
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private String ip;
@@ -31,21 +28,8 @@ public class User {
 
     @OneToOne(mappedBy = "user",
             cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY,
-            optional = false)
+            fetch = FetchType.LAZY)
     private GameStats gameStats;
-
-    public User(String email, String userName, String firstName, String lastName, String password, Set<UserRole> roles,
-                GameStats gameStats) {
-        this.email = email;
-        this.userName = userName;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.password = password;
-        this.roles = roles;
-        this.id = 0;
-        this.gameStats = gameStats;
-    }
 
 
 }

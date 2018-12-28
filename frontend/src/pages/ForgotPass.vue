@@ -58,8 +58,7 @@ import {
 } from "mdbvue";
 
 import {
-  showErrorNotification,
-  showSuccessNotification
+  showErrorNotification
 } from '../store/util/functions'
 
 import {

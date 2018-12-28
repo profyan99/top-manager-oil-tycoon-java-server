@@ -2,21 +2,20 @@ package com.topmanager.oiltycoon.game.model;
 
 import com.topmanager.oiltycoon.social.model.Achievement;
 import com.topmanager.oiltycoon.social.model.UserRole;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 public class Requirement {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private int minHoursInGameAmount;

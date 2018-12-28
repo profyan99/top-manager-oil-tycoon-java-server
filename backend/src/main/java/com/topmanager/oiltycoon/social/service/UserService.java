@@ -2,6 +2,7 @@ package com.topmanager.oiltycoon.social.service;
 
 import com.topmanager.oiltycoon.Utils;
 import com.topmanager.oiltycoon.social.dao.UserDao;
+import com.topmanager.oiltycoon.social.dao.VerificationTokenDao;
 import com.topmanager.oiltycoon.social.dto.UserDto;
 import com.topmanager.oiltycoon.social.dto.request.ProfileEditRequestDto;
 import com.topmanager.oiltycoon.social.dto.request.ResetPasswordRequestDto;
@@ -32,9 +33,16 @@ public class UserService {
 
     private UserDao userDao;
 
+    private VerificationTokenDao verificationTokenDao;
+
     private PasswordEncoder passwordEncoder;
 
     private MailSender mailSender;
+
+    @Autowired
+    public void setVerificationTokenDao(VerificationTokenDao verificationTokenDao) {
+        this.verificationTokenDao = verificationTokenDao;
+    }
 
     @Autowired
     public void setMailSender(MailSender mailSender) {
@@ -52,9 +60,7 @@ public class UserService {
     }
 
     public UserDto getUserProfile() {
-        User user = userDao.findById(getCurrentUserId()).orElseThrow(
-                () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
-        );
+        User user = getUser();
         logger.debug("GetUserProfile UserName: " + user.getUserName());
         return userDtoFromUserModel(user);
     }
@@ -83,7 +89,8 @@ public class UserService {
             user.getRoles().add(UserRole.WITHOUT_EMAIL);
             mail = false;
         }
-        userDao.create(user);
+        user.getGameStats().setUser(user);
+        user = userDao.save(user);
         if (mail) {
             sendVerification(user, Utils.MailMessage.REGISTRATION_CONFIRM);
         }
@@ -91,7 +98,7 @@ public class UserService {
 
 
     public void verification(String uuid) {
-        VerificationToken verificationToken = userDao.getVerificationToken(uuid).orElseThrow(
+        VerificationToken verificationToken = verificationTokenDao.findByToken(uuid).orElseThrow(
                 () -> new RestException(ErrorCode.VERIFICATION_TOKEN_NOT_FOUND)
         );
         User user = verificationToken.getUser();
@@ -103,7 +110,7 @@ public class UserService {
         }
 
         user.getRoles().remove(UserRole.UNVERIFIED);
-        userDao.update(user);
+        userDao.save(user);
     }
 
     public void updateGameStats(GameStats gameStats) {
@@ -126,12 +133,11 @@ public class UserService {
                 throw new RestException(ErrorCode.USERNAME_NOT_UNIQUE);
             }
         }
-
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setUserName(dto.getUserName());
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-        userDao.update(user);
+        userDao.save(user);
         return userDtoFromUserModel(user);
     }
 
@@ -143,7 +149,7 @@ public class UserService {
     }
 
     public UserDto resetPassword(ResetPasswordRequestDto dto) {
-        VerificationToken verificationToken = userDao.getVerificationToken(dto.getToken()).orElseThrow(
+        VerificationToken verificationToken = verificationTokenDao.findByToken(dto.getToken()).orElseThrow(
                 () -> new RestException(ErrorCode.VERIFICATION_TOKEN_NOT_FOUND)
         );
         User user = verificationToken.getUser();
@@ -154,7 +160,7 @@ public class UserService {
             throw new RestException(ErrorCode.PASSWORDS_IS_NOT_EQUALS);
         }
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-        userDao.update(user);
+        userDao.save(user);
         return userDtoFromUserModel(user);
     }
 
@@ -167,6 +173,8 @@ public class UserService {
 
     public User createUserFromSignUpForm(SignUpRequestDto dto) {
         return new User(
+                0,
+                "",
                 dto.getEmail(),
                 dto.getUserName(),
                 dto.getFirstName(),
@@ -174,8 +182,8 @@ public class UserService {
                 dto.getPassword() == null ? null : passwordEncoder.encode(dto.getPassword()),
                 new HashSet<>(Arrays.asList(UserRole.PLAYER, UserRole.UNVERIFIED)),
                 new GameStats(
-                        0, 0, 0, new ArrayList<>(),
-                        0, 0, 0, 0, 0, new ArrayList<>()
+                        0, 0, 0, 0,  new ArrayList<>(),
+                        0, 0, 0, 0, 0, new ArrayList<>(), null
                 )
         );
     }
@@ -192,13 +200,14 @@ public class UserService {
 
     private void sendVerification(User user, Utils.MailMessage mailMessage) {
         String token = UUID.randomUUID().toString();
+        logger.error("\n\nID: "+user.getId());
         VerificationToken verificationToken = new VerificationToken(
                 user.getId(),
                 token,
                 user,
                 LocalDateTime.now().plusDays(1)
         );
-        userDao.createVerificationToken(verificationToken);
+        verificationTokenDao.save(verificationToken);
 
         mailSender.send(new MailData(
                 user.getEmail(),

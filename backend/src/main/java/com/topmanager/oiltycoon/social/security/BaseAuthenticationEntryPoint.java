@@ -37,7 +37,9 @@ public class BaseAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException e) throws IOException {
         logger.debug("Commence entry point");
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        response.getOutputStream().print(objectMapper.writeValueAsString(
+        response.setContentType("text/html; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().print(objectMapper.writeValueAsString(
                 new ErrorResponseDto(Collections.singletonList(new ErrorDto(ErrorCode.AUTHENTICATION_ERROR.name(),
                         ErrorCode.AUTHENTICATION_ERROR.getMessage())))
         ));

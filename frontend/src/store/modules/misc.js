@@ -1,6 +1,7 @@
 export const backendUrl = 'http://localhost:8088';
 const baseSocketTopic = '/topic';
 const baseSocketEndpoint = '/app';
+const baseSocketUserDestination = '/user';
 
 const state = {
   googleAuthLink: backendUrl + '/auth/google',
@@ -15,10 +16,11 @@ const state = {
   resetPassword: 'api/reset-password',
   socketUrl: backendUrl+'/room',
   socketTopics: {
-      room: baseSocketTopic + '/room'
+      room: baseSocketEndpoint + '/room/list'
   },
   socketEndpoints: {
-      room: baseSocketEndpoint + '/room'
+      room: baseSocketEndpoint + '/room',
+      error: baseSocketUserDestination + '/queue/errors'
   },
   authSecret: 'dHJ1c3RlZC1jbGllbnQ6WFk3a216b056bDEwMA==',
   errors: {

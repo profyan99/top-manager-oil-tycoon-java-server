@@ -46,9 +46,11 @@ export default {
     }
   },
   created() {
-    socket.socketConnect().then(() => {
-      socket.sendMessage("Hello from frontend!");
-    });
+    if(!this.$store.getters.isConnected) {
+      socket.socketConnect().then(() => {
+        socket.sendMessage("Hello from frontend!");
+      });
+    }
   },
   methods: {
     ...mapGetters([
