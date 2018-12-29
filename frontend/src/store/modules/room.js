@@ -11,7 +11,7 @@ const mutations = {
     state.connected = connected;
   },
   [types.SET_NEW_MESSAGE](state, msg) {
-    state.messages.push(msg);
+    state.messages = msg;
   }
 };
 
@@ -34,14 +34,14 @@ const actions = {
             "PLAYER"
           ]
         },
-        maxRounds: 8,
+        maxRounds: 6,
         password: "",
-        roomPeriodDelay: 300
+        roomPeriodDelay: 10
       };
       console.log("Data: ", data);
 
       Vue.http.post(getters.getUrls.roomAdd, data)
-        .then(response => {
+        .then(() => {
           resolve();
         }, (error) => {
           reject(error.body.errors);

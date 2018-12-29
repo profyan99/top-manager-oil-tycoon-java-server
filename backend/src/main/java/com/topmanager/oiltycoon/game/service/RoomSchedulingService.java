@@ -4,62 +4,41 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.*;
 
 @AllArgsConstructor
 @Component
+@Scope("singleton")
 public class RoomSchedulingService {
 
-    private final Set<RoomRunnable> roomRunnableSet;
-    private ReadWriteLock lock = new ReentrantReadWriteLock();
-    private Lock readLock = lock.readLock();
-    private Lock writeLock = lock.writeLock();
+    private final CopyOnWriteArraySet<RoomRunnable> roomRunnableSet;
     private static final Logger logger = LoggerFactory.getLogger(RoomSchedulingService.class);
 
     public RoomSchedulingService() {
-        roomRunnableSet = new HashSet<>();
+        roomRunnableSet = new CopyOnWriteArraySet<>();
     }
 
     public void addRoomRunnable(RoomRunnable roomRunnable) {
-        writeLock.lock();
-        try {
-            logger.info(":: Try to get write lock [ADD]");
-            roomRunnableSet.add(roomRunnable);
-        } finally {
-            writeLock.unlock();
-            logger.info(":: Release write lock [ADD]");
-        }
+        roomRunnableSet.add(roomRunnable);
     }
 
     public void removeRoomRunnable(RoomRunnable roomRunnable) {
-        writeLock.lock();
-        try {
-            logger.info(":: Try to get write lock [REMOVE]");
-            roomRunnableSet.remove(roomRunnable);
-        } finally {
-            writeLock.unlock();
-            logger.info(":: Release write lock [REMOVE]");
-        }
-
+        roomRunnableSet.remove(roomRunnable);
     }
 
     @Scheduled(fixedDelayString = "${room-schedule-delay}")
     private void releaseSecond() {
-        readLock.lock();
-        try {
-            logger.info(":: Try to get read lock");
+        synchronized (roomRunnableSet) {
             roomRunnableSet.forEach((RoomRunnable::roomUpdate));
-        } finally {
-            readLock.unlock();
-            logger.info(":: Release read lock");
         }
     }
 }
