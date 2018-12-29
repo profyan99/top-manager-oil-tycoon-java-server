@@ -80,13 +80,13 @@ public class RoomService {
     @PostConstruct
     public void init() {
         rooms.putAll(
-                StreamSupport.stream(roomDao.findAll().spliterator(), false)
-                .map((room) -> new RoomProcessor(new RoomProcessor.RoomProcessorParams(room, this, passwordEncoder)))
-                .peek(roomProcessor -> roomSchedulingService.addRoomRunnable(roomProcessor))
-                .collect(Collectors.toMap(
-                        roomProcessor -> roomProcessor.getRoomData().getId(),
-                        roomProcessor -> roomProcessor)
-                )
+                roomDao.findAll().stream()
+                        .map((room) -> new RoomProcessor(new RoomProcessor.RoomProcessorParams(room, this, passwordEncoder)))
+                        .peek(roomProcessor -> roomSchedulingService.addRoomRunnable(roomProcessor))
+                        .collect(Collectors.toMap(
+                                roomProcessor -> roomProcessor.getRoomData().getId(),
+                                roomProcessor -> roomProcessor)
+                        )
         );
 
     }
@@ -114,10 +114,10 @@ public class RoomService {
                 roomAdd.getScenario(),
                 roomAdd.getRequirement(),
                 roomAdd.getMaxRounds(),
-                passwordEncoder.encode(roomAdd.getPassword()),
+                roomAdd.isLocked() ? passwordEncoder.encode(roomAdd.getPassword()) : null,
                 roomAdd.getRoomPeriodDelay()
         );
-        room = roomDao.save(room);
+        room = roomDao.saveAndFlush(room);
         RoomProcessor roomProcessor = new RoomProcessor(new RoomProcessor.RoomProcessorParams(room, this, passwordEncoder));
         rooms.put(room.getId(), roomProcessor);
         roomSchedulingService.addRoomRunnable(roomProcessor);
@@ -141,7 +141,7 @@ public class RoomService {
     public GameInfoDto connectToRoom(RoomConnectDto roomConnectDto) {
         User user = userService.getUser();
         RoomProcessor currentRoom = rooms.get(roomConnectDto.getRoomId());
-        if(currentRoom == null) {
+        if (currentRoom == null) {
             throw new RestException(ErrorCode.INVALID_ROOM_ID);
         }
         currentRoom.onPlayerConnect(
@@ -152,6 +152,7 @@ public class RoomService {
     }
 
     private void updateRoomList() {
+        logger.info(":: Update room list");
         messagingTemplate.convertAndSend(BROKER_DESTINATION_PREFIX + ROOM_LIST,
                 rooms
                         .values()
@@ -167,7 +168,7 @@ public class RoomService {
 
     public void sendUserConnect(int roomId, PlayerInfoDto playerInfoDto) {
         messagingTemplate.convertAndSend(
-                BROKER_DESTINATION_PREFIX +ROOM_EVENT+ "/" + roomId,
+                BROKER_DESTINATION_PREFIX + ROOM_EVENT + "/" + roomId,
                 playerInfoDto
         );
     }
@@ -183,7 +184,7 @@ public class RoomService {
     @EventListener
     public void handleSessionConnected(SessionConnectEvent event) {
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
-        logger.debug(":: Session connected\nname: "+headers.getUser().getName()+"\nDest: "+headers.getDestination());
+        logger.debug(":: Session connected\nname: " + headers.getUser().getName() + "\nDest: " + headers.getDestination());
 
         //messagingTemplate.convertAndSendToUser(headers.getUser().getName(),);
     }
@@ -191,9 +192,9 @@ public class RoomService {
     @EventListener
     public void handleSessionDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        int roomId = (int)headerAccessor.getSessionAttributes().getOrDefault("CONNECTED_ROOM", -1);
-        logger.debug(":: Session disconnect\nroomId: "+roomId+"\nname: "+headerAccessor.getUser().getName());
-        if(roomId != -1) {
+        int roomId = (int) headerAccessor.getSessionAttributes().getOrDefault("CONNECTED_ROOM", -1);
+        logger.debug(":: Session disconnect\nroomId: " + roomId + "\nname: " + headerAccessor.getUser().getName());
+        if (roomId != -1) {
             rooms.get(roomId).onPlayerDisconnect(headerAccessor.getUser().getName());
         }
     }
@@ -201,14 +202,14 @@ public class RoomService {
     @EventListener
     public void handleSessionSubscribeEvent(SessionSubscribeEvent event) {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
-        logger.debug(":: Session subscribe\nname: "+headers.getUser().getName()+"\nDest: "+headers.getDestination());
+        logger.debug(":: Session subscribe\nname: " + headers.getUser().getName() + "\nDest: " + headers.getDestination());
 
     }
 
     @EventListener
     public void handleSessionUnsubscribeEvent(SessionUnsubscribeEvent event) {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
-        logger.debug(":: Session unsubscribe\nname: "+headers.getUser().getName()+"\nDest: "+headers.getDestination());
+        logger.debug(":: Session unsubscribe\nname: " + headers.getUser().getName() + "\nDest: " + headers.getDestination());
 
     }
 

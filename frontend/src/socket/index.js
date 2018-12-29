@@ -1,5 +1,4 @@
 import SockJS from "sockjs-client";
-//import Stomp from '@stomp/stompjs'
 import Stomp from "webstomp-client";
 import store from '../store'
 import {
@@ -29,7 +28,11 @@ export function socketConnect() {
 function subscribeTopics() {
   stompClient.subscribe(store.getters.getSocketTopics.roomList, function(message) {
     store.commit(SET_NEW_MESSAGE, JSON.parse(message.body));
-    console.log("Message", JSON.parse(message.body));
+    console.log("Message [1]", JSON.parse(message.body));
+  });
+  stompClient.subscribe("/topic/room/list", function(message) {
+    store.commit(SET_NEW_MESSAGE, JSON.parse(message.body));
+    console.log("Message [2]", JSON.parse(message.body));
   });
   stompClient.subscribe(store.getters.getSocketEndpoints.error, function(message) {
     console.log("Error: ", message);

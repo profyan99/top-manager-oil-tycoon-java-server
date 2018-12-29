@@ -1,5 +1,5 @@
 import * as types from '../util/mutationTypes.js'
-
+import Vue from 'vue'
 
 const state = {
   connected: false,
@@ -16,7 +16,38 @@ const mutations = {
 };
 
 const actions = {
+  addRoom({
+    getters
+  }, number) {
+    return new Promise((resolve, reject) => {
+      let data = {
+        name: "Test Room "+number,
+        maxPlayers: 8,
+        isLocked: false,
+        isTournament: false,
+        isScenario: false,
+        scenario: "",
+        requirement: {
+          minHoursInGameAmount: 0,
+          requireAchievements: [],
+          requireRoles: [
+            "PLAYER"
+          ]
+        },
+        maxRounds: 8,
+        password: "",
+        roomPeriodDelay: 300
+      };
+      console.log("Data: ", data);
 
+      Vue.http.post(getters.getUrls.roomAdd, data)
+        .then(response => {
+          resolve();
+        }, (error) => {
+          reject(error.body.errors);
+        });
+    });
+  },
 };
 
 const getters = {

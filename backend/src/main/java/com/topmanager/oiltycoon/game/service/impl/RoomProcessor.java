@@ -7,19 +7,13 @@ import com.topmanager.oiltycoon.game.model.Requirement;
 import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.game.service.RoomRunnable;
 import com.topmanager.oiltycoon.game.service.RoomService;
-import com.topmanager.oiltycoon.social.dto.response.GameStatsDto;
 import com.topmanager.oiltycoon.social.model.GameStats;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-import org.springframework.web.socket.messaging.SessionSubscribeEvent;
-import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import java.time.LocalDateTime;
 
@@ -31,15 +25,16 @@ public class RoomProcessor implements RoomRunnable {
     private Room roomData;
     private RoomService roomService;
     private int currentSecond;
+    private int prepareSecond;
     private PasswordEncoder passwordEncoder;
-    private final long TIME_USER_RELOAD;
+    private final int TIME_USER_RELOAD;
 
     public RoomProcessor(RoomProcessorParams processorParams) {
         this.roomData = processorParams.getRoomData();
         this.roomService = processorParams.getRoomService();
         this.passwordEncoder = processorParams.getPasswordEncoder();
         this.TIME_USER_RELOAD = processorParams.getRoomData().getRoomPeriodDelay() * 2;
-
+        prepareSecond = TIME_USER_RELOAD;
         initGame();
     }
 
@@ -51,6 +46,10 @@ public class RoomProcessor implements RoomRunnable {
     public void roomUpdate() {
         if (roomData.getState() == PLAY) {
             currentSecond++;
+        }
+
+        if(prepareSecond != 0) {
+            prepareSecond--;
         }
 
         long secondsNow = LocalDateTime.now().getSecond();
@@ -68,7 +67,8 @@ public class RoomProcessor implements RoomRunnable {
                 });
 
         if ((roomData.getState() == END || roomData.getState() == PREPARE)
-                && roomData.getCurrentPlayers() == 0 && roomData.getPlayers().isEmpty()) {
+                && roomData.getCurrentPlayers() == 0 && roomData.getPlayers().isEmpty()
+                && prepareSecond <= 0) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + getRoomData().getName() + "] :: " + "no players in room. Delete room");
             }

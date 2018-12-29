@@ -1,11 +1,11 @@
 package com.topmanager.oiltycoon.game.dto.request;
 
 import com.topmanager.oiltycoon.game.model.Requirement;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 
-@Data
+@Setter
+@Getter
+@NoArgsConstructor
 @AllArgsConstructor
 @ToString
 public class RoomAddDto {

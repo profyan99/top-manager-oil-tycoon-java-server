@@ -14,9 +14,10 @@ const state = {
   authenticateUrl: 'oauth/token',
   forgotPassword: 'api/forgot-password',
   resetPassword: 'api/reset-password',
+  roomAddUrl:  'api/room/add',
   socketUrl: backendUrl+'/room',
   socketTopics: {
-      room: baseSocketEndpoint + '/room/list'
+      roomList: baseSocketEndpoint + '/room/list'
   },
   socketEndpoints: {
       room: baseSocketEndpoint + '/room',
@@ -59,7 +60,8 @@ const getters = {
       authenticate: state.authenticateUrl,
       socket: state.socketUrl,
       resetPassword: state.resetPassword,
-      forgotPassword: state.forgotPassword
+      forgotPassword: state.forgotPassword,
+      roomAdd: state.roomAddUrl
     };
   },
   getSocketTopics: (state) => state.socketTopics,

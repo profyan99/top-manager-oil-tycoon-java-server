@@ -9,13 +9,19 @@
               <div class="card-body text-center">
                 <h3 class="card-title pb-2"><strong>Игровые комнаты</strong></h3>
                 <hr>
+
                 <ul class=" mb-5 mt-4">
-                  <li v-for="mess in messages" class="animated slideInDown" :key="mess.key">{{ mess }}</li>
+                  <li v-for="mess in messages" class="animated slideInDown" :key="mess.key">
+                    <room-preview-list v-bind="mess"></room-preview-list>
+                  </li>
                 </ul>
-                <button class="btn waves-effect waves-light animated slideInUp"
-                id="startBtn"
-                @click="sendMessage">
+                <router-link :to="{ name: 'home'}">
+                  <button class="btn waves-effect waves-light animated slideInUp" id="startBtn">
                     НА ГЛАВНУЮ
+                  </button>
+                </router-link>
+                <button class="btn waves-effect waves-light animated slideInUp" id="startBtn" @click="addNewRoom">
+                    СОЗДАТЬ
                 </button>
               </div>
             </div>
@@ -28,16 +34,22 @@
 </template>
 <script>
 import {
-  mapGetters
+  mapGetters,
+  mapActions
 } from 'vuex';
+
+import RoomPreviewList from '../components/RoomPreviewList.vue'
 
 import * as socket from '../socket'
 
 export default {
   name: 'Rooms',
+  components: {
+    RoomPreviewList
+  },
   data() {
     return {
-
+      number: 10
     }
   },
   computed: {
@@ -46,7 +58,7 @@ export default {
     }
   },
   created() {
-    if(!this.$store.getters.isConnected) {
+    if (!this.$store.getters.isConnected) {
       socket.socketConnect().then(() => {
         socket.sendMessage("Hello from frontend!");
       });
@@ -56,8 +68,16 @@ export default {
     ...mapGetters([
       'profile'
     ]),
-    sendMessage() {
-      socket.sendMessage("New test message");
+    ...mapActions([
+      'addRoom'
+    ]),
+    addNewRoom() {
+      this.number++;
+      this.addRoom(this.number).then(() => {
+        console.log("Success");
+      }).catch(error => {
+        console.log('Error adding room: ', error);
+      });
     }
   }
 }

@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasRole(#UserRole.PLAYER)")
+@PreAuthorize("hasAuthority('PLAYER')")
 public @interface IsPlayer {
 }
