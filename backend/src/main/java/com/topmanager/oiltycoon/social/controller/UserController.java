@@ -39,6 +39,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserProfile());
     }
 
+    @GetMapping(path = "profile/{userName}")
+    public ResponseEntity<?> getProfileByName(@PathVariable String userName) {
+        return ResponseEntity.ok(userService.getUserProfileByUserName(userName));
+    }
+
     @PostMapping(path = "profile", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> editProfile(@RequestBody @Valid ProfileEditRequestDto profileEditRequestDto) {
         return ResponseEntity.ok(userService.edit(profileEditRequestDto));

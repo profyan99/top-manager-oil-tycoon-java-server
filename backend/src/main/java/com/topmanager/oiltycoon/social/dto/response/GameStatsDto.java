@@ -16,6 +16,7 @@ public class GameStatsDto {
     private int id;
     private int gamesAmount;
     private int winAmount;
+    private int loseAmount;
     private int tournamentAmount;
     private List<Reward> rewards;
     private int maxRevenue;

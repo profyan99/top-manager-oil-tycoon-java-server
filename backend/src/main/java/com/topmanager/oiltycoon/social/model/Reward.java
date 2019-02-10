@@ -22,4 +22,5 @@ public class Reward {
     private LocalDate date;
     private String name;
     private String description;
+    private int position;
 }

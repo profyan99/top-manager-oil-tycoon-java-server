@@ -14,6 +14,7 @@ public enum ErrorCode {
     VERIFICATION_TOKEN_NOT_FOUND("Неверный токен."),
     CONFIRM_TIME_EXPIRED("Время подтверждения истекло."),
     INVALID_OLD_PASSWORD("Неверный старый пароль."),
+    ACCESS_TOKEN_EXPIRED("Истекло время access token. Воспользуйтесь refresh token."),
 
     //game
     ROOM_NAME_NOT_UNIQUE("Комната с таким названием уже существует."),

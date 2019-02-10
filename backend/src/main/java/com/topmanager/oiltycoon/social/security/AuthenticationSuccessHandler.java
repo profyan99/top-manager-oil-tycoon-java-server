@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.social.security;
 
+import com.topmanager.oiltycoon.social.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -37,7 +38,12 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
     @Value("${frontend.url}")
     private String frontendUrl;
 
+    private UserService userService;
 
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
     @Autowired
     public void setDefaultTokenServices(DefaultTokenServices defaultTokenServices) {
@@ -48,6 +54,9 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+
+        userService.setLoggedIn();
+
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 

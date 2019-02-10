@@ -35,11 +35,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String s) throws RestException {
+    public UserDetails loadUserByUsername(String s)  {
         logger.debug("LoadUserByUsername[Pure]: "+s);
         UserDetails details = userCache.getUserFromCache(s);
         if(details == null) {
-            User user = userDao.findByUserName(s).orElseThrow(()->new RestException(ErrorCode.ACCOUNT_NOT_FOUND));
+            User user = userDao.findByUserName(s).orElseThrow(()-> new RestException(ErrorCode.ACCOUNT_NOT_FOUND));
             details = new SocialUserDetailsImpl(user);
             userCache.putUserInCache(details);
             logger.debug("LoadUser from DB");

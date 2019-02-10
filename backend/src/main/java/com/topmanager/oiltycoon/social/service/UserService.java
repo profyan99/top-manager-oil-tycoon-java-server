@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.social.security.SocialUserDetails;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -65,6 +66,17 @@ public class UserService {
         return userDtoFromUserModel(user);
     }
 
+    public UserDto getUserProfileByUserName(String userName) {
+        User user = userDao.findByUserName(userName).orElseThrow(
+                () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
+        );
+        if(user.getId() != getCurrentUserId()) {
+            user.setProfileWatchAmount(user.getProfileWatchAmount() + 1);
+            userDao.save(user);
+        }
+        return userDtoFromUserModel(user);
+    }
+
     public User getUser() {
         return userDao.findById(getCurrentUserId()).orElseThrow(
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
@@ -92,10 +104,9 @@ public class UserService {
         user.getGameStats().setUser(user);
         user = userDao.save(user);
         if (mail) {
-            sendVerification(user, Utils.MailMessage.REGISTRATION_CONFIRM);
+            //sendVerification(user, Utils.MailMessage.REGISTRATION_CONFIRM);
         }
     }
-
 
     public void verification(String uuid) {
         VerificationToken verificationToken = verificationTokenDao.findByToken(uuid).orElseThrow(
@@ -175,14 +186,22 @@ public class UserService {
         return new User(
                 0,
                 "",
+                dto.getCountry() == null ? "Неизвестно" : dto.getCountry(),
+                LocalDate.now(),
+                LocalDate.now(),
                 dto.getEmail(),
                 dto.getUserName(),
                 dto.getFirstName(),
                 dto.getLastName(),
                 dto.getPassword() == null ? null : passwordEncoder.encode(dto.getPassword()),
+                0,
+                "",
+                0,
+                true,
+                dto.getAvatar(),
                 new HashSet<>(Arrays.asList(UserRole.PLAYER, UserRole.UNVERIFIED)),
                 new GameStats(
-                        0, 0, 0, 0,  new ArrayList<>(),
+                        0, 0, 0, 0, 0, new ArrayList<>(),
                         0, 0, 0, 0, 0, new ArrayList<>(), null
                 )
         );
@@ -221,6 +240,15 @@ public class UserService {
         return new UserDto(
                 user.getId(),
                 user.getUserName(),
+                user.getIp(),
+                user.getCountry(),
+                user.getRegisterDate(),
+                user.getLastLogIn(),
+                user.getReputation(),
+                user.getDescription(),
+                user.getProfileWatchAmount(),
+                user.isOnline(),
+                user.getAvatar(),
                 user.getFirstName(),
                 user.getLastName(),
                 user.getRoles(),
@@ -229,6 +257,7 @@ public class UserService {
                         gameStats.getId(),
                         gameStats.getGamesAmount(),
                         gameStats.getWinAmount(),
+                        gameStats.getLoseAmount(),
                         gameStats.getTournamentAmount(),
                         gameStats.getRewards(),
                         gameStats.getMaxRevenue(),
@@ -239,5 +268,14 @@ public class UserService {
                         gameStats.getAchievements()
                 )
         );
+    }
+
+    public void setLoggedIn() {
+        User user = userDao.findById(getCurrentUserId()).orElseThrow(
+                () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
+        );
+        user.setLastLogIn(LocalDate.now());
+        user.setOnline(true);
+        userDao.save(user);
     }
 }

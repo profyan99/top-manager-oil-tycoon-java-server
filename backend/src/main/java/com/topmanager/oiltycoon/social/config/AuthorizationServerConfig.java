@@ -21,6 +21,9 @@ import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
@@ -48,8 +51,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Value("${security.jwt.client-secret}")
     private String clientSecret;
 
-    @Value("${security.jwt.grant-type}")
-    private String grantType;
+    @Value("#{'${security.jwt.grant-type}'.split(',')}")
+    private String[] grantTypes;
 
     @Value("${security.jwt.scope-read}")
     private String scopeRead;
@@ -116,6 +119,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
         defaultTokenServices.setTokenEnhancer(accessTokenConverter());
+        defaultTokenServices.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
         return defaultTokenServices;
     }
 
@@ -134,7 +138,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .refreshTokenValiditySeconds(refreshTokenValiditySeconds)
                     .and()*/
                 .withClient(clientId)
-                .authorizedGrantTypes(grantType)
+                .authorizedGrantTypes(grantTypes)
                 .authorities(UserRole.PLAYER.name())
                 .scopes(scopeRead, scopeWrite)
                 .resourceIds(resourceIds)

@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -31,4 +30,11 @@ public class SignUpRequestDto {
 
     @Email(regexp = Utils.EMAIL_REGEX, message = Utils.EMAIL_NOT_VALID)
     private String email;
+
+    private String description;
+
+    private String avatar;
+
+    private String country;
+
 }

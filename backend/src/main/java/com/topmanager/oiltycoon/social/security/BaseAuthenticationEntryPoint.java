@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
@@ -36,12 +37,31 @@ public class BaseAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException e) throws IOException {
         logger.debug("Commence entry point");
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("text/html; charset=UTF-8");
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().print(objectMapper.writeValueAsString(
-                new ErrorResponseDto(Collections.singletonList(new ErrorDto(ErrorCode.AUTHENTICATION_ERROR.name(),
-                        ErrorCode.AUTHENTICATION_ERROR.getMessage())))
-        ));
+        if(e.getCause() instanceof OAuth2Exception) {
+            String errorCode = ((OAuth2Exception)e.getCause()).getOAuth2ErrorCode();
+            if(errorCode.contains("invalid_token") && e.getMessage().contains("Access token expired")) {
+                logger.debug("Access token expired");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().print(objectMapper.writeValueAsString(
+                        new ErrorResponseDto(Collections.singletonList(new ErrorDto(ErrorCode.ACCESS_TOKEN_EXPIRED.name(),
+                                ErrorCode.ACCESS_TOKEN_EXPIRED.getMessage())))
+                ));
+            } else {
+                logger.debug("Another oauth2 exception");
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter().print(objectMapper.writeValueAsString(
+                        new ErrorResponseDto(Collections.singletonList(new ErrorDto(ErrorCode.AUTHENTICATION_ERROR.name(),
+                                ErrorCode.AUTHENTICATION_ERROR.getMessage())))
+                ));
+            }
+        } else {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().print(objectMapper.writeValueAsString(
+                    new ErrorResponseDto(Collections.singletonList(new ErrorDto(ErrorCode.AUTHENTICATION_ERROR.name(),
+                            ErrorCode.AUTHENTICATION_ERROR.getMessage())))
+            ));
+        }
     }
 }

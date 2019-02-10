@@ -17,6 +17,7 @@ public class GameStats {
 
     private int gamesAmount;
     private int winAmount;
+    private int loseAmount;
     private int tournamentAmount;
 
     @OneToMany(

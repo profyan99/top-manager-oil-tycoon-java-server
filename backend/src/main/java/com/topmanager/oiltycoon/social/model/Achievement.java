@@ -20,4 +20,5 @@ public class Achievement {
     private int id;
     private String name;
     private String description;
+    private int value;
 }

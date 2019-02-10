@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.Set;
 
 @Data
@@ -14,6 +15,16 @@ import java.util.Set;
 public class UserDto {
     private int id;
     private String userName;
+    private String ip;
+    private String country;
+    private LocalDate registerDate;
+    private LocalDate lastLogIn;
+
+    private int reputation;
+    private String description;
+    private int profileWatchAmount;
+    private boolean isOnline;
+    private String avatar;
 
     private String firstName;
     private String lastName;
