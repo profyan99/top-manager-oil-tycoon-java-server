@@ -108,7 +108,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     public UserAuthenticationConverter getUserAuthenticationConverter(UserDetailsService usr) {
         DefaultUserAuthenticationConverter userTokenConverter = new DefaultUserAuthenticationConverter();
         userTokenConverter.setUserDetailsService(usr);
-        logger.debug("UserAuthConverter bean: " + ((usr == null) ? ("null") : (usr.toString())));
         return userTokenConverter;
     }
 

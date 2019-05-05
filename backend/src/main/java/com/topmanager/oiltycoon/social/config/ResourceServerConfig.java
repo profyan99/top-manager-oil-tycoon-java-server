@@ -82,11 +82,11 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         public boolean matches(HttpServletRequest httpServletRequest) {
             String auth = httpServletRequest.getHeader("Authorization");
             boolean haveOauth2Token = (auth != null) && auth.startsWith("Bearer");
-            if(!haveOauth2Token) {
+            if (!haveOauth2Token) {
                 logger.debug("Don't have oauth2Token");
             }
-            boolean haveAccessToken = httpServletRequest.getParameter("access_token")!=null;
-            if(!haveAccessToken) {
+            boolean haveAccessToken = httpServletRequest.getParameter("access_token") != null;
+            if (!haveAccessToken) {
                 logger.debug("Don't have access_token");
             }
             return haveOauth2Token || haveAccessToken;

@@ -48,7 +48,7 @@ public class RoomProcessor implements RoomRunnable {
             currentSecond++;
         }
 
-        if(prepareSecond != 0) {
+        if (prepareSecond != 0) {
             prepareSecond--;
         }
 
@@ -154,7 +154,7 @@ public class RoomProcessor implements RoomRunnable {
     public void onPlayerDisconnect(String playerName) {
         Player disconnectedPlayer = roomData.getPlayers().get(playerName);
         if (disconnectedPlayer != null) {
-            if(roomData.getState() == PLAY) {
+            if (roomData.getState() == PLAY) {
                 disconnectedPlayer.setTimeEndReload(LocalDateTime.now().getSecond() + TIME_USER_RELOAD);
             }
             disconnectedPlayer.setConnected(false);
@@ -216,7 +216,6 @@ public class RoomProcessor implements RoomRunnable {
     private void calcGame() {
 
     }
-
 
 
     @AllArgsConstructor

@@ -30,6 +30,7 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +92,7 @@ public class RoomService {
 
     }
 
+    @Transactional
     public List<RoomInfoDto> getRoomsList() {
         return rooms.values()
                 .stream()
@@ -98,6 +100,7 @@ public class RoomService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void addRoom(RoomAddDto roomAdd) {
         if (rooms
                 .values()
@@ -105,25 +108,27 @@ public class RoomService {
                 .anyMatch((roomProcessor -> roomProcessor.getRoomData().getName().equals(roomAdd.getName())))) {
             throw new RestException(ROOM_NAME_NOT_UNIQUE);
         }
+        logger.debug("AddRoom: " + roomAdd.toString());
         Room room = new Room(
                 roomAdd.getName(),
                 roomAdd.getMaxPlayers(),
                 roomAdd.isLocked(),
                 roomAdd.isTournament(),
                 roomAdd.isScenario(),
-                roomAdd.getScenario(),
+                roomAdd.getScenarioName(),
                 roomAdd.getRequirement(),
                 roomAdd.getMaxRounds(),
                 roomAdd.isLocked() ? passwordEncoder.encode(roomAdd.getPassword()) : null,
                 roomAdd.getRoomPeriodDelay()
         );
-        room = roomDao.saveAndFlush(room);
+        room = roomDao.save(room);
         RoomProcessor roomProcessor = new RoomProcessor(new RoomProcessor.RoomProcessorParams(room, this, passwordEncoder));
         rooms.put(room.getId(), roomProcessor);
         roomSchedulingService.addRoomRunnable(roomProcessor);
         updateRoomList();
     }
 
+    @Transactional
     public void deleteRoom(int roomId) {
         Room deletedRoom = rooms.get(roomId).getRoomData();
         if (deletedRoom == null) {
@@ -138,6 +143,7 @@ public class RoomService {
         updateRoomList();
     }
 
+    @Transactional
     public GameInfoDto connectToRoom(RoomConnectDto roomConnectDto) {
         User user = userService.getUser();
         RoomProcessor currentRoom = rooms.get(roomConnectDto.getRoomId());
