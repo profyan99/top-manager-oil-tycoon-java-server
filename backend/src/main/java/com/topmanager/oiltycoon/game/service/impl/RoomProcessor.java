@@ -1,5 +1,7 @@
 package com.topmanager.oiltycoon.game.service.impl;
 
+import com.topmanager.oiltycoon.game.dto.response.PlayerConnectDto;
+import com.topmanager.oiltycoon.game.dto.response.PlayerDisconnectDto;
 import com.topmanager.oiltycoon.game.dto.response.PlayerInfoDto;
 import com.topmanager.oiltycoon.game.model.GameState;
 import com.topmanager.oiltycoon.game.model.Player;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static com.topmanager.oiltycoon.game.model.GameState.*;
 import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.*;
@@ -92,7 +95,7 @@ public class RoomProcessor implements RoomRunnable {
 
     }
 
-    public void onPlayerConnect(Player player, String password) {
+    public Optional<PlayerInfoDto> onPlayerConnect(Player player, String password) {
         if (roomData.getPlayers().get(player.getUser().getUserName()) != null) {
             if (roomData.isLocked() && !passwordEncoder.matches(password, roomData.getPassword())) {
                 if (logger.isDebugEnabled()) {
@@ -103,6 +106,7 @@ public class RoomProcessor implements RoomRunnable {
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + getRoomData().getName() + "] :: " + "User reconnected: " + player.getUser().getUserName());
             }
+            return Optional.empty();
             //TODO reconnect
         } else {
             if (roomData.getCurrentPlayers() == roomData.getMaxPlayers()) {
@@ -141,32 +145,33 @@ public class RoomProcessor implements RoomRunnable {
             player.setConnected(true);
             roomData.getPlayers().put(player.getUser().getUserName(), player);
             roomData.setCurrentPlayers(roomData.getCurrentPlayers() + 1);
-            roomService.sendUserConnect(roomData.getId(), new PlayerInfoDto());
             if (roomData.getCurrentPlayers() == roomData.getMaxPlayers()) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Room [" + getRoomData().getName() + "] :: " + "start new game. Enough players.");
                 }
                 newGame();
             }
+            return Optional.of(new PlayerConnectDto(player));
         }
     }
 
-    public void onPlayerDisconnect(String playerName) {
+    public Optional<PlayerInfoDto> onPlayerDisconnect(String playerName) {
         Player disconnectedPlayer = roomData.getPlayers().get(playerName);
         if (disconnectedPlayer != null) {
             if (roomData.getState() == PLAY) {
                 disconnectedPlayer.setTimeEndReload(LocalDateTime.now().getSecond() + TIME_USER_RELOAD);
             }
             disconnectedPlayer.setConnected(false);
-            roomService.sendUserDisconnect(roomData.getId(), new PlayerInfoDto());
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + getRoomData().getName() + "] :: " + "player disconnected: " + disconnectedPlayer.getUser().getUserName());
             }
+            return Optional.of(new PlayerDisconnectDto(disconnectedPlayer));
         } else {
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + getRoomData().getName() + "] :: " + "disconnect user not found: " + playerName);
             }
         }
+        return Optional.empty();
     }
 
     private void deleteInactivePlayer(Player player) {

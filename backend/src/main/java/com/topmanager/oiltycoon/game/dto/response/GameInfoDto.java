@@ -1,16 +1,21 @@
 package com.topmanager.oiltycoon.game.dto.response;
 
-import lombok.*;
+import java.util.List;
 
-@ToString
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
 public class GameInfoDto extends BaseRoomResponseDto{
     //TODO Gamedto complete
+    private List<PlayerInfoDto> players;
 
-
-    public GameInfoDto() {
+    public GameInfoDto(List<PlayerInfoDto> players) {
         super(ResponseDtoType.GAME_INFO);
+        this.players = players;
+    }
+
+    public List<PlayerInfoDto> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(List<PlayerInfoDto> players) {
+        this.players = players;
     }
 }

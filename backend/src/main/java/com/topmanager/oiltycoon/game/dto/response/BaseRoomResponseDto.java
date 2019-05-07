@@ -6,4 +6,12 @@ public abstract class BaseRoomResponseDto {
     public BaseRoomResponseDto(ResponseDtoType type) {
         this.type = type;
     }
+
+    public ResponseDtoType getType() {
+        return type;
+    }
+
+    public void setType(ResponseDtoType type) {
+        this.type = type;
+    }
 }

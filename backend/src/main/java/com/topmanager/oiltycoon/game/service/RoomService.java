@@ -3,9 +3,7 @@ package com.topmanager.oiltycoon.game.service;
 import com.topmanager.oiltycoon.game.dao.RoomDao;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
-import com.topmanager.oiltycoon.game.dto.response.GameInfoDto;
-import com.topmanager.oiltycoon.game.dto.response.PlayerInfoDto;
-import com.topmanager.oiltycoon.game.dto.response.RoomInfoDto;
+import com.topmanager.oiltycoon.game.dto.response.*;
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.game.service.impl.RoomProcessor;
@@ -153,8 +151,17 @@ public class RoomService {
         currentRoom.onPlayerConnect(
                 new Player(user),
                 roomConnectDto.getPassword()
+        ).ifPresent(playerInfoDto -> sendRoomEvent(roomConnectDto.getRoomId(), playerInfoDto));
+        updateRoomList();
+        return new GameInfoDto(
+                currentRoom
+                        .getRoomData()
+                        .getPlayers()
+                        .values()
+                        .stream()
+                        .map(p -> new PlayerInfoDto(p, ResponseDtoType.GAME_INFO))
+                        .collect(Collectors.toList())
         );
-        return new GameInfoDto();
     }
 
     private void updateRoomList() {
@@ -172,18 +179,10 @@ public class RoomService {
         userService.updateGameStats(gameStats);
     }
 
-    public void sendUserConnect(int roomId, PlayerInfoDto playerInfoDto) {
+    public void sendRoomEvent(int roomId, BaseRoomResponseDto responseDto) {
         messagingTemplate.convertAndSend(
                 BROKER_DESTINATION_PREFIX + ROOM_EVENT + "/" + roomId,
-                playerInfoDto
-        );
-    }
-
-    public void sendUserDisconnect(int roomId, PlayerInfoDto playerInfoDto) {
-
-        messagingTemplate.convertAndSend(
-                BROKER_DESTINATION_PREFIX + ROOM_EVENT + "/" + roomId,
-                playerInfoDto
+                responseDto
         );
     }
 
@@ -201,7 +200,9 @@ public class RoomService {
         int roomId = (int) headerAccessor.getSessionAttributes().getOrDefault("CONNECTED_ROOM", -1);
         logger.debug(":: Session disconnect\nroomId: " + roomId + "\nname: " + headerAccessor.getUser().getName());
         if (roomId != -1) {
-            rooms.get(roomId).onPlayerDisconnect(headerAccessor.getUser().getName());
+            rooms.get(roomId).onPlayerDisconnect(headerAccessor.getUser().getName()).ifPresent(
+                    playerInfoDto -> sendRoomEvent(roomId, playerInfoDto)
+            );
         }
     }
 
