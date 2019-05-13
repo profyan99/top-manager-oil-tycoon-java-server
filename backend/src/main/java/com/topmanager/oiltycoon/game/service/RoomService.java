@@ -8,7 +8,6 @@ import com.topmanager.oiltycoon.game.dto.response.*;
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.game.service.impl.RoomProcessor;
-import com.topmanager.oiltycoon.social.model.GameStats;
 import com.topmanager.oiltycoon.social.model.User;
 import com.topmanager.oiltycoon.social.security.exception.ErrorCode;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
@@ -40,7 +39,7 @@ import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.ROOM_
 import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.ROOM_NOT_FOUND;
 
 @Service
-public class RoomService {
+public class RoomService implements RoomEventHandler{
     private Map<Integer, RoomProcessor> rooms = new HashMap<>();
     private RoomDao roomDao;
     private PlayerDao playerDao;
@@ -119,30 +118,17 @@ public class RoomService {
     }
 
     @Transactional
-    public void deleteRoom(int roomId) {
-        RoomProcessor roomProcessor = rooms.get(roomId);
-        Room deletedRoom;
-        if(roomProcessor != null) {
-            roomProcessor.onRoomDelete();
-            roomSchedulingService.removeRoomRunnable(rooms.get(roomId));
-            deletedRoom = roomProcessor.getRoomData();
-            rooms.remove(roomId);
-            updateRoomList();
-        } else {
-            deletedRoom = roomDao.findById(roomId).orElseThrow(
-                    () -> new RestException(ROOM_NOT_FOUND)
-            );
-        }
-        roomDao.delete(deletedRoom);
-    }
-
-    @Transactional
     public GameInfoDto connectToRoom(RoomConnectDto roomConnectDto, SimpMessageHeaderAccessor accessor) {
         User user = userService.getUser();
         RoomProcessor currentRoom = rooms.get(roomConnectDto.getRoomId());
         if (currentRoom == null) {
             throw new RestException(ErrorCode.INVALID_ROOM_ID);
         }
+        playerDao.findByUser(user).ifPresent(player -> {
+            if(player.getRoom().getId() != roomConnectDto.getRoomId()) {
+                throw new RestException(ErrorCode.ALREADY_IN_ANOTHER_ROOM);
+            }
+        });
         currentRoom.onPlayerConnect(
                 new Player(user),
                 roomConnectDto.getPassword()
@@ -161,6 +147,41 @@ public class RoomService {
         );
     }
 
+    @Transactional
+    public void deleteRoom(int roomId) {
+        RoomProcessor roomProcessor = rooms.get(roomId);
+        Room deletedRoom;
+        if(roomProcessor != null) {
+            roomProcessor.onRoomDelete();
+            roomSchedulingService.removeRoomRunnable(rooms.get(roomId));
+            deletedRoom = roomProcessor.getRoomData();
+            rooms.remove(roomId);
+            updateRoomList();
+        } else {
+            deletedRoom = roomDao.findById(roomId).orElseThrow(
+                    () -> new RestException(ROOM_NOT_FOUND)
+            );
+        }
+        roomDao.delete(deletedRoom);
+    }
+
+    @Override
+    public void sendRoomEvent(int roomId, BaseRoomResponseDto responseDto) {
+        messagingTemplate.convertAndSend(
+                BROKER_DESTINATION_PREFIX + ROOM_EVENT + "/" + roomId,
+                responseDto
+        );
+    }
+
+    @Transactional
+    @Override
+    public void updateRoom(int roomId) {
+        Room room = rooms.get(roomId).getRoomData();
+        roomDao.save(room);
+        updateRoomList();
+        //TODO patch room upd
+    }
+
     @Transactional(readOnly = true)
     void updateRoomList() {
         logger.info(":: Update room list");
@@ -173,12 +194,6 @@ public class RoomService {
         );
     }
 
-    public void sendRoomEvent(int roomId, BaseRoomResponseDto responseDto) {
-        messagingTemplate.convertAndSend(
-                BROKER_DESTINATION_PREFIX + ROOM_EVENT + "/" + roomId,
-                responseDto
-        );
-    }
 
     @EventListener
     public void handleSessionConnected(SessionConnectEvent event) {
@@ -211,6 +226,7 @@ public class RoomService {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
         logger.debug(":: Session unsubscribe\nname: " + headers.getUser().getName() + "\nDest: " + headers.getDestination());
         int roomId = playerRoomIdMap.getOrDefault(headers.getSessionId(), -1);
+        //TODO https://stackoverflow.com/questions/54658349/detect-destination-channel-of-sessionunsubscribeevent
         if (headers.containsNativeHeader("room")
                 && headers.getFirstNativeHeader("room").equalsIgnoreCase("disconnect")
                 && roomId != -1) {

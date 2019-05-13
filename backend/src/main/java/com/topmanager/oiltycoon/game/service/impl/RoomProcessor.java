@@ -9,6 +9,7 @@ import com.topmanager.oiltycoon.game.model.GameState;
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Requirement;
 import com.topmanager.oiltycoon.game.model.Room;
+import com.topmanager.oiltycoon.game.service.RoomEventHandler;
 import com.topmanager.oiltycoon.game.service.RoomRunnable;
 import com.topmanager.oiltycoon.game.service.RoomService;
 import com.topmanager.oiltycoon.social.model.GameStats;
@@ -30,7 +31,7 @@ import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.*;
 public class RoomProcessor implements RoomRunnable {
     private static final Logger logger = LoggerFactory.getLogger(RoomProcessor.class);
     private Room roomData;
-    private RoomService roomService;
+    private RoomEventHandler roomEventHandler;
     private UserService userService;
     private PlayerDao playerDao;
     private int currentSecond;
@@ -40,12 +41,11 @@ public class RoomProcessor implements RoomRunnable {
 
     public RoomProcessor(RoomProcessorParams processorParams) {
         this.roomData = processorParams.getRoomData();
-        this.roomService = processorParams.getRoomService();
+        this.roomEventHandler = processorParams.getRoomEventHandler();
         this.passwordEncoder = processorParams.getPasswordEncoder();
         this.TIME_USER_RELOAD = processorParams.getRoomData().getRoomPeriodDelay() * 2;
         this.playerDao = processorParams.playerDao;
         this.userService = processorParams.userService;
-        logger.error("DAO::: " + playerDao);
         prepareSecond = TIME_USER_RELOAD;
         initGame();
     }
@@ -84,12 +84,12 @@ public class RoomProcessor implements RoomRunnable {
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + getRoomData().getName() + "] :: " + "no players in room. Delete room");
             }
-            roomService.deleteRoom(roomData.getId());
+            roomEventHandler.deleteRoom(roomData.getId());
         }
 
         if (currentSecond == roomData.getRoomPeriodDelay()) {
             currentSecond = 0;
-            roomData.setCurrentRound(roomData.getCurrentRound() + 1);
+            roomData.setCurrentRound(Math.min(roomData.getCurrentRound() + 1, roomData.getMaxRounds()));
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + getRoomData().getName() + "] :: " + "new round ["
                         + roomData.getCurrentRound() + "/" + roomData.getMaxRounds() + "]");
@@ -116,6 +116,9 @@ public class RoomProcessor implements RoomRunnable {
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + getRoomData().getName() + "] :: " + "User reconnected: " + player.getUser().getUserName());
             }
+            Player oldPlayer = roomData.getPlayers().get(player.getUser().getUserName());
+            oldPlayer.setConnected(true);
+            oldPlayer.setTimeEndReload(0);
             return Optional.empty();
             //TODO reconnect
         } else {
@@ -207,6 +210,7 @@ public class RoomProcessor implements RoomRunnable {
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + getRoomData().getName() + "] :: " + "inactive user delete from room : " + player.getUser().getUserName());
         }
+        roomEventHandler.updateRoom(roomData.getId());
     }
 
     private void newGame() {
@@ -215,6 +219,7 @@ public class RoomProcessor implements RoomRunnable {
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + getRoomData().getName() + "] :: " + "new game");
         }
+        roomEventHandler.updateRoom(roomData.getId());
     }
 
     private void initGame() {
@@ -238,10 +243,11 @@ public class RoomProcessor implements RoomRunnable {
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + getRoomData().getName() + "] :: " + "regular end of game");
         }
+        roomEventHandler.updateRoom(roomData.getId());
     }
 
     private void calcGame() {
-
+        roomEventHandler.updateRoom(roomData.getId());
     }
 
     private void setPlayerLeaveGame(Player player) {
@@ -250,7 +256,7 @@ public class RoomProcessor implements RoomRunnable {
 
     @Transactional
     public void onRoomDelete() {
-        roomService.sendRoomEvent(roomData.getId(), new DisconnectRoomDto("Room has been deleted"));
+        roomEventHandler.sendRoomEvent(roomData.getId(), new DisconnectRoomDto("Room has been deleted"));
         roomData.getPlayers()
                 .values()
                 .removeIf(player -> {
@@ -265,7 +271,7 @@ public class RoomProcessor implements RoomRunnable {
     public static class RoomProcessorParams {
         public UserService userService;
         private Room roomData;
-        private RoomService roomService;
+        private RoomEventHandler roomEventHandler;
         private PasswordEncoder passwordEncoder;
         private PlayerDao playerDao;
     }
