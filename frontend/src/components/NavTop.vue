@@ -117,7 +117,5 @@ export default {
 }
 </script>
 <style scoped>
-nav {
-  background-color: #0c453e;
-}
+
 </style>

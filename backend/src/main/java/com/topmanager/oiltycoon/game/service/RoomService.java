@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.game.service;
 
+import com.topmanager.oiltycoon.game.dao.PlayerDao;
 import com.topmanager.oiltycoon.game.dao.RoomDao;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
@@ -15,20 +16,19 @@ import com.topmanager.oiltycoon.social.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import javax.annotation.PostConstruct;
-import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,44 +43,34 @@ import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.ROOM_
 public class RoomService {
     private Map<Integer, RoomProcessor> rooms = new HashMap<>();
     private RoomDao roomDao;
+    private PlayerDao playerDao;
     private SimpMessagingTemplate messagingTemplate;
     private RoomSchedulingService roomSchedulingService;
 
     private PasswordEncoder passwordEncoder;
     private UserService userService;
 
+    private Map<String, Integer> playerRoomIdMap;
+
     private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
     @Autowired
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    @Autowired
-    public void setRoomDao(RoomDao roomDao) {
+    public RoomService(RoomDao roomDao, PlayerDao playerDao, SimpMessagingTemplate messagingTemplate,
+                       RoomSchedulingService roomSchedulingService, PasswordEncoder passwordEncoder, UserService userService) {
         this.roomDao = roomDao;
-    }
-
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    @Autowired
-    public void setRoomSchedulingService(RoomSchedulingService roomSchedulingService) {
-        this.roomSchedulingService = roomSchedulingService;
-    }
-
-    @Autowired
-    public void setMessagingTemplate(SimpMessagingTemplate messagingTemplate) {
+        this.playerDao = playerDao;
         this.messagingTemplate = messagingTemplate;
+        this.roomSchedulingService = roomSchedulingService;
+        this.passwordEncoder = passwordEncoder;
+        this.userService = userService;
+        playerRoomIdMap = new HashMap<>();
     }
 
     @PostConstruct
     public void init() {
         rooms.putAll(
-                roomDao.findAll().stream()
-                        .map((room) -> new RoomProcessor(new RoomProcessor.RoomProcessorParams(room, this, passwordEncoder)))
+                StreamSupport.stream(roomDao.findAll().spliterator(), false)
+                        .map((room) -> new RoomProcessor(new RoomProcessor.RoomProcessorParams(userService, room, this, passwordEncoder, playerDao)))
                         .peek(roomProcessor -> roomSchedulingService.addRoomRunnable(roomProcessor))
                         .collect(Collectors.toMap(
                                 roomProcessor -> roomProcessor.getRoomData().getId(),
@@ -90,7 +80,7 @@ public class RoomService {
 
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<RoomInfoDto> getRoomsList() {
         return rooms.values()
                 .stream()
@@ -120,7 +110,9 @@ public class RoomService {
                 roomAdd.getRoomPeriodDelay()
         );
         room = roomDao.save(room);
-        RoomProcessor roomProcessor = new RoomProcessor(new RoomProcessor.RoomProcessorParams(room, this, passwordEncoder));
+        RoomProcessor roomProcessor = new RoomProcessor(
+                new RoomProcessor.RoomProcessorParams(userService, room, this, passwordEncoder, playerDao)
+        );
         rooms.put(room.getId(), roomProcessor);
         roomSchedulingService.addRoomRunnable(roomProcessor);
         updateRoomList();
@@ -128,21 +120,24 @@ public class RoomService {
 
     @Transactional
     public void deleteRoom(int roomId) {
-        Room deletedRoom = rooms.get(roomId).getRoomData();
-        if (deletedRoom == null) {
+        RoomProcessor roomProcessor = rooms.get(roomId);
+        Room deletedRoom;
+        if(roomProcessor != null) {
+            roomProcessor.onRoomDelete();
+            roomSchedulingService.removeRoomRunnable(rooms.get(roomId));
+            deletedRoom = roomProcessor.getRoomData();
+            rooms.remove(roomId);
+            updateRoomList();
+        } else {
             deletedRoom = roomDao.findById(roomId).orElseThrow(
                     () -> new RestException(ROOM_NOT_FOUND)
             );
         }
-        roomSchedulingService.removeRoomRunnable(rooms.get(roomId));
         roomDao.delete(deletedRoom);
-        //TODO stop and handle users
-        rooms.remove(roomId);
-        updateRoomList();
     }
 
     @Transactional
-    public GameInfoDto connectToRoom(RoomConnectDto roomConnectDto) {
+    public GameInfoDto connectToRoom(RoomConnectDto roomConnectDto, SimpMessageHeaderAccessor accessor) {
         User user = userService.getUser();
         RoomProcessor currentRoom = rooms.get(roomConnectDto.getRoomId());
         if (currentRoom == null) {
@@ -153,6 +148,7 @@ public class RoomService {
                 roomConnectDto.getPassword()
         ).ifPresent(playerInfoDto -> sendRoomEvent(roomConnectDto.getRoomId(), playerInfoDto));
         updateRoomList();
+        playerRoomIdMap.put(accessor.getSessionId(), roomConnectDto.getRoomId());
         return new GameInfoDto(
                 currentRoom
                         .getRoomData()
@@ -160,11 +156,13 @@ public class RoomService {
                         .values()
                         .stream()
                         .map(p -> new PlayerInfoDto(p, ResponseDtoType.GAME_INFO))
-                        .collect(Collectors.toList())
+                        .collect(Collectors.toList()),
+                roomConnectDto.getRoomId()
         );
     }
 
-    private void updateRoomList() {
+    @Transactional(readOnly = true)
+    void updateRoomList() {
         logger.info(":: Update room list");
         messagingTemplate.convertAndSend(BROKER_DESTINATION_PREFIX + ROOM_LIST,
                 rooms
@@ -173,10 +171,6 @@ public class RoomService {
                         .map(roomProcessor -> convertRoomIntoDto(roomProcessor.getRoomData()))
                         .collect(Collectors.toList())
         );
-    }
-
-    public void updateUserGameStats(GameStats gameStats) {
-        userService.updateGameStats(gameStats);
     }
 
     public void sendRoomEvent(int roomId, BaseRoomResponseDto responseDto) {
@@ -190,19 +184,18 @@ public class RoomService {
     public void handleSessionConnected(SessionConnectEvent event) {
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
         logger.debug(":: Session connected\nname: " + headers.getUser().getName() + "\nDest: " + headers.getDestination());
-
-        //messagingTemplate.convertAndSendToUser(headers.getUser().getName(),);
     }
 
     @EventListener
     public void handleSessionDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        int roomId = (int) headerAccessor.getSessionAttributes().getOrDefault("CONNECTED_ROOM", -1);
+        int roomId = playerRoomIdMap.getOrDefault(headerAccessor.getSessionId(), -1);
         logger.debug(":: Session disconnect\nroomId: " + roomId + "\nname: " + headerAccessor.getUser().getName());
         if (roomId != -1) {
-            rooms.get(roomId).onPlayerDisconnect(headerAccessor.getUser().getName()).ifPresent(
+            rooms.get(roomId).onPlayerDisconnect(headerAccessor.getUser().getName(), false).ifPresent(
                     playerInfoDto -> sendRoomEvent(roomId, playerInfoDto)
             );
+            playerRoomIdMap.remove(headerAccessor.getSessionId());
         }
     }
 
@@ -217,10 +210,19 @@ public class RoomService {
     public void handleSessionUnsubscribeEvent(SessionUnsubscribeEvent event) {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
         logger.debug(":: Session unsubscribe\nname: " + headers.getUser().getName() + "\nDest: " + headers.getDestination());
-
+        int roomId = playerRoomIdMap.getOrDefault(headers.getSessionId(), -1);
+        if (headers.containsNativeHeader("room")
+                && headers.getFirstNativeHeader("room").equalsIgnoreCase("disconnect")
+                && roomId != -1) {
+            rooms.get(roomId).onPlayerDisconnect(headers.getUser().getName(), true).ifPresent(
+                    playerInfoDto -> sendRoomEvent(roomId, playerInfoDto)
+            );
+            playerRoomIdMap.remove(headers.getSessionId());
+        }
     }
 
-    private RoomInfoDto convertRoomIntoDto(Room room) {
+    @Transactional(readOnly = true)
+    RoomInfoDto convertRoomIntoDto(Room room) {
         return new RoomInfoDto(
                 room.getId(),
                 room.getName(),
@@ -241,4 +243,5 @@ public class RoomService {
                 room.getCurrentRound()
         );
     }
+
 }

@@ -1,9 +1,10 @@
 package com.topmanager.oiltycoon.social.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -21,10 +22,10 @@ public class GameStats {
     private int tournamentAmount;
 
     @OneToMany(
-            fetch = FetchType.LAZY,
+            fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
-    private List<Reward> rewards;
+    private Set<Reward> rewards;
     private int maxRevenue;
     private int maxRIF;
     private int hoursInGame;
@@ -33,13 +34,14 @@ public class GameStats {
     private int complainAmount;
 
     @OneToMany(
-            fetch = FetchType.LAZY,
+            fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
-    private List<Achievement> achievements;
+    private Set<Achievement> achievements;
 
     @OneToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User user;
 
 }

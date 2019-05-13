@@ -22,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.social.security.SocialUserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -201,10 +202,17 @@ public class UserService {
                 dto.getAvatar(),
                 new HashSet<>(Arrays.asList(UserRole.PLAYER, UserRole.UNVERIFIED)),
                 new GameStats(
-                        0, 0, 0, 0, 0, new ArrayList<>(),
-                        0, 0, 0, 0, 0, new ArrayList<>(), null
+                        0, 0, 0, 0, 0, new HashSet<>(),
+                        0, 0, 0, 0, 0, new HashSet<>(), null
                 )
         );
+    }
+
+    @Transactional
+    public void setUserLeaveGame(User user) {
+        GameStats gameStats = user.getGameStats();
+        gameStats.setLeaveGameAmount(gameStats.getLeaveGameAmount() + 1);
+        userDao.save(user);
     }
 
     private int getCurrentUserId() {

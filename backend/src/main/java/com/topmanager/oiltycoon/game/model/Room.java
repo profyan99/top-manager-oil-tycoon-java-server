@@ -35,10 +35,7 @@ public class Room {
     )
     private Map<String, Player> players;
 
-    @OneToOne(mappedBy = "room",
-            fetch = FetchType.EAGER,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
+    @Embedded
     @JsonManagedReference
     private Requirement requirement;
 
@@ -66,7 +63,6 @@ public class Room {
         this.currentRound = currentRound;
         this.password = password;
         this.roomPeriodDelay = roomPeriodDelay;
-        requirement.setRoom(this);
     }
 
 

@@ -1,5 +1,7 @@
 package com.topmanager.oiltycoon.game.service.impl;
 
+import com.topmanager.oiltycoon.game.dao.PlayerDao;
+import com.topmanager.oiltycoon.game.dto.response.DisconnectRoomDto;
 import com.topmanager.oiltycoon.game.dto.response.PlayerConnectDto;
 import com.topmanager.oiltycoon.game.dto.response.PlayerDisconnectDto;
 import com.topmanager.oiltycoon.game.dto.response.PlayerInfoDto;
@@ -11,11 +13,13 @@ import com.topmanager.oiltycoon.game.service.RoomRunnable;
 import com.topmanager.oiltycoon.game.service.RoomService;
 import com.topmanager.oiltycoon.social.model.GameStats;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
+import com.topmanager.oiltycoon.social.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -27,6 +31,8 @@ public class RoomProcessor implements RoomRunnable {
     private static final Logger logger = LoggerFactory.getLogger(RoomProcessor.class);
     private Room roomData;
     private RoomService roomService;
+    private UserService userService;
+    private PlayerDao playerDao;
     private int currentSecond;
     private int prepareSecond;
     private PasswordEncoder passwordEncoder;
@@ -37,6 +43,9 @@ public class RoomProcessor implements RoomRunnable {
         this.roomService = processorParams.getRoomService();
         this.passwordEncoder = processorParams.getPasswordEncoder();
         this.TIME_USER_RELOAD = processorParams.getRoomData().getRoomPeriodDelay() * 2;
+        this.playerDao = processorParams.playerDao;
+        this.userService = processorParams.userService;
+        logger.error("DAO::: " + playerDao);
         prepareSecond = TIME_USER_RELOAD;
         initGame();
     }
@@ -95,6 +104,7 @@ public class RoomProcessor implements RoomRunnable {
 
     }
 
+    @Transactional
     public Optional<PlayerInfoDto> onPlayerConnect(Player player, String password) {
         if (roomData.getPlayers().get(player.getUser().getUserName()) != null) {
             if (roomData.isLocked() && !passwordEncoder.matches(password, roomData.getPassword())) {
@@ -145,6 +155,8 @@ public class RoomProcessor implements RoomRunnable {
             player.setConnected(true);
             roomData.getPlayers().put(player.getUser().getUserName(), player);
             roomData.setCurrentPlayers(roomData.getCurrentPlayers() + 1);
+            player.setRoom(getRoomData());
+            playerDao.save(player);
             if (roomData.getCurrentPlayers() == roomData.getMaxPlayers()) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Room [" + getRoomData().getName() + "] :: " + "start new game. Enough players.");
@@ -155,13 +167,26 @@ public class RoomProcessor implements RoomRunnable {
         }
     }
 
-    public Optional<PlayerInfoDto> onPlayerDisconnect(String playerName) {
+    @Transactional
+    public Optional<PlayerInfoDto> onPlayerDisconnect(String playerName, boolean force) {
         Player disconnectedPlayer = roomData.getPlayers().get(playerName);
         if (disconnectedPlayer != null) {
-            if (roomData.getState() == PLAY) {
-                disconnectedPlayer.setTimeEndReload(LocalDateTime.now().getSecond() + TIME_USER_RELOAD);
-            }
             disconnectedPlayer.setConnected(false);
+            if (roomData.getState() == PLAY) {
+                if(force) {
+                    setPlayerLeaveGame(disconnectedPlayer);
+                    playerDao.delete(disconnectedPlayer);
+                    roomData.setCurrentPlayers(roomData.getCurrentPlayers() - 1);
+                    roomData.getPlayers().remove(playerName);
+                } else {
+                    disconnectedPlayer.setTimeEndReload(LocalDateTime.now().getSecond() + TIME_USER_RELOAD);
+                    playerDao.save(disconnectedPlayer);
+                }
+            } else {
+                playerDao.delete(disconnectedPlayer);
+                roomData.setCurrentPlayers(roomData.getCurrentPlayers() - 1);
+                roomData.getPlayers().remove(playerName);
+            }
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + getRoomData().getName() + "] :: " + "player disconnected: " + disconnectedPlayer.getUser().getUserName());
             }
@@ -174,10 +199,11 @@ public class RoomProcessor implements RoomRunnable {
         return Optional.empty();
     }
 
-    private void deleteInactivePlayer(Player player) {
-        player.getUser().getGameStats().setLeaveGameAmount(player.getUser().getGameStats().getLeaveGameAmount() + 1);
-        roomService.updateUserGameStats(player.getUser().getGameStats());
+    @Transactional
+    void deleteInactivePlayer(Player player) {
+        setPlayerLeaveGame(player);
         roomData.setCurrentPlayers(roomData.getCurrentPlayers() - 1);
+        playerDao.delete(player);
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + getRoomData().getName() + "] :: " + "inactive user delete from room : " + player.getUser().getUserName());
         }
@@ -185,6 +211,7 @@ public class RoomProcessor implements RoomRunnable {
 
     private void newGame() {
         roomData.setState(PLAY);
+        currentSecond = 0;
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + getRoomData().getName() + "] :: " + "new game");
         }
@@ -195,11 +222,6 @@ public class RoomProcessor implements RoomRunnable {
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + getRoomData().getName() + "] :: " + "init game");
         }
-        roomData
-                .getPlayers()
-                .forEach((name, player) -> {
-
-                });
     }
 
     private void endGame() {
@@ -222,12 +244,29 @@ public class RoomProcessor implements RoomRunnable {
 
     }
 
+    private void setPlayerLeaveGame(Player player) {
+        userService.setUserLeaveGame(player.getUser());
+    }
+
+    @Transactional
+    public void onRoomDelete() {
+        roomService.sendRoomEvent(roomData.getId(), new DisconnectRoomDto("Room has been deleted"));
+        roomData.getPlayers()
+                .values()
+                .removeIf(player -> {
+                    playerDao.delete(player);
+                    return true;
+                });
+    }
+
 
     @AllArgsConstructor
     @Getter
     public static class RoomProcessorParams {
+        public UserService userService;
         private Room roomData;
         private RoomService roomService;
         private PasswordEncoder passwordEncoder;
+        private PlayerDao playerDao;
     }
 }

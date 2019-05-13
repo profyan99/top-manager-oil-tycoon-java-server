@@ -7,7 +7,6 @@ import com.topmanager.oiltycoon.game.dto.response.RoomInfoDto;
 import com.topmanager.oiltycoon.game.service.RoomService;
 import com.topmanager.oiltycoon.social.dto.ErrorDto;
 import com.topmanager.oiltycoon.social.dto.response.ErrorResponseDto;
-import com.topmanager.oiltycoon.social.security.SocialUserDetailsImpl;
 import com.topmanager.oiltycoon.social.security.annotation.IsAdmin;
 import com.topmanager.oiltycoon.social.security.annotation.IsPlayer;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
@@ -31,7 +30,6 @@ import javax.validation.Valid;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.topmanager.oiltycoon.game.model.RoomDestination.*;
 
@@ -48,26 +46,18 @@ public class RoomController {
     }
 
     @IsPlayer
-    @PostMapping(path = "/api" + ROOM_ADD, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/api" + ROOM_BASE_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> addRoom(@RequestBody @Valid RoomAddDto roomAddDto) {
         roomService.addRoom(roomAddDto);
         return ResponseEntity.ok().build();
     }
 
     @IsAdmin
-    @DeleteMapping(path = "/api" + ROOM_DELETE, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> addRoom(@RequestParam int roomId) {
+    @DeleteMapping(path = "/api" + ROOM_BASE_ENDPOINT+"/{roomId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> addRoom(@PathVariable int roomId) {
         roomService.deleteRoom(roomId);
         return ResponseEntity.ok().build();
     }
-
-    /*@IsPlayer
-    @PostMapping(path = "/api" + ROOM_CONNECT)
-    public ResponseEntity<?> connectToRoom(@RequestBody @Valid RoomConnectDto roomConnectDto, SimpMessageHeaderAccessor headerAccessor) {
-        GameDto gameDto = roomService.connectToRoom(roomConnectDto);
-        headerAccessor.getSessionAttributes().put("CONNECTED_ROOM", roomConnectDto.getRoomId());
-        return ResponseEntity.ok(gameDto);
-    }*/
 
     @SubscribeMapping(ROOM_LIST)
     public List<RoomInfoDto> roomList(Principal p) {
@@ -77,11 +67,13 @@ public class RoomController {
 
     @SubscribeMapping(ROOM_EVENT + "/{room}")
     public GameInfoDto connectRoom(@DestinationVariable int room,
-                                   @Header(required = false, defaultValue = "") String password,
-                                   Authentication authentication) {
+                                            @Header(required = false, defaultValue = "") String password,
+                                            Authentication authentication,
+                                            SimpMessageHeaderAccessor accessor) {
         logger.debug(":: Subscribe event [" + ROOM_EVENT + "/" + room + "] by " + authentication.getName());
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        return roomService.connectToRoom(new RoomConnectDto(room, password));
+        GameInfoDto infoDto = roomService.connectToRoom(new RoomConnectDto(room, password), accessor);
+        return infoDto;
     }
 
     @MessageExceptionHandler

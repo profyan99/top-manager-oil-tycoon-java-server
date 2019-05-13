@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,12 +19,12 @@ public class GameStatsDto {
     private int winAmount;
     private int loseAmount;
     private int tournamentAmount;
-    private List<Reward> rewards;
+    private Set<Reward> rewards;
     private int maxRevenue;
     private int maxRIF;
     private int hoursInGame;
     private int leaveGameAmount;
     //TODO complain is a separate object with description, author, date
     private int complainAmount;
-    private List<Achievement> achievements;
+    private Set<Achievement> achievements;
 }

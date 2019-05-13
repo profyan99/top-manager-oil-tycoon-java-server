@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.social.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 
 import javax.persistence.*;
@@ -38,7 +39,8 @@ public class User {
 
     @OneToOne(mappedBy = "user",
             cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY)
+            fetch = FetchType.EAGER)
+    @JsonManagedReference
     private GameStats gameStats;
 
 

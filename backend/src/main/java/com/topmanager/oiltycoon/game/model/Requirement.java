@@ -13,11 +13,8 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
+@Embeddable
 public class Requirement {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
 
     private int minHoursInGameAmount;
 
@@ -29,9 +26,4 @@ public class Requirement {
 
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<UserRole> requireRoles;
-
-    @OneToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "room_id", nullable = false)
-    @JsonBackReference
-    private Room room;
 }
