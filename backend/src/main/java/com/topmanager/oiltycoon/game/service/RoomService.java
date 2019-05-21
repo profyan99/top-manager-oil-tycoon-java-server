@@ -28,6 +28,7 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,7 @@ public class RoomService implements RoomEventHandler{
     private UserService userService;
 
     private Map<String, Integer> playerRoomIdMap;
+    private Map<String, String> subscribtionDestinationMap;
 
     private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
@@ -63,6 +65,7 @@ public class RoomService implements RoomEventHandler{
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         playerRoomIdMap = new HashMap<>();
+        subscribtionDestinationMap = new HashMap<>();
     }
 
     @PostConstruct
@@ -217,23 +220,38 @@ public class RoomService implements RoomEventHandler{
     @EventListener
     public void handleSessionSubscribeEvent(SessionSubscribeEvent event) {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
-        logger.debug(":: Session subscribe\nname: " + headers.getUser().getName() + "\nDest: " + headers.getDestination());
-
+        logger.debug(":: Session subscribe\nname: "
+                + headers.getUser().getName()
+                + "\nSubId: " + headers.getSubscriptionId()
+                + "\nDest: " + headers.getDestination());
+        subscribtionDestinationMap.put(headers.getSubscriptionId(), headers.getDestination());
     }
 
     @EventListener
     public void handleSessionUnsubscribeEvent(SessionUnsubscribeEvent event) {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
-        logger.debug(":: Session unsubscribe\nname: " + headers.getUser().getName() + "\nDest: " + headers.getDestination());
-        int roomId = playerRoomIdMap.getOrDefault(headers.getSessionId(), -1);
-        //TODO https://stackoverflow.com/questions/54658349/detect-destination-channel-of-sessionunsubscribeevent
-        if (headers.containsNativeHeader("room")
-                && headers.getFirstNativeHeader("room").equalsIgnoreCase("disconnect")
-                && roomId != -1) {
+        String sub = subscribtionDestinationMap.getOrDefault(headers.getSubscriptionId(), "-1");
+        logger.debug(":: Session unsubscribe\nname: "
+                + headers.getUser().getName()
+                + "\nsubId: " + headers.getSubscriptionId()
+                + "\nsub: " + sub);
+        int roomId = extractRoomIdFromDestination(sub);
+        if (roomId != -1) {
             rooms.get(roomId).onPlayerDisconnect(headers.getUser().getName(), true).ifPresent(
                     playerInfoDto -> sendRoomEvent(roomId, playerInfoDto)
             );
             playerRoomIdMap.remove(headers.getSessionId());
+            subscribtionDestinationMap.remove(headers.getSubscriptionId());
+        }
+    }
+
+    private Integer extractRoomIdFromDestination(String destination) {
+        int k;
+        if((k = destination.lastIndexOf("/user/room/event/")) != -1) {
+            String[] paths = destination.split("/");
+            return Integer.parseInt(paths[4]);
+        } else {
+            return k;
         }
     }
 
