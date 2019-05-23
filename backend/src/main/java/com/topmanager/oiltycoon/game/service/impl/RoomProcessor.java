@@ -47,6 +47,8 @@ public class RoomProcessor implements RoomRunnable {
         this.playerDao = processorParams.playerDao;
         this.userService = processorParams.userService;
         prepareSecond = TIME_USER_RELOAD;
+        logger.debug("Players:");
+        roomData.getPlayers().values().forEach(player -> logger.debug(player.getUserName()));
         initGame();
     }
 

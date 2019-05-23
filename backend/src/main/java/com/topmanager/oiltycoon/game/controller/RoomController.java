@@ -77,12 +77,10 @@ public class RoomController {
     }
 
     @MessageExceptionHandler
-    @SendToUser(destinations = "/queue/errors")
-    public ErrorResponseDto handleException(RestException exception) {
+    @SendToUser(destinations = "/topic/errors")
+    public ErrorDto handleException(RestException exception) {
         logger.debug(":: Handle rest exception in websocket controller: " + exception.getErrorCode().name());
-        List<ErrorDto> errors = new ArrayList<>();
-        errors.add(new ErrorDto(exception.getErrorCode().name(), exception.getMessage()));
-        return new ErrorResponseDto(errors);
+        return new ErrorDto(exception.getErrorCode().name(), exception.getMessage());
     }
 
 }

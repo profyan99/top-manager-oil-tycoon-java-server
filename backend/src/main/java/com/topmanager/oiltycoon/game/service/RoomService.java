@@ -154,6 +154,7 @@ public class RoomService implements RoomEventHandler{
     public void deleteRoom(int roomId) {
         RoomProcessor roomProcessor = rooms.get(roomId);
         Room deletedRoom;
+        logger.debug("Delete room: " + roomId);
         if(roomProcessor != null) {
             roomProcessor.onRoomDelete();
             roomSchedulingService.removeRoomRunnable(rooms.get(roomId));
