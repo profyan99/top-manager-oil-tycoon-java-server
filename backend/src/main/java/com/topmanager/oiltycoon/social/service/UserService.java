@@ -14,9 +14,6 @@ import com.topmanager.oiltycoon.social.security.exception.RestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -204,7 +203,8 @@ public class UserService {
                 new GameStats(
                         0, 0, 0, 0, 0, new HashSet<>(),
                         0, 0, 0, 0, 0, new HashSet<>(), null
-                )
+                ),
+                null
         );
     }
 

@@ -9,3 +9,4 @@ import java.util.Optional;
 public interface PlayerDao extends CrudRepository<Player, Integer> {
     Optional<Player> findByUser(User user);
 }
+

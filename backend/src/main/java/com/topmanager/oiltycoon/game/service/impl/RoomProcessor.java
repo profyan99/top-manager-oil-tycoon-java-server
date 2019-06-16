@@ -11,7 +11,6 @@ import com.topmanager.oiltycoon.game.model.Requirement;
 import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.game.service.RoomEventHandler;
 import com.topmanager.oiltycoon.game.service.RoomRunnable;
-import com.topmanager.oiltycoon.game.service.RoomService;
 import com.topmanager.oiltycoon.social.model.GameStats;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
 import com.topmanager.oiltycoon.social.service.UserService;
@@ -180,17 +179,17 @@ public class RoomProcessor implements RoomRunnable {
             if (roomData.getState() == PLAY) {
                 if(force) {
                     setPlayerLeaveGame(disconnectedPlayer);
-                    playerDao.delete(disconnectedPlayer);
-                    roomData.setCurrentPlayers(roomData.getCurrentPlayers() - 1);
                     roomData.getPlayers().remove(playerName);
+                    playerDao.deleteById(disconnectedPlayer.getId());
+                    roomData.setCurrentPlayers(roomData.getCurrentPlayers() - 1);
                 } else {
                     disconnectedPlayer.setTimeEndReload(LocalDateTime.now().getSecond() + TIME_USER_RELOAD);
                     playerDao.save(disconnectedPlayer);
                 }
             } else {
-                playerDao.delete(disconnectedPlayer);
-                roomData.setCurrentPlayers(roomData.getCurrentPlayers() - 1);
                 roomData.getPlayers().remove(playerName);
+                playerDao.deleteById(disconnectedPlayer.getId());
+                roomData.setCurrentPlayers(roomData.getCurrentPlayers() - 1);
             }
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + getRoomData().getName() + "] :: " + "player disconnected: " + disconnectedPlayer.getUser().getUserName());
@@ -208,7 +207,7 @@ public class RoomProcessor implements RoomRunnable {
     void deleteInactivePlayer(Player player) {
         setPlayerLeaveGame(player);
         roomData.setCurrentPlayers(roomData.getCurrentPlayers() - 1);
-        playerDao.delete(player);
+        playerDao.deleteById(player.getId());
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + getRoomData().getName() + "] :: " + "inactive user delete from room : " + player.getUser().getUserName());
         }
@@ -262,7 +261,7 @@ public class RoomProcessor implements RoomRunnable {
         roomData.getPlayers()
                 .values()
                 .removeIf(player -> {
-                    playerDao.delete(player);
+                    playerDao.deleteById(player.getId());
                     return true;
                 });
     }

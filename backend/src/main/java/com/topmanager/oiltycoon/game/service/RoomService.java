@@ -28,19 +28,17 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import javax.annotation.PostConstruct;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.topmanager.oiltycoon.game.model.RoomDestination.*;
 import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.ROOM_NAME_NOT_UNIQUE;
 import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.ROOM_NOT_FOUND;
 
 @Service
-public class RoomService implements RoomEventHandler{
+public class RoomService implements RoomEventHandler {
     private Map<Integer, RoomProcessor> rooms = new HashMap<>();
     private RoomDao roomDao;
     private PlayerDao playerDao;
@@ -121,33 +119,60 @@ public class RoomService implements RoomEventHandler{
     }
 
     @Transactional
-    public GameInfoDto connectToRoom(RoomConnectDto roomConnectDto, SimpMessageHeaderAccessor accessor) {
+    public GameInfoDto connectToRoom(int roomId, RoomConnectDto roomConnectDto) {
         User user = userService.getUser();
-        RoomProcessor currentRoom = rooms.get(roomConnectDto.getRoomId());
+        RoomProcessor currentRoom = rooms.get(roomId);
         if (currentRoom == null) {
             throw new RestException(ErrorCode.INVALID_ROOM_ID);
         }
         playerDao.findByUser(user).ifPresent(player -> {
-            if(player.getRoom().getId() != roomConnectDto.getRoomId()) {
+            if (player.getRoom().getId() != roomId) {
                 throw new RestException(ErrorCode.ALREADY_IN_ANOTHER_ROOM);
             }
         });
         currentRoom.onPlayerConnect(
                 new Player(user),
                 roomConnectDto.getPassword()
-        ).ifPresent(playerInfoDto -> sendRoomEvent(roomConnectDto.getRoomId(), playerInfoDto));
+        ).ifPresent(playerInfoDto -> sendRoomEvent(roomId, playerInfoDto));
         updateRoomList();
-        playerRoomIdMap.put(accessor.getSessionId(), roomConnectDto.getRoomId());
+        Room room = currentRoom.getRoomData();
         return new GameInfoDto(
+                roomId,
+                room.getName(),
+                room.getMaxPlayers(),
+                room.getCurrentPlayers(),
+                room.isLocked(),
+                room.isTournament(),
+                room.isScenario(),
+                room.getScenario(),
+                room.getState(),
+                room.getMaxRounds(),
+                room.getCurrentRound(),
                 currentRoom
                         .getRoomData()
                         .getPlayers()
                         .values()
                         .stream()
                         .map(p -> new PlayerInfoDto(p, ResponseDtoType.GAME_INFO))
-                        .collect(Collectors.toList()),
-                roomConnectDto.getRoomId()
+                        .collect(Collectors.toList())
+
         );
+    }
+
+    public void connectToRoomWebsocket(int roomId, SimpMessageHeaderAccessor accessor) {
+        User user = userService.getUser();
+        RoomProcessor currentRoom = rooms.get(roomId);
+        if (currentRoom == null) {
+            throw new RestException(ErrorCode.INVALID_ROOM_ID);
+        }
+        if (playerDao
+                .findByUser(user)
+                .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID))
+                .getRoom()
+                .getId() != roomId) {
+            throw new RestException(ErrorCode.INVALID_ROOM_ID);
+        }
+        playerRoomIdMap.put(accessor.getSessionId(), roomId);
     }
 
     @Transactional
@@ -155,7 +180,7 @@ public class RoomService implements RoomEventHandler{
         RoomProcessor roomProcessor = rooms.get(roomId);
         Room deletedRoom;
         logger.debug("Delete room: " + roomId);
-        if(roomProcessor != null) {
+        if (roomProcessor != null) {
             roomProcessor.onRoomDelete();
             roomSchedulingService.removeRoomRunnable(rooms.get(roomId));
             deletedRoom = roomProcessor.getRoomData();
@@ -171,8 +196,9 @@ public class RoomService implements RoomEventHandler{
 
     @Override
     public void sendRoomEvent(int roomId, BaseRoomResponseDto responseDto) {
+        logger.debug(":: SendRoomEvent to {} - {}", roomId, responseDto.toString());
         messagingTemplate.convertAndSend(
-                BROKER_DESTINATION_PREFIX + ROOM_EVENT + "/" + roomId,
+                "/topic/room/event/" + roomId,
                 responseDto
         );
     }
@@ -189,7 +215,7 @@ public class RoomService implements RoomEventHandler{
     @Transactional(readOnly = true)
     void updateRoomList() {
         logger.info(":: Update room list");
-        messagingTemplate.convertAndSend(BROKER_DESTINATION_PREFIX + ROOM_LIST,
+        messagingTemplate.convertAndSend("/topic/room/list",
                 rooms
                         .values()
                         .stream()
@@ -248,7 +274,7 @@ public class RoomService implements RoomEventHandler{
 
     private Integer extractRoomIdFromDestination(String destination) {
         int k;
-        if((k = destination.lastIndexOf("/user/room/event/")) != -1) {
+        if ((k = destination.lastIndexOf("/room/event/")) != -1) {
             String[] paths = destination.split("/");
             return Integer.parseInt(paths[4]);
         } else {

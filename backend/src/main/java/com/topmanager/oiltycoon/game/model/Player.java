@@ -19,7 +19,6 @@ public class Player {
     private int id;
 
     @OneToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     private long timeEndReload;

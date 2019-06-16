@@ -1,6 +1,5 @@
 package com.topmanager.oiltycoon.game.config;
 
-import com.topmanager.oiltycoon.social.model.UserRole;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
@@ -13,11 +12,10 @@ public class WebSocketSecurityConfig extends AbstractSecurityWebSocketMessageBro
         messages
                 .nullDestMatcher().authenticated()
                 .simpSubscribeDestMatchers("/user/queue/errors").permitAll()
-                .simpDestMatchers("/app/**").authenticated()
-                .simpMessageDestMatchers("/topic/**").denyAll()
+                .simpDestMatchers("/topic/**").authenticated()
+                .simpMessageDestMatchers("/topic/**").authenticated()
                 .simpSubscribeDestMatchers("/user/**", "/topic/**").authenticated()
                 .anyMessage().denyAll();
-
     }
 
     @Override

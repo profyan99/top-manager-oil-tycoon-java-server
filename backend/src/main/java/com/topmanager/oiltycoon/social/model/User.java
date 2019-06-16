@@ -1,7 +1,12 @@
 package com.topmanager.oiltycoon.social.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.*;
+import com.topmanager.oiltycoon.game.model.Player;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -42,6 +47,10 @@ public class User {
             fetch = FetchType.EAGER)
     @JsonManagedReference
     private GameStats gameStats;
+
+    @OneToOne(mappedBy = "user", orphanRemoval = true)
+    @JsonIgnore
+    private Player player;
 
 
 }

@@ -1,11 +1,12 @@
 package com.topmanager.oiltycoon.game.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.topmanager.oiltycoon.game.model.GameState.PREPARE;
@@ -30,7 +31,6 @@ public class Room {
     @MapKey(name="userName")
     @OneToMany(mappedBy = "room",
             fetch = FetchType.EAGER,
-            cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private Map<String, Player> players;
