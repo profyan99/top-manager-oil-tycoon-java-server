@@ -28,8 +28,8 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import javax.annotation.PostConstruct;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -49,7 +49,7 @@ public class RoomService implements RoomEventHandler {
     private UserService userService;
 
     private Map<String, Integer> playerRoomIdMap;
-    private Map<String, String> subscribtionDestinationMap;
+    private Map<String, String> subscriptionDestinationMap;
 
     private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
@@ -63,7 +63,7 @@ public class RoomService implements RoomEventHandler {
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         playerRoomIdMap = new HashMap<>();
-        subscribtionDestinationMap = new HashMap<>();
+        subscriptionDestinationMap = new HashMap<>();
     }
 
     @PostConstruct
@@ -81,11 +81,14 @@ public class RoomService implements RoomEventHandler {
     }
 
     @Transactional(readOnly = true)
-    public List<RoomInfoDto> getRoomsList() {
-        return rooms.values()
-                .stream()
-                .map(roomProcessor -> convertRoomIntoDto(roomProcessor.getRoomData()))
-                .collect(Collectors.toList());
+    public RoomInfoAddResponseDto getRoomsList() {
+        return new RoomInfoAddResponseDto(
+                ResponseEventType.ADD,
+                rooms.values()
+                        .stream()
+                        .map(roomProcessor -> convertRoomIntoDto(roomProcessor.getRoomData()))
+                        .collect(Collectors.toList())
+        );
     }
 
     @Transactional
@@ -115,11 +118,14 @@ public class RoomService implements RoomEventHandler {
         );
         rooms.put(room.getId(), roomProcessor);
         roomSchedulingService.addRoomRunnable(roomProcessor);
-        updateRoomList();
+        updateRoomList(new RoomInfoAddResponseDto(
+                ResponseEventType.ADD,
+                Collections.singletonList(convertRoomIntoDto(room))
+        ));
     }
 
     @Transactional
-    public GameInfoDto connectToRoom(int roomId, RoomConnectDto roomConnectDto) {
+    public GameInfoResponseDto connectToRoom(int roomId, RoomConnectDto roomConnectDto) {
         User user = userService.getUser();
         RoomProcessor currentRoom = rooms.get(roomId);
         if (currentRoom == null) {
@@ -134,29 +140,30 @@ public class RoomService implements RoomEventHandler {
                 new Player(user),
                 roomConnectDto.getPassword()
         ).ifPresent(playerInfoDto -> sendRoomEvent(roomId, playerInfoDto));
-        updateRoomList();
         Room room = currentRoom.getRoomData();
-        return new GameInfoDto(
-                roomId,
-                room.getName(),
-                room.getMaxPlayers(),
-                room.getCurrentPlayers(),
-                room.isLocked(),
-                room.isTournament(),
-                room.isScenario(),
-                room.getScenario(),
-                room.getState(),
-                room.getMaxRounds(),
-                room.getCurrentRound(),
-                currentRoom
-                        .getRoomData()
-                        .getPlayers()
-                        .values()
-                        .stream()
-                        .map(p -> new PlayerInfoDto(p, ResponseDtoType.GAME_INFO))
-                        .collect(Collectors.toList())
+        updateRoomList(new RoomInfoResponseDto(ResponseEventType.UPDATE, convertRoomIntoDto(room)));
+        return new GameInfoResponseDto(ResponseEventType.ADD,
+                new GameInfoResponseDto.GameInfoDto(
+                        roomId,
+                        room.getName(),
+                        room.getMaxPlayers(),
+                        room.getCurrentPlayers(),
+                        room.isLocked(),
+                        room.isTournament(),
+                        room.isScenario(),
+                        room.getScenario(),
+                        room.getState(),
+                        room.getMaxRounds(),
+                        room.getCurrentRound(),
+                        currentRoom
+                                .getRoomData()
+                                .getPlayers()
+                                .values()
+                                .stream()
+                                .map(PlayerInfoResponseDto.PlayerInfoDto::new)
+                                .collect(Collectors.toList())
 
-        );
+                ));
     }
 
     public void connectToRoomWebsocket(int roomId, SimpMessageHeaderAccessor accessor) {
@@ -185,7 +192,10 @@ public class RoomService implements RoomEventHandler {
             roomSchedulingService.removeRoomRunnable(rooms.get(roomId));
             deletedRoom = roomProcessor.getRoomData();
             rooms.remove(roomId);
-            updateRoomList();
+            updateRoomList(new RoomInfoResponseDto(
+                    ResponseEventType.REMOVE,
+                    convertRoomIntoDto(deletedRoom)
+            ));
         } else {
             deletedRoom = roomDao.findById(roomId).orElseThrow(
                     () -> new RestException(ROOM_NOT_FOUND)
@@ -208,20 +218,15 @@ public class RoomService implements RoomEventHandler {
     public void updateRoom(int roomId) {
         Room room = rooms.get(roomId).getRoomData();
         roomDao.save(room);
-        updateRoomList();
-        //TODO patch room upd
+        updateRoomList(new RoomInfoResponseDto(
+                ResponseEventType.UPDATE,
+                convertRoomIntoDto(room)
+        ));
     }
 
     @Transactional(readOnly = true)
-    void updateRoomList() {
-        logger.info(":: Update room list");
-        messagingTemplate.convertAndSend("/topic/room/list",
-                rooms
-                        .values()
-                        .stream()
-                        .map(roomProcessor -> convertRoomIntoDto(roomProcessor.getRoomData()))
-                        .collect(Collectors.toList())
-        );
+    void updateRoomList(BaseRoomResponseDto payload) {
+        messagingTemplate.convertAndSend("/topic/room/list", payload);
     }
 
 
@@ -251,13 +256,13 @@ public class RoomService implements RoomEventHandler {
                 + headers.getUser().getName()
                 + "\nSubId: " + headers.getSubscriptionId()
                 + "\nDest: " + headers.getDestination());
-        subscribtionDestinationMap.put(headers.getSubscriptionId(), headers.getDestination());
+        subscriptionDestinationMap.put(headers.getSubscriptionId(), headers.getDestination());
     }
 
     @EventListener
     public void handleSessionUnsubscribeEvent(SessionUnsubscribeEvent event) {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
-        String sub = subscribtionDestinationMap.getOrDefault(headers.getSubscriptionId(), "-1");
+        String sub = subscriptionDestinationMap.getOrDefault(headers.getSubscriptionId(), "-1");
         logger.debug(":: Session unsubscribe\nname: "
                 + headers.getUser().getName()
                 + "\nsubId: " + headers.getSubscriptionId()
@@ -268,7 +273,7 @@ public class RoomService implements RoomEventHandler {
                     playerInfoDto -> sendRoomEvent(roomId, playerInfoDto)
             );
             playerRoomIdMap.remove(headers.getSessionId());
-            subscribtionDestinationMap.remove(headers.getSubscriptionId());
+            subscriptionDestinationMap.remove(headers.getSubscriptionId());
         }
     }
 
@@ -283,8 +288,8 @@ public class RoomService implements RoomEventHandler {
     }
 
     @Transactional(readOnly = true)
-    RoomInfoDto convertRoomIntoDto(Room room) {
-        return new RoomInfoDto(
+    RoomInfoResponseDto.RoomInfoDto convertRoomIntoDto(Room room) {
+        return new RoomInfoResponseDto.RoomInfoDto(
                 room.getId(),
                 room.getName(),
                 room.getMaxPlayers(),

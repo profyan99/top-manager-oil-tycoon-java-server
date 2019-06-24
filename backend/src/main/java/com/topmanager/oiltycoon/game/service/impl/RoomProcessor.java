@@ -1,10 +1,7 @@
 package com.topmanager.oiltycoon.game.service.impl;
 
 import com.topmanager.oiltycoon.game.dao.PlayerDao;
-import com.topmanager.oiltycoon.game.dto.response.DisconnectRoomDto;
-import com.topmanager.oiltycoon.game.dto.response.PlayerConnectDto;
-import com.topmanager.oiltycoon.game.dto.response.PlayerDisconnectDto;
-import com.topmanager.oiltycoon.game.dto.response.PlayerInfoDto;
+import com.topmanager.oiltycoon.game.dto.response.*;
 import com.topmanager.oiltycoon.game.model.GameState;
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Requirement;
@@ -106,7 +103,7 @@ public class RoomProcessor implements RoomRunnable {
     }
 
     @Transactional
-    public Optional<PlayerInfoDto> onPlayerConnect(Player player, String password) {
+    public Optional<PlayerInfoResponseDto> onPlayerConnect(Player player, String password) {
         if (roomData.getPlayers().get(player.getUser().getUserName()) != null) {
             if (roomData.isLocked() && !passwordEncoder.matches(password, roomData.getPassword())) {
                 if (logger.isDebugEnabled()) {
@@ -172,7 +169,8 @@ public class RoomProcessor implements RoomRunnable {
     }
 
     @Transactional
-    public Optional<PlayerInfoDto> onPlayerDisconnect(String playerName, boolean force) {
+    public Optional<PlayerInfoResponseDto> onPlayerDisconnect(String playerName, boolean force) {
+        //TODO bug with deletion before deleteById PLAY force 
         Player disconnectedPlayer = roomData.getPlayers().get(playerName);
         if (disconnectedPlayer != null) {
             disconnectedPlayer.setConnected(false);
@@ -257,7 +255,9 @@ public class RoomProcessor implements RoomRunnable {
 
     @Transactional
     public void onRoomDelete() {
-        roomEventHandler.sendRoomEvent(roomData.getId(), new DisconnectRoomDto("Room has been deleted"));
+        roomEventHandler.sendRoomEvent(roomData.getId(), new ServerMessageResponseDto(
+                ResponseEventType.REMOVE, new ServerMessageResponseDto.ServerMessageDto("Комната будет удалена.")
+        ));
         roomData.getPlayers()
                 .values()
                 .removeIf(player -> {
