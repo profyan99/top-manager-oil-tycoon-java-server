@@ -1,6 +1,5 @@
 package com.topmanager.oiltycoon.game.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,10 +15,9 @@ import static com.topmanager.oiltycoon.game.model.GameState.PREPARE;
 @NoArgsConstructor
 @Entity
 public class Room {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer id;
     private String name;
     private int maxPlayers;
     private int currentPlayers;
@@ -28,16 +26,24 @@ public class Room {
     private boolean isScenario;
     private String scenario;
 
+    private int currentSecond;
+
+    private int prepareSecond;
+    private int timePlayerReload;
+
     @MapKey(name="userName")
-    @OneToMany(mappedBy = "room",
-            fetch = FetchType.EAGER,
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            mappedBy = "room",
+            cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private Map<String, Player> players;
 
-    @Embedded
+    //TODO
+    /*@Embedded
     @JsonManagedReference
-    private Requirement requirement;
+    private Requirement requirement;*/
 
     private GameState state;
     private int maxRounds;
@@ -45,7 +51,7 @@ public class Room {
     private String password;
     private int roomPeriodDelay;
 
-    public Room(int id, String name, int maxPlayers, int currentPlayers, boolean isLocked, boolean isTournament, boolean isScenario,
+    public Room(Integer id, String name, int maxPlayers, int currentPlayers, boolean isLocked, boolean isTournament, boolean isScenario,
                 String scenario, Map<String, Player> players, Requirement requirement, GameState state, int maxRounds,
                 int currentRound, String password, int roomPeriodDelay) {
         this.id = id;
@@ -57,18 +63,46 @@ public class Room {
         this.isScenario = isScenario;
         this.scenario = scenario;
         this.players = players;
-        this.requirement = requirement;
+        //this.requirement = requirement;
         this.state = state;
         this.maxRounds = maxRounds;
         this.currentRound = currentRound;
         this.password = password;
         this.roomPeriodDelay = roomPeriodDelay;
+
+        this.currentSecond = 0;
+        this.timePlayerReload = roomPeriodDelay * 2;
+        this.prepareSecond = this.timePlayerReload;
     }
 
 
     public Room(String name, int maxPlayers, boolean isLocked, boolean isTournament, boolean isScenario, String scenario,
                 Requirement requirement, int maxRounds, String password, int roomPeriodDelay) {
-        this(0, name, maxPlayers, 0, isLocked, isTournament, isScenario, scenario,
+        this(null, name, maxPlayers, 0, isLocked, isTournament, isScenario, scenario,
                 new HashMap<>(), requirement, PREPARE, maxRounds, 0, password, roomPeriodDelay);
+    }
+
+    public void addPlayer(Player player) {
+        players.put(player.getUserName(), player);
+        player.setRoom(this);
+        currentPlayers++;
+    }
+
+    public void removePlayer(Player player) {
+        players.remove(player.getUserName());
+        player.setRoom(null);
+        currentPlayers--;
+    }
+
+    public void incCurrentSecond() {
+        currentSecond++;
+    }
+
+    public void decPrepareSecond() {
+        prepareSecond--;
+    }
+
+    public Requirement getRequirement() {
+        return null;
     }
 }

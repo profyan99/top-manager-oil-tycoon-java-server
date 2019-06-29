@@ -1,11 +1,14 @@
 package com.topmanager.oiltycoon.game.dto.response;
 
 import com.topmanager.oiltycoon.game.model.GameState;
+import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Requirement;
+import com.topmanager.oiltycoon.game.model.Room;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @ToString
@@ -46,6 +49,28 @@ public class RoomInfoResponseDto extends BaseRoomResponseDto<RoomInfoResponseDto
             this.state = state;
             this.maxRounds = maxRounds;
             this.currentRound = currentRound;
+        }
+
+        public RoomInfoDto(Room room) {
+            this(
+                    room.getId(),
+                    room.getName(),
+                    room.getMaxPlayers(),
+                    room.getCurrentPlayers(),
+                    room.isLocked(),
+                    room.isTournament(),
+                    room.isScenario(),
+                    room.getScenario(),
+                    room.getPlayers()
+                            .values()
+                            .stream()
+                            .map(Player::getUserName)
+                            .collect(Collectors.toList()),
+                    room.getRequirement(),
+                    room.getState(),
+                    room.getMaxRounds(),
+                    room.getCurrentRound()
+            );
         }
 
         public RoomInfoDto() {

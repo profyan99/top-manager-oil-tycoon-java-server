@@ -1,8 +1,6 @@
 package com.topmanager.oiltycoon.game.dto.response;
 
 
-import com.topmanager.oiltycoon.game.model.Player;
-
 public class PlayerInfoResponseDto extends BaseRoomResponseDto<PlayerInfoResponseDto.PlayerInfoDto> {
 
     public PlayerInfoResponseDto(ResponseEventType eventType, PlayerInfoDto body) {
@@ -14,10 +12,10 @@ public class PlayerInfoResponseDto extends BaseRoomResponseDto<PlayerInfoRespons
         private String avatar;
         private int id;
 
-        public PlayerInfoDto(Player player) {
-            this.userName = player.getUserName();
-            this.avatar = player.getUser().getAvatar();
-            this.id = player.getUser().getId();
+        public PlayerInfoDto(String userName, String avatar, int id) {
+            this.userName = userName;
+            this.avatar = avatar;
+            this.id = id;
         }
 
         public PlayerInfoDto() {

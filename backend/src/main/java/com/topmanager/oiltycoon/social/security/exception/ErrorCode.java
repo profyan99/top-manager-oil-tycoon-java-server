@@ -24,7 +24,8 @@ public enum ErrorCode {
     INVALID_ROOM_PASSWORD("Неверный пароль от комнаты"),
     PLAYER_NOT_SATISFY("Не достаточно прав для игры в этой комнате."),
     INVALID_ROOM_ID("Неверный номер комнаты."),
-    ALREADY_IN_ANOTHER_ROOM("Вы уже играете в другой комнате.");
+    ALREADY_IN_ANOTHER_ROOM("Вы уже играете в другой комнате."),
+    UNDEFINED_ERROR("Неизвестная ошибка");
 
 
     private String message;

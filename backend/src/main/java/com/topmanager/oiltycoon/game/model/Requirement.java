@@ -1,12 +1,13 @@
 package com.topmanager.oiltycoon.game.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.topmanager.oiltycoon.social.model.Achievement;
 import com.topmanager.oiltycoon.social.model.UserRole;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -20,8 +21,7 @@ public class Requirement {
 
     @OneToMany(
             cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER,
-            orphanRemoval = true)
+            fetch = FetchType.EAGER)
     private Set<Achievement> requireAchievements;
 
     @ElementCollection(fetch = FetchType.EAGER)

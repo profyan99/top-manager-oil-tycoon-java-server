@@ -1,9 +1,8 @@
 package com.topmanager.oiltycoon.game.dto.response;
 
-import com.topmanager.oiltycoon.game.model.Player;
-
 public class PlayerDisconnectDto extends PlayerInfoResponseDto {
-    public PlayerDisconnectDto(Player player) {
-        super(ResponseEventType.DISCONNECT, new PlayerInfoResponseDto.PlayerInfoDto(player));
+
+    public PlayerDisconnectDto(String userName, String avatar, int id) {
+        super(ResponseEventType.DISCONNECT, new PlayerInfoResponseDto.PlayerInfoDto(userName, avatar, id));
     }
 }

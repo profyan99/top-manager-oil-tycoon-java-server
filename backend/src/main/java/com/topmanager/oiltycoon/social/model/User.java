@@ -48,7 +48,12 @@ public class User {
     @JsonManagedReference
     private GameStats gameStats;
 
-    @OneToOne(mappedBy = "user", orphanRemoval = true)
+    @OneToOne(
+            mappedBy = "user",
+            fetch = FetchType.LAZY,
+            orphanRemoval = true,
+            cascade = CascadeType.ALL
+    )
     @JsonIgnore
     private Player player;
 

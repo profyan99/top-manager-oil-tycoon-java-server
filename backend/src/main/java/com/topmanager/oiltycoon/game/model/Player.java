@@ -15,22 +15,41 @@ import javax.persistence.*;
 @Entity
 public class Player {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer id;
 
-    @OneToOne(fetch = FetchType.EAGER, optional = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
     private User user;
 
     private long timeEndReload;
     private boolean connected;
     private String userName;
 
-    @ManyToOne
-    @JoinColumn(name="room_id", nullable=false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id", nullable = false)
     private Room room;
 
     public Player(User user) {
         this.user = user;
         this.userName = user.getUserName();
+        user.setPlayer(this);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+
+        if (!(o instanceof Player))
+            return false;
+
+        return id != null && id.equals(((Player) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+
 }
