@@ -15,7 +15,7 @@ import javax.persistence.*;
 @Entity
 public class Player {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -27,7 +27,7 @@ public class Player {
     private String userName;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id", nullable = false)
+    @JoinColumn(name = "room_id")
     private Room room;
 
     public Player(User user) {
@@ -49,7 +49,7 @@ public class Player {
 
     @Override
     public int hashCode() {
-        return 31;
+        return userName.hashCode();
     }
 
 }

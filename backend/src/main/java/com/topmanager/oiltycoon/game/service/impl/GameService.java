@@ -57,41 +57,40 @@ public class GameService implements RoomRunnable {
             room.decPrepareSecond();
         }
 
-        final long secondsNow = Instant.now().getEpochSecond();
-        removePlayers(room, player ->
-                !player.isConnected()
-                        && player.getTimeEndReload() != 0
-                        && secondsNow > player.getTimeEndReload()
-        );
-
         if (room.getCurrentPlayers() == 0
                 && room.getPlayers().isEmpty()
                 && room.getPrepareSecond() <= 0) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + room.getName() + "] :: " + "no players in room. Delete room");
             }
-            onRoomDelete(room);
-        }
-
-        if (room.getCurrentSecond() == room.getRoomPeriodDelay()) {
-            room.setCurrentSecond(0);
-            room.setCurrentRound(Math.min(room.getCurrentRound() + 1, room.getMaxRounds()));
-            if (logger.isDebugEnabled()) {
-                logger.debug("Room [" + room.getName() + "] :: " + "new round ["
-                        + room.getCurrentRound() + "/" + room.getMaxRounds() + "]");
-            }
-            if (room.getCurrentRound() == room.getMaxRounds()) {
-                endGame(room);
+            this.onRoomDelete(room);
+        } else {
+            if (room.getCurrentSecond() == room.getRoomPeriodDelay()) {
+                room.setCurrentSecond(0);
+                room.setCurrentRound(Math.min(room.getCurrentRound() + 1, room.getMaxRounds()));
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Room [" + room.getName() + "] :: " + "new round ["
+                            + room.getCurrentRound() + "/" + room.getMaxRounds() + "]");
+                }
+                if (room.getCurrentRound() == room.getMaxRounds()) {
+                    endGame(room);
+                } else {
+                    calcGame(room);
+                }
             } else {
-                calcGame(room);
+                final long secondsNow = Instant.now().getEpochSecond();
+                removePlayers(room, player ->
+                        !player.isConnected()
+                                && (player.getTimeEndReload() != 0
+                                && secondsNow > player.getTimeEndReload()
+                                || room.getState() == END)
+                );
             }
         }
-
 
     }
 
-    @Transactional
-    public void removePlayers(Room roomData, Predicate<Player> condition) {
+    private void removePlayers(Room roomData, Predicate<Player> condition) {
         List<Player> playersToDelete = roomData
                 .getPlayers()
                 .values()
@@ -100,11 +99,11 @@ public class GameService implements RoomRunnable {
                 .collect(Collectors.toList());
 
         if (playersToDelete.size() > 0) {
+            logger.debug("Room [" + roomData.getName() + "] :: " + "delete inactive players: [" + playersToDelete.size() + "]");
             playersToDelete.forEach(player -> {
                 setPlayerLeaveGame(roomData, player.getUser());
                 roomData.removePlayer(player);
             });
-            //TODO null room_id in child, but need to delete children...
             roomListService.updateRoom(roomData);
         }
     }
@@ -126,7 +125,7 @@ public class GameService implements RoomRunnable {
             oldPlayer.setTimeEndReload(0);
             messageSender.sendToRoomDest(
                     roomData.getId(),
-                    new PlayerReconnectDto(
+                    new PlayerReconnectResponseDto(
                             oldPlayer.getUserName(),
                             oldPlayer.getUser().getAvatar(),
                             oldPlayer.getUser().getId()
@@ -180,7 +179,7 @@ public class GameService implements RoomRunnable {
             }
             messageSender.sendToRoomDest(
                     roomData.getId(),
-                    new PlayerConnectDto(
+                    new PlayerConnectResponseDto(
                             player.getUserName(),
                             player.getUser().getAvatar(),
                             player.getUser().getId()
@@ -192,14 +191,15 @@ public class GameService implements RoomRunnable {
 
     @Transactional
     public void onPlayerDisconnect(Room roomData, String playerName, boolean force) {
-        Player disconnectedPlayer = playerDao.findByUserName(playerName).orElse(null);
+        Player disconnectedPlayer = roomData.getPlayers().get(playerName);
         if (disconnectedPlayer != null) {
+            User user = disconnectedPlayer.getUser();
             disconnectedPlayer.setConnected(false);
+
             if (roomData.getState() == PLAY) {
                 if (force) {
                     setPlayerLeaveGame(roomData, disconnectedPlayer.getUser());
                     roomData.removePlayer(disconnectedPlayer);
-                    playerDao.delete(disconnectedPlayer);
                     roomListService.updateRoom(roomData);
                 } else {
                     disconnectedPlayer.setTimeEndReload(Instant.now().getEpochSecond() + roomData.getTimePlayerReload());
@@ -207,20 +207,20 @@ public class GameService implements RoomRunnable {
                 }
             } else {
                 roomData.removePlayer(disconnectedPlayer);
-                playerDao.delete(disconnectedPlayer);
                 roomListService.updateRoom(roomData);
             }
-            if (logger.isDebugEnabled()) {
-                logger.debug("Room [" + roomData.getName() + "] :: " + "player disconnected: " + disconnectedPlayer.getUser().getUserName());
-            }
-            messageSender.sendToRoomDest(
-                    roomData.getId(),
-                    new PlayerDisconnectDto(
-                            disconnectedPlayer.getUserName(),
-                            disconnectedPlayer.getUser().getAvatar(),
-                            disconnectedPlayer.getUser().getId()
-                    )
+            logger.debug(
+                    "Room [" + roomData.getName() + "] :: " + "player disconnected: "
+                            + user.getUserName() + " force: " + force
             );
+            messageSender.sendToRoomDest(roomData.getId(), new PlayerDisconnectResponseDto(
+                    new PlayerDisconnectResponseDto.PlayerDisconnectDto(
+                            user.getUserName(),
+                            user.getAvatar(),
+                            user.getId(),
+                            force
+                    )
+            ));
         } else {
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + roomData.getName() + "] :: " + "disconnect user not found: " + playerName);
@@ -231,6 +231,7 @@ public class GameService implements RoomRunnable {
     private void newGame(Room roomData) {
         roomData.setState(PLAY);
         roomData.setCurrentSecond(0);
+        roomData.setPrepareSecond(0);
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + roomData.getName() + "] :: " + "new game");
         }
@@ -247,7 +248,6 @@ public class GameService implements RoomRunnable {
 
     private void endGame(Room roomData) {
         roomData.setState(END);
-        removePlayers(roomData, player -> !player.isConnected());
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + roomData.getName() + "] :: " + "regular end of game");
         }
@@ -270,13 +270,6 @@ public class GameService implements RoomRunnable {
         messageSender.sendToRoomDest(roomData.getId(), new ServerMessageResponseDto(
                 ResponseEventType.REMOVE, new ServerMessageResponseDto.ServerMessageDto("Комната будет удалена.")
         ));
-        //TODO
         roomListService.deleteRoom(roomData);
-        roomData.getPlayers()
-                .values()
-                .removeIf(player -> {
-                    playerDao.deleteById(player.getId());
-                    return true;
-                });
     }
 }

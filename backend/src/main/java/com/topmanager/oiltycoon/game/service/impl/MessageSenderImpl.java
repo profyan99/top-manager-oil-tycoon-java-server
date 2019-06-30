@@ -1,6 +1,8 @@
 package com.topmanager.oiltycoon.game.service.impl;
 
 import com.topmanager.oiltycoon.game.service.MessageSender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -19,6 +21,7 @@ public class MessageSenderImpl implements MessageSender {
     private String roomListDestination;
 
     private SimpMessagingTemplate messagingTemplate;
+    private static final Logger logger = LoggerFactory.getLogger(MessageSenderImpl.class);
 
     @Autowired
     public MessageSenderImpl(SimpMessagingTemplate messagingTemplate) {
@@ -32,6 +35,7 @@ public class MessageSenderImpl implements MessageSender {
                 userBaseDestination,
                 payload
         );
+        logger.debug("MessageSender :: sendToUser[{}]: {}", userBaseDestination, user);
     }
 
     @Override
@@ -40,6 +44,7 @@ public class MessageSenderImpl implements MessageSender {
                 roomBaseDestination + roomId,
                 payload
         );
+        logger.debug("MessageSender :: sendToRoom[{}]: {}", roomBaseDestination, roomId);
     }
 
     @Override
@@ -48,5 +53,6 @@ public class MessageSenderImpl implements MessageSender {
                 roomListDestination,
                 payload
         );
+        logger.debug("MessageSender :: sendToRoomList[{}]", roomListDestination);
     }
 }

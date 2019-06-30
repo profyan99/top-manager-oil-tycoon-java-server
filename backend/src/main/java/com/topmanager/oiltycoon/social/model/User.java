@@ -51,8 +51,7 @@ public class User {
     @OneToOne(
             mappedBy = "user",
             fetch = FetchType.LAZY,
-            orphanRemoval = true,
-            cascade = CascadeType.ALL
+            cascade = CascadeType.REMOVE
     )
     @JsonIgnore
     private Player player;

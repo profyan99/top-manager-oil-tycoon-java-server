@@ -16,7 +16,7 @@ import static com.topmanager.oiltycoon.game.model.GameState.PREPARE;
 @Entity
 public class Room {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
     private int maxPlayers;
@@ -31,11 +31,16 @@ public class Room {
     private int prepareSecond;
     private int timePlayerReload;
 
-    @MapKey(name="userName")
+    @MapKey(name = "userName")
     @OneToMany(
             fetch = FetchType.LAZY,
             mappedBy = "room",
-            cascade = CascadeType.ALL,
+            cascade = {
+                    CascadeType.MERGE,
+                    CascadeType.PERSIST,
+                    CascadeType.DETACH,
+                    CascadeType.REFRESH
+            },
             orphanRemoval = true
     )
     private Map<String, Player> players;
@@ -52,7 +57,7 @@ public class Room {
     private int roomPeriodDelay;
 
     public Room(Integer id, String name, int maxPlayers, int currentPlayers, boolean isLocked, boolean isTournament, boolean isScenario,
-                String scenario, Map<String, Player> players, Requirement requirement, GameState state, int maxRounds,
+                String scenario, Map<String, Player> players, GameState state, int maxRounds,
                 int currentRound, String password, int roomPeriodDelay) {
         this.id = id;
         this.name = name;
@@ -79,7 +84,7 @@ public class Room {
     public Room(String name, int maxPlayers, boolean isLocked, boolean isTournament, boolean isScenario, String scenario,
                 Requirement requirement, int maxRounds, String password, int roomPeriodDelay) {
         this(null, name, maxPlayers, 0, isLocked, isTournament, isScenario, scenario,
-                new HashMap<>(), requirement, PREPARE, maxRounds, 0, password, roomPeriodDelay);
+                new HashMap<>(), PREPARE, maxRounds, 0, password, roomPeriodDelay);
     }
 
     public void addPlayer(Player player) {
@@ -89,8 +94,8 @@ public class Room {
     }
 
     public void removePlayer(Player player) {
-        players.remove(player.getUserName());
-        player.setRoom(null);
+        players.remove(player.getUserName(), player);
+        //player.setRoom(null);
         currentPlayers--;
     }
 
@@ -104,5 +109,21 @@ public class Room {
 
     public Requirement getRequirement() {
         return null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+
+        if (!(o instanceof Room))
+            return false;
+
+        return id != null && id.equals(((Room) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
     }
 }

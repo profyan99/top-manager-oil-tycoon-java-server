@@ -117,6 +117,7 @@ public class RoomService {
                 ));
     }
 
+    @Transactional(readOnly = true)
     public void connectToRoomWebsocket(int roomId, SimpMessageHeaderAccessor accessor) {
         User user = userService.getUser();
         if (playerDao
@@ -144,6 +145,7 @@ public class RoomService {
     }
 
     @EventListener
+    @Transactional
     public void handleSessionDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         int roomId = playerRoomIdMap.getOrDefault(headerAccessor.getSessionId(), -1);
@@ -164,6 +166,7 @@ public class RoomService {
     }
 
     @EventListener
+    @Transactional
     public void handleSessionUnsubscribeEvent(SessionUnsubscribeEvent event) {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
         String sub = subscriptionDestinationMap.getOrDefault(headers.getSubscriptionId(), "-1");
