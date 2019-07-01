@@ -20,7 +20,7 @@ import java.util.Set;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     private String ip;
     private String country;
@@ -44,7 +44,7 @@ public class User {
 
     @OneToOne(mappedBy = "user",
             cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER)
+            fetch = FetchType.LAZY)
     @JsonManagedReference
     private GameStats gameStats;
 
@@ -55,6 +55,44 @@ public class User {
     )
     @JsonIgnore
     private Player player;
+
+    @OneToOne(
+            mappedBy = "user",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true
+    )
+    @JsonIgnore
+    private VerificationToken verificationToken;
+
+    public User(String country, LocalDate registerDate, LocalDate lastLogIn, String email, String userName, String firstName,
+                String lastName, String password, boolean isOnline, String avatar, Set<UserRole> roles) {
+        this(
+                null,
+                "",
+                country,
+                registerDate,
+                lastLogIn,
+                email,
+                userName,
+                firstName,
+                lastName,
+                password,
+                0,
+                "",
+                0,
+                isOnline,
+                avatar,
+                roles,
+                new GameStats(
+                        0, 0, 0, 0, 0, 0, 0, 0, 0
+                ),
+                null,
+                null
+
+        );
+        gameStats.setUser(this);
+    }
 
 
 }

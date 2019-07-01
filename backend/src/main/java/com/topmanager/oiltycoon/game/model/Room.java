@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.game.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -45,10 +46,9 @@ public class Room {
     )
     private Map<String, Player> players;
 
-    //TODO
-    /*@Embedded
+    @Embedded
     @JsonManagedReference
-    private Requirement requirement;*/
+    private Requirement requirement;
 
     private GameState state;
     private int maxRounds;
@@ -58,7 +58,7 @@ public class Room {
 
     public Room(Integer id, String name, int maxPlayers, int currentPlayers, boolean isLocked, boolean isTournament, boolean isScenario,
                 String scenario, Map<String, Player> players, GameState state, int maxRounds,
-                int currentRound, String password, int roomPeriodDelay) {
+                int currentRound, String password, int roomPeriodDelay, Requirement requirement) {
         this.id = id;
         this.name = name;
         this.maxPlayers = maxPlayers;
@@ -68,7 +68,7 @@ public class Room {
         this.isScenario = isScenario;
         this.scenario = scenario;
         this.players = players;
-        //this.requirement = requirement;
+        this.requirement = requirement;
         this.state = state;
         this.maxRounds = maxRounds;
         this.currentRound = currentRound;
@@ -84,7 +84,7 @@ public class Room {
     public Room(String name, int maxPlayers, boolean isLocked, boolean isTournament, boolean isScenario, String scenario,
                 Requirement requirement, int maxRounds, String password, int roomPeriodDelay) {
         this(null, name, maxPlayers, 0, isLocked, isTournament, isScenario, scenario,
-                new HashMap<>(), PREPARE, maxRounds, 0, password, roomPeriodDelay);
+                new HashMap<>(), PREPARE, maxRounds, 0, password, roomPeriodDelay, requirement);
     }
 
     public void addPlayer(Player player) {
@@ -95,7 +95,6 @@ public class Room {
 
     public void removePlayer(Player player) {
         players.remove(player.getUserName(), player);
-        //player.setRoom(null);
         currentPlayers--;
     }
 

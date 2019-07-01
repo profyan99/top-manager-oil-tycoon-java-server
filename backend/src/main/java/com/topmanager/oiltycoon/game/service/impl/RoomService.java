@@ -76,6 +76,7 @@ public class RoomService {
                 roomAdd.getRoomPeriodDelay()
         );
         gameService.initGame(room);
+        logger.debug(":: Add room: " + roomAdd.getName());
     }
 
     @Transactional
@@ -128,6 +129,7 @@ public class RoomService {
             throw new RestException(ErrorCode.INVALID_ROOM_ID);
         }
         playerRoomIdMap.put(accessor.getSessionId(), roomId);
+        logger.debug(":: Connect to room via websocket user: " + user.getUserName() + " room: " + roomId);
     }
 
     @Transactional
@@ -135,13 +137,14 @@ public class RoomService {
         Room room = roomDao.findById(roomId)
                 .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
         gameService.onRoomDelete(room);
+        logger.debug(":: Delete room: " + roomId);
     }
 
 
     @EventListener
     public void handleSessionConnected(SessionConnectEvent event) {
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
-        logger.debug(":: Session connected\nname: " + headers.getUser().getName() + "\nDest: " + headers.getDestination());
+        logger.debug(":: Session connected name: " + headers.getUser().getName() + " Dest: " + headers.getDestination());
     }
 
     @EventListener
@@ -149,7 +152,7 @@ public class RoomService {
     public void handleSessionDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         int roomId = playerRoomIdMap.getOrDefault(headerAccessor.getSessionId(), -1);
-        logger.debug(":: Session disconnect\nroomId: " + roomId + "\nname: " + headerAccessor.getUser().getName());
+        logger.debug(":: Session disconnect roomId: " + roomId + " name: " + headerAccessor.getUser().getName());
         if (roomId != -1) {
             Room room = roomDao.findById(roomId)
                     .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
@@ -161,7 +164,7 @@ public class RoomService {
     @EventListener
     public void handleSessionSubscribeEvent(SessionSubscribeEvent event) {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
-        logger.debug(":: Session subscribe\nname: " + headers.getUser().getName() + "\nDest: " + headers.getDestination());
+        logger.debug(":: Session subscribe name: " + headers.getUser().getName() + " Dest: " + headers.getDestination());
         subscriptionDestinationMap.put(headers.getSubscriptionId(), headers.getDestination());
     }
 
@@ -170,7 +173,7 @@ public class RoomService {
     public void handleSessionUnsubscribeEvent(SessionUnsubscribeEvent event) {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
         String sub = subscriptionDestinationMap.getOrDefault(headers.getSubscriptionId(), "-1");
-        logger.debug(":: Session unsubscribe\nname: " + headers.getUser().getName() + "\nsub: " + sub);
+        logger.debug(":: Session unsubscribe name: " + headers.getUser().getName() + " sub: " + sub);
         int roomId = extractRoomIdFromDestination(sub);
         if (roomId != -1) {
             Room room = roomDao.findById(roomId)

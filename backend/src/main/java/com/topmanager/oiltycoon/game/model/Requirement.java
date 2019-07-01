@@ -21,9 +21,11 @@ public class Requirement {
 
     @OneToMany(
             cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER)
+            fetch = FetchType.LAZY,
+            orphanRemoval = true
+    )
     private Set<Achievement> requireAchievements;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     private Set<UserRole> requireRoles;
 }

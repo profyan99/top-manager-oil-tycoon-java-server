@@ -30,6 +30,7 @@ public class RoomListService {
 
     @Transactional(readOnly = true)
     public RoomInfoAddResponseDto getRoomsList() {
+        logger.debug("Room list :: " + "get");
         return new RoomInfoAddResponseDto(
                 roomDao.findAll()
                         .stream()

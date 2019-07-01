@@ -10,7 +10,5 @@ import java.util.Optional;
 @Repository
 public interface PlayerDao extends JpaRepository<Player, Integer> {
     Optional<Player> findByUser(User user);
-
-    Optional<Player> findByUserName(String userName);
 }
 

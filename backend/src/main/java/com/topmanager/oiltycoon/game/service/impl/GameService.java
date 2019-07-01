@@ -4,9 +4,11 @@ import com.topmanager.oiltycoon.game.dao.PlayerDao;
 import com.topmanager.oiltycoon.game.dto.response.*;
 import com.topmanager.oiltycoon.game.model.GameState;
 import com.topmanager.oiltycoon.game.model.Player;
+import com.topmanager.oiltycoon.game.model.Requirement;
 import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.game.service.MessageSender;
 import com.topmanager.oiltycoon.game.service.RoomRunnable;
+import com.topmanager.oiltycoon.social.model.GameStats;
 import com.topmanager.oiltycoon.social.model.User;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
 import com.topmanager.oiltycoon.social.service.UserService;
@@ -150,7 +152,7 @@ public class GameService implements RoomRunnable {
                 }
                 throw new RestException(INVALID_ROOM_PASSWORD);
             }
-            /*if (roomData.getRequirement() != null) {
+            if (roomData.getRequirement() != null) {
                 Requirement requirement = roomData.getRequirement();
                 GameStats userGameStats = user.getGameStats();
                 if (requirement.getMinHoursInGameAmount() > userGameStats.getHoursInGame()
@@ -161,7 +163,7 @@ public class GameService implements RoomRunnable {
                     }
                     throw new RestException(PLAYER_NOT_SATISFY);
                 }
-            }*/
+            }
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + roomData.getName() + "] :: " + "successfully connected: " + user.getUserName());
             }
@@ -255,6 +257,9 @@ public class GameService implements RoomRunnable {
     }
 
     private void calcGame(Room roomData) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Room [" + roomData.getName() + "] :: " + "calculation round");
+        }
         roomListService.updateRoom(roomData);
     }
 

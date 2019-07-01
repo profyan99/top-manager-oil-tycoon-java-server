@@ -27,56 +27,45 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.UUID;
 
+//TODO logging
 @Service
 public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    private UserDao userDao;
-
-    private VerificationTokenDao verificationTokenDao;
-
-    private PasswordEncoder passwordEncoder;
-
-    private MailSender mailSender;
+    private final UserDao userDao;
+    private final VerificationTokenDao verificationTokenDao;
+    private final PasswordEncoder passwordEncoder;
+    private final MailSender mailSender;
 
     @Autowired
-    public void setVerificationTokenDao(VerificationTokenDao verificationTokenDao) {
+    public UserService(UserDao userDao, VerificationTokenDao verificationTokenDao, PasswordEncoder passwordEncoder, MailSender mailSender) {
+        this.userDao = userDao;
         this.verificationTokenDao = verificationTokenDao;
-    }
-
-    @Autowired
-    public void setMailSender(MailSender mailSender) {
+        this.passwordEncoder = passwordEncoder;
         this.mailSender = mailSender;
     }
 
-    @Autowired
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
 
-    @Autowired
-    public void setUserDao(UserDao userDao) {
-        this.userDao = userDao;
-    }
-
+    @Transactional(readOnly = true)
     public UserDto getUserProfile() {
         User user = getUser();
-        logger.debug("GetUserProfile UserName: " + user.getUserName());
         return userDtoFromUserModel(user);
     }
 
+    @Transactional
     public UserDto getUserProfileByUserName(String userName) {
         User user = userDao.findByUserName(userName).orElseThrow(
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
         );
-        if(user.getId() != getCurrentUserId()) {
+        if (user.getId() != getCurrentUserId()) {
             user.setProfileWatchAmount(user.getProfileWatchAmount() + 1);
             userDao.save(user);
         }
         return userDtoFromUserModel(user);
     }
 
+    @Transactional(readOnly = true)
     public User getUser() {
         return userDao.findById(getCurrentUserId()).orElseThrow(
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
@@ -84,6 +73,7 @@ public class UserService {
     }
 
 
+    @Transactional
     public void create(SignUpRequestDto dto) {
         if (userDao.findByEmail(dto.getEmail()).isPresent()) {
             throw new RestException(ErrorCode.EMAIL_NOT_UNIQUE);
@@ -101,13 +91,14 @@ public class UserService {
             user.getRoles().add(UserRole.WITHOUT_EMAIL);
             mail = false;
         }
-        user.getGameStats().setUser(user);
-        user = userDao.save(user);
+        userDao.save(user);
         if (mail) {
+            //TODO
             //sendVerification(user, Utils.MailMessage.REGISTRATION_CONFIRM);
         }
     }
 
+    @Transactional
     public void verification(String uuid) {
         VerificationToken verificationToken = verificationTokenDao.findByToken(uuid).orElseThrow(
                 () -> new RestException(ErrorCode.VERIFICATION_TOKEN_NOT_FOUND)
@@ -124,9 +115,6 @@ public class UserService {
         userDao.save(user);
     }
 
-    public void updateGameStats(GameStats gameStats) {
-        //TODO get GameStats separate of user
-    }
 
     public UserDto edit(ProfileEditRequestDto dto) {
         User user = userDao.findById(getCurrentUserId()).orElseThrow(
@@ -152,6 +140,7 @@ public class UserService {
         return userDtoFromUserModel(user);
     }
 
+    @Transactional
     public void forgotPassword(String email) {
         User user = userDao.findByEmail(email).orElseThrow(
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
@@ -159,6 +148,7 @@ public class UserService {
         sendVerification(user, Utils.MailMessage.RESET_PASSWORD);
     }
 
+    @Transactional
     public UserDto resetPassword(ResetPasswordRequestDto dto) {
         VerificationToken verificationToken = verificationTokenDao.findByToken(dto.getToken()).orElseThrow(
                 () -> new RestException(ErrorCode.VERIFICATION_TOKEN_NOT_FOUND)
@@ -175,6 +165,7 @@ public class UserService {
         return userDtoFromUserModel(user);
     }
 
+    @Transactional
     public void delete(int id) {
         User user = userDao.findById(id).orElseThrow(
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
@@ -184,8 +175,6 @@ public class UserService {
 
     public User createUserFromSignUpForm(SignUpRequestDto dto) {
         return new User(
-                0,
-                "",
                 dto.getCountry() == null ? "Неизвестно" : dto.getCountry(),
                 LocalDate.now(),
                 LocalDate.now(),
@@ -194,17 +183,9 @@ public class UserService {
                 dto.getFirstName(),
                 dto.getLastName(),
                 dto.getPassword() == null ? null : passwordEncoder.encode(dto.getPassword()),
-                0,
-                "",
-                0,
                 true,
                 dto.getAvatar(),
-                new HashSet<>(Arrays.asList(UserRole.PLAYER, UserRole.UNVERIFIED)),
-                new GameStats(
-                        0, 0, 0, 0, 0, new HashSet<>(),
-                        0, 0, 0, 0, 0, new HashSet<>(), null
-                ),
-                null
+                new HashSet<>(Arrays.asList(UserRole.PLAYER, UserRole.UNVERIFIED))
         );
     }
 
@@ -217,7 +198,6 @@ public class UserService {
 
     private int getCurrentUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        logger.debug("getCreds: " + principal + " :: " + principal.getClass());
         if (principal instanceof UserDetails) {
             String id = ((SocialUserDetails) principal).getUserId();
             return Integer.parseInt(id);
@@ -227,9 +207,8 @@ public class UserService {
 
     private void sendVerification(User user, Utils.MailMessage mailMessage) {
         String token = UUID.randomUUID().toString();
-        logger.error("\n\nID: "+user.getId());
         VerificationToken verificationToken = new VerificationToken(
-                user.getId(),
+                null,
                 token,
                 user,
                 LocalDateTime.now().plusDays(1)
@@ -278,6 +257,7 @@ public class UserService {
         );
     }
 
+    @Transactional
     public void setLoggedIn() {
         User user = userDao.findById(getCurrentUserId()).orElseThrow(
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)

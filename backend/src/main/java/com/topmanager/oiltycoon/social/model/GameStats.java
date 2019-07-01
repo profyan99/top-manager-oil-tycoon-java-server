@@ -1,9 +1,14 @@
 package com.topmanager.oiltycoon.social.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -14,7 +19,7 @@ import java.util.Set;
 public class GameStats {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     private int gamesAmount;
     private int winAmount;
@@ -22,10 +27,12 @@ public class GameStats {
     private int tournamentAmount;
 
     @OneToMany(
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @JsonManagedReference
     private Set<Reward> rewards;
+
     private int maxRevenue;
     private int maxRIF;
     private int hoursInGame;
@@ -34,14 +41,33 @@ public class GameStats {
     private int complainAmount;
 
     @OneToMany(
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @JsonManagedReference
     private Set<Achievement> achievements;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 
+    public GameStats(int gamesAmount, int winAmount, int loseAmount, int tournamentAmount, int maxRevenue, int maxRIF,
+                     int hoursInGame, int leaveGameAmount, int complainAmount) {
+        this(
+                null,
+                gamesAmount,
+                winAmount,
+                loseAmount,
+                tournamentAmount,
+                new HashSet<>(),
+                maxRevenue,
+                maxRIF,
+                hoursInGame,
+                leaveGameAmount,
+                complainAmount,
+                new HashSet<>(),
+                null
+        );
+    }
 }

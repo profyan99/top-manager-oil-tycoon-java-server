@@ -3,7 +3,6 @@ package com.topmanager.oiltycoon.game.controller;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
 import com.topmanager.oiltycoon.game.dto.response.ErrorResponseDto;
-import com.topmanager.oiltycoon.game.dto.response.RoomInfoAddResponseDto;
 import com.topmanager.oiltycoon.game.service.impl.RoomListService;
 import com.topmanager.oiltycoon.game.service.impl.RoomService;
 import com.topmanager.oiltycoon.social.dto.ErrorDto;
@@ -21,13 +20,9 @@ import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SendToUser;
-import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -66,9 +61,10 @@ public class RoomController {
         return ResponseEntity.ok(roomService.connectToRoom(roomId, connectDto));
     }
 
-    @SubscribeMapping("/room/list")
-    public RoomInfoAddResponseDto roomList() {
-        return roomListService.getRoomsList();
+    @IsPlayer
+    @GetMapping(path = "/api/rooms", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getRoomList() {
+        return ResponseEntity.ok(roomListService.getRoomsList());
     }
 
     @MessageMapping("/room/connect/{roomId}")
