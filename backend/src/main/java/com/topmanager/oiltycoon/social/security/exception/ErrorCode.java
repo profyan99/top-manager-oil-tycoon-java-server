@@ -25,7 +25,11 @@ public enum ErrorCode {
     PLAYER_NOT_SATISFY("Не достаточно прав для игры в этой комнате."),
     INVALID_ROOM_ID("Неверный номер комнаты."),
     ALREADY_IN_ANOTHER_ROOM("Вы уже играете в другой комнате."),
-    UNDEFINED_ERROR("Неизвестная ошибка");
+    UNDEFINED_ERROR("Неизвестная ошибка"),
+
+    FACTORY_ALREADY_EXISTS("Такой НПЗ уже есть в компании."),
+    GAS_STATION_ALREADY_EXISTS("Такая АЗС уже есть в компании."),
+    OIL_WELL_ALREADY_EXISTS("Такая скважина уже есть в компании.");
 
 
     private String message;

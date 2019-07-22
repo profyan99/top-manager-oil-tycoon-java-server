@@ -1,11 +1,13 @@
 package com.topmanager.oiltycoon.game.service.impl;
 
+import com.topmanager.oiltycoon.game.dao.CompanyDao;
 import com.topmanager.oiltycoon.game.dao.PlayerDao;
 import com.topmanager.oiltycoon.game.dto.response.*;
 import com.topmanager.oiltycoon.game.model.GameState;
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Requirement;
 import com.topmanager.oiltycoon.game.model.Room;
+import com.topmanager.oiltycoon.game.model.game.*;
 import com.topmanager.oiltycoon.game.service.MessageSender;
 import com.topmanager.oiltycoon.game.service.RoomRunnable;
 import com.topmanager.oiltycoon.social.model.GameStats;
@@ -20,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -37,15 +41,17 @@ public class GameService implements RoomRunnable {
     private final PasswordEncoder passwordEncoder;
     private final MessageSender messageSender;
     private final RoomListService roomListService;
+    private final CompanyDao companyDao;
 
     @Autowired
     public GameService(UserService userService, PlayerDao playerDao, PasswordEncoder passwordEncoder,
-                       MessageSender messageSender, RoomListService roomListService) {
+                       MessageSender messageSender, RoomListService roomListService, CompanyDao companyDao) {
         this.userService = userService;
         this.playerDao = playerDao;
         this.passwordEncoder = passwordEncoder;
         this.messageSender = messageSender;
         this.roomListService = roomListService;
+        this.companyDao = companyDao;
     }
 
     @Override
@@ -167,10 +173,8 @@ public class GameService implements RoomRunnable {
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + roomData.getName() + "] :: " + "successfully connected: " + user.getUserName());
             }
-            Player player = new Player(user);
-            player.setConnected(true);
+            Player player = createNewPlayer(user);
             roomData.addPlayer(player);
-            playerDao.save(player);
             if (roomData.getCurrentPlayers() == roomData.getMaxPlayers()) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Room [" + roomData.getName() + "] :: " + "start new game. Enough players.");
@@ -276,5 +280,41 @@ public class GameService implements RoomRunnable {
                 ResponseEventType.REMOVE, new ServerMessageResponseDto.ServerMessageDto("Комната будет удалена.")
         ));
         roomListService.deleteRoom(roomData);
+    }
+
+    private Player createNewPlayer(User user) {
+        Player player = new Player(user);
+
+        Company company = new Company(
+                null,
+                player,
+                "",
+                new HashMap<>(),
+                new HashMap<>(),
+                new HashMap<>(),
+                new Store(0, new HashMap<>(), new HashMap<>()),
+                1_000_000,
+                0,
+                0
+
+        );
+        company.addFactory(new Factory(
+                0, null, 0, 0, 2_000_000,
+                Arrays.stream(OilType.values()).collect(Collectors.toMap(p -> p, p -> 0)),
+                Arrays.stream(OilType.values()).collect(Collectors.toMap(p -> p, p -> 0))
+        ));
+
+        company.addGasStation(new GasStation(
+                0, null, 0, 0, 1_000_000,
+                Arrays.stream(OilType.values()).collect(Collectors.toMap(p -> p, p -> 0))
+        ));
+
+        company.addOilWell(new OilWell(
+                0, null, 0, 0, 2_500_000
+        ));
+        player.setCompany(company);
+        companyDao.save(company);
+        playerDao.save(player);
+        return player;
     }
 }

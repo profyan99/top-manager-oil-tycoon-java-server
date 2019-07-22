@@ -1,5 +1,7 @@
 package com.topmanager.oiltycoon.game.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.topmanager.oiltycoon.game.model.game.Company;
 import com.topmanager.oiltycoon.social.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,6 +27,15 @@ public class Player {
     private long timeEndReload;
     private boolean connected;
     private String userName;
+
+    @OneToOne(
+            mappedBy = "player",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true
+    )
+    @JsonManagedReference
+    private Company company;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
