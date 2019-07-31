@@ -2,6 +2,7 @@ package com.topmanager.oiltycoon.game.service.impl;
 
 import com.topmanager.oiltycoon.game.dao.PlayerDao;
 import com.topmanager.oiltycoon.game.dao.RoomDao;
+import com.topmanager.oiltycoon.game.dto.CompanyDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
 import com.topmanager.oiltycoon.game.dto.response.GameInfoResponseDto;
@@ -90,7 +91,7 @@ public class RoomService {
                 throw new RestException(ErrorCode.ALREADY_IN_ANOTHER_ROOM);
             }
         });
-        gameService.onPlayerConnect(currentRoom, user, roomConnectDto.getPassword());
+        gameService.onPlayerConnect(currentRoom, user, roomConnectDto.getPassword(), roomConnectDto.getCompanyName());
         return new GameInfoResponseDto(ResponseEventType.ADD,
                 new GameInfoResponseDto.GameInfoDto(
                         roomId,
@@ -111,8 +112,8 @@ public class RoomService {
                                 .map(p -> new PlayerInfoResponseDto.PlayerInfoDto(
                                         p.getUserName(),
                                         p.getUser().getAvatar(),
-                                        p.getUser().getId()
-                                ))
+                                        p.getUser().getId(),
+                                        new CompanyDto(p.getCompany())))
                                 .collect(Collectors.toList())
 
                 ));

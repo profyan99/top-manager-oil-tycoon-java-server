@@ -1,6 +1,8 @@
 package com.topmanager.oiltycoon.game.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.topmanager.oiltycoon.game.model.game.OilType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -56,6 +58,14 @@ public class Room {
     private String password;
     private int roomPeriodDelay;
 
+    @ElementCollection
+    @CollectionTable(
+            name = "game_data",
+            joinColumns = @JoinColumn(name = "room_id"),
+            foreignKey = @ForeignKey(name = "game_data_game_fk")
+    )
+    private Map<Integer, GameData> periodData;
+
     public Room(Integer id, String name, int maxPlayers, int currentPlayers, boolean isLocked, boolean isTournament, boolean isScenario,
                 String scenario, Map<String, Player> players, GameState state, int maxRounds,
                 int currentRound, String password, int roomPeriodDelay, Requirement requirement) {
@@ -78,6 +88,7 @@ public class Room {
         this.currentSecond = 0;
         this.timePlayerReload = roomPeriodDelay * 2;
         this.prepareSecond = this.timePlayerReload;
+        this.periodData = new HashMap<>();
     }
 
 
@@ -124,5 +135,19 @@ public class Room {
     @Override
     public int hashCode() {
         return name.hashCode();
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Embeddable
+    public static class GameData {
+        private int summaryImage;
+        private int summaryMarketing;
+        private int summaryFactoryNir;
+        private int gasStationAmount;
+        private Map<OilType, Double> averagePrice;
+        private double coefficient;
     }
 }

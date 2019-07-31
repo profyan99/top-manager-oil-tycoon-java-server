@@ -50,7 +50,7 @@ public class RoomController {
 
     @IsAdmin
     @DeleteMapping(path = "/api/room/{roomId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> addRoom(@PathVariable int roomId) {
+    public ResponseEntity<?> deleteRoom(@PathVariable int roomId) {
         roomService.deleteRoom(roomId);
         return ResponseEntity.ok().build();
     }

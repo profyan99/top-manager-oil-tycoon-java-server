@@ -23,17 +23,32 @@ public class Factory {
     @JoinColumn(name = "company_id")
     private Company company;
 
-    private int nir;
-    private int investments;
-    private int cost;
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    private Map<OilType, Integer> productionPower;
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    private Map<OilType, Integer> productCostPrice;
+    @ElementCollection
+    @CollectionTable(
+            name = "factory_data",
+            joinColumns = @JoinColumn(name = "factory_id"),
+            foreignKey = @ForeignKey(name = "factory_data_factory_fk")
+    )
+    private Map<Integer, FactoryData> periodData;
 
     public static final int MAX_FACTORIES_BY_PLAYER = 3;
 
 
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Embeddable
+    public static class FactoryData {
+        private int nir;
+        private int investments;
+        private int cost;
+
+        @ElementCollection(fetch = FetchType.EAGER)
+        private Map<OilType, Integer> productionPower;
+
+        @ElementCollection(fetch = FetchType.EAGER)
+        private Map<OilType, Double> productCostPrice;
+
+    }
 }

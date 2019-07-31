@@ -23,12 +23,25 @@ public class GasStation {
     @JoinColumn(name = "company_id")
     private Company company;
 
-    private int marketing;
-    private int image;
-    private int cost;
+    @ElementCollection
+    @CollectionTable(
+            name = "gas_station_data",
+            joinColumns = @JoinColumn(name = "gas_station_id"),
+            foreignKey = @ForeignKey(name = "gas_station_data_gas_station_fk")
+    )
+    private Map<Integer, GasStationData> periodData;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    private Map<OilType, Integer> productCosts;
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Embeddable
+    public static class GasStationData {
+        private int marketing;
+        private int image;
+        private int cost;
 
-
+        @ElementCollection(fetch = FetchType.EAGER)
+        private Map<OilType, Double> productCosts;
+    }
 }
