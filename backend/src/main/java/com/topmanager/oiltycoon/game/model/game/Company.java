@@ -27,7 +27,6 @@ public class Company {
     private Integer id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
     @JsonBackReference
     private Player player;
 

@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Embeddable;
-import java.util.Map;
 
 @Getter
 @Setter
@@ -15,7 +14,6 @@ import java.util.Map;
 @Embeddable
 public class Store {
     private int oilAmount;
-    private Map<OilType, Integer> productAmount;
-    private Map<OilType, Integer> exportAmount;
+    private int gasAmount;
     //TODO futures / forwards
 }

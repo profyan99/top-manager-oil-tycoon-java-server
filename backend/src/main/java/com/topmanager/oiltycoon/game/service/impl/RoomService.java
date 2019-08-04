@@ -4,6 +4,7 @@ import com.topmanager.oiltycoon.game.dao.PlayerDao;
 import com.topmanager.oiltycoon.game.dao.RoomDao;
 import com.topmanager.oiltycoon.game.dto.CompanyDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
+import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
 import com.topmanager.oiltycoon.game.dto.response.GameInfoResponseDto;
 import com.topmanager.oiltycoon.game.dto.response.PlayerInfoResponseDto;
@@ -139,6 +140,13 @@ public class RoomService {
                 .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
         gameService.onRoomDelete(room);
         logger.debug(":: Delete room: " + roomId);
+    }
+
+    @Transactional(readOnly = true)
+    public void sendChatMessage(RoomChatMessageRequestDto chatMessageDto) {
+        Room room = roomDao.findById(chatMessageDto.getRoomId())
+                .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
+        gameService.onChatMessageSend(room, chatMessageDto, userService.getUser());
     }
 
 

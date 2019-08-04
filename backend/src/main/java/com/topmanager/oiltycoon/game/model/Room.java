@@ -1,7 +1,6 @@
 package com.topmanager.oiltycoon.game.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.topmanager.oiltycoon.game.model.game.OilType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -147,7 +146,7 @@ public class Room {
         private int summaryMarketing;
         private int summaryFactoryNir;
         private int gasStationAmount;
-        private Map<OilType, Double> averagePrice;
+        private double averagePrice;
         private double coefficient;
     }
 }

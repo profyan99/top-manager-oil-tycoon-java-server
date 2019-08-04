@@ -1,6 +1,7 @@
 package com.topmanager.oiltycoon.game.controller;
 
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
+import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
 import com.topmanager.oiltycoon.game.dto.response.ErrorResponseDto;
 import com.topmanager.oiltycoon.game.service.impl.RoomListService;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.security.core.Authentication;
@@ -67,7 +69,13 @@ public class RoomController {
         return ResponseEntity.ok(roomListService.getRoomsList());
     }
 
-    @MessageMapping("/room/connect/{roomId}")
+    @MessageMapping("/room/{roomId}/message")
+    public void sendChatMessage(@DestinationVariable int roomId, @Payload RoomChatMessageRequestDto requestDto) {
+        requestDto.setRoomId(roomId);
+        roomService.sendChatMessage(requestDto);
+    }
+
+    @MessageMapping("/room/{roomId}/connect")
     public void connectRoomWebsocket(@DestinationVariable int roomId,
                                      Authentication authentication,
                                      SimpMessageHeaderAccessor accessor) {

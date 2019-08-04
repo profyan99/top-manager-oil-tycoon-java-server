@@ -3,6 +3,7 @@ package com.topmanager.oiltycoon.game.service.impl;
 import com.topmanager.oiltycoon.game.dao.CompanyDao;
 import com.topmanager.oiltycoon.game.dao.PlayerDao;
 import com.topmanager.oiltycoon.game.dto.CompanyDto;
+import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
 import com.topmanager.oiltycoon.game.dto.response.*;
 import com.topmanager.oiltycoon.game.model.GameState;
 import com.topmanager.oiltycoon.game.model.Player;
@@ -23,10 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -261,7 +260,7 @@ public class GameService implements RoomRunnable {
                 0,
                 0,
                 roomData.getMaxPlayers(),
-                Arrays.stream(OilType.values()).collect(Collectors.toMap(p -> p, p -> 97.5d)),
+                97.5d,
                 1d
         );
         roomData.getPeriodData().put(roomData.getCurrentRound(), gameData);
@@ -302,6 +301,22 @@ public class GameService implements RoomRunnable {
         roomListService.deleteRoom(roomData);
     }
 
+    @Transactional(readOnly = true)
+    public void onChatMessageSend(Room roomData, RoomChatMessageRequestDto chatMessageDto, User user) {
+        messageSender.sendToRoomDest(chatMessageDto.getRoomId(), new RoomChatMessageResponseDto(
+                new RoomChatMessageResponseDto.RoomChatMessageDto(
+                        chatMessageDto.getMessage(),
+                        new PlayerInfoResponseDto.PlayerInfoDto(
+                                user.getUserName(),
+                                user.getAvatar(),
+                                user.getId(),
+                                null
+                        )
+                )
+        ));
+
+    }
+
     private Player createNewPlayer(User user, String companyName) {
         Player player = new Player(user);
 
@@ -312,7 +327,7 @@ public class GameService implements RoomRunnable {
                 new HashMap<>(),
                 new HashMap<>(),
                 new HashMap<>(),
-                new Store(0, new HashMap<>(), new HashMap<>()),
+                new Store(0, 0),
                 1_000_000,
                 0,
                 0
@@ -327,7 +342,7 @@ public class GameService implements RoomRunnable {
                 gasStation,
                 0,
                 0,
-                Arrays.stream(OilType.values()).collect(Collectors.toMap(p -> p, p -> 97.5d)),
+                97.5d,
                 0
         );
         company.addGasStation(gasStation);
@@ -347,8 +362,8 @@ public class GameService implements RoomRunnable {
         if (currentRound == 0) {
             newFactoryData = new Factory.FactoryData(
                     nir, investments, 2_000_000,
-                    Arrays.stream(OilType.values()).collect(Collectors.toMap(p -> p, p -> 30_000)),
-                    Arrays.stream(OilType.values()).collect(Collectors.toMap(p -> p, p -> 130 * 16.5d / 60d))
+                    30_000,
+                    (int) (130 * 16.5d / 60d)
             );
         } else {
             Factory.FactoryData oldFactoryData = factory.getPeriodData().get(currentRound - 1);
@@ -356,28 +371,14 @@ public class GameService implements RoomRunnable {
                     oldFactoryData.getNir() + nir,
                     oldFactoryData.getInvestments() + investments,
                     oldFactoryData.getCost(),
-                    oldFactoryData.getProductionPower()
-                            .entrySet()
-                            .stream()
-                            .peek(entry -> entry.setValue(
-                                    (int) Math.sqrt(30_000d * 30_000d
-                                            + Math.sqrt(oldFactoryData.getInvestments() * Math.pow(10d, 12d)))
-                            ))
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
-                    oldFactoryData.getProductCostPrice()
-                            .entrySet()
-                            .stream()
-                            .peek(entry -> {
-                                entry.setValue(130 * 16.5d / 60d);
-                            })
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                    (int) Math.sqrt(30_000d * 30_000d + Math.sqrt(oldFactoryData.getInvestments() * Math.pow(10d, 12d))),
+                    (int) (130 * 16.5d / 60d)
             );
         }
         factory.getPeriodData().put(currentRound, newFactoryData);
     }
 
-    private void calcGasStation(GasStation gasStation, int marketing, int image, Map<OilType, Double> oilPrice,
-                                int currentRound) {
+    private void calcGasStation(GasStation gasStation, int marketing, int image, double oilPrice, int currentRound) {
         GasStation.GasStationData newData;
         if (currentRound == 0) {
             newData = new GasStation.GasStationData(
@@ -386,7 +387,7 @@ public class GameService implements RoomRunnable {
             );
         } else {
             GasStation.GasStationData oldData = gasStation.getPeriodData().get(currentRound - 1);
-            if (oilPrice.values().stream().anyMatch(price -> price <= 0)) {
+            if (oilPrice <= 0) {
                 throw new RestException(INVALID_PRODUCT_PRICE);
             }
             newData = new GasStation.GasStationData(

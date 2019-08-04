@@ -43,12 +43,8 @@ public class Factory {
         private int nir;
         private int investments;
         private int cost;
-
-        @ElementCollection(fetch = FetchType.EAGER)
-        private Map<OilType, Integer> productionPower;
-
-        @ElementCollection(fetch = FetchType.EAGER)
-        private Map<OilType, Double> productCostPrice;
+        private int productionPower;
+        private int productCostPrice;
 
     }
 }

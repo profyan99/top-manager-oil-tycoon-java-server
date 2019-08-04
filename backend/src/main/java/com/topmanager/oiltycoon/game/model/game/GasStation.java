@@ -40,8 +40,6 @@ public class GasStation {
         private int marketing;
         private int image;
         private int cost;
-
-        @ElementCollection(fetch = FetchType.EAGER)
-        private Map<OilType, Double> productCosts;
+        private double productCost;
     }
 }
