@@ -7,15 +7,11 @@ import com.topmanager.oiltycoon.social.security.exception.ErrorCode;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
 import com.topmanager.oiltycoon.social.service.UserService;
 import com.vk.api.sdk.client.VkApiClient;
-import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
-import com.vk.api.sdk.objects.account.UserXtrContact;
 import com.vk.api.sdk.objects.users.UserXtrCounters;
-import com.vk.api.sdk.queries.account.AccountGetInfoField;
 import com.vk.api.sdk.queries.users.UserField;
-import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +20,6 @@ import org.springframework.social.connect.ConnectionSignUp;
 import org.springframework.social.google.api.Google;
 import org.springframework.social.google.api.plus.Person;
 import org.springframework.social.vkontakte.api.VKontakte;
-import org.springframework.social.vkontakte.config.support.VKontakteApiHelper;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -70,7 +65,7 @@ public class ConnectionSignUpImpl implements ConnectionSignUp {
         } else {
             Google googleApi = (Google) connection.getApi();
             email = connection.fetchUserProfile().getEmail();
-            Person googleApiProfile =  googleApi
+            Person googleApiProfile = googleApi
                     .plusOperations()
                     .getGoogleProfile();
             Map<String, Boolean> places = googleApiProfile.getPlacesLived();
@@ -86,10 +81,7 @@ public class ConnectionSignUpImpl implements ConnectionSignUp {
         User user = userService.createUserFromSignUpForm(new SignUpRequestDto(
                         getUniqueUserName(connection.fetchUserProfile().getFirstName()),
                         null,
-                        connection.fetchUserProfile().getFirstName(),
-                        connection.fetchUserProfile().getLastName(),
                         email,
-                        "",
                         connection.getImageUrl(),
                         country
                 )

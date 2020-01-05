@@ -9,7 +9,7 @@ import com.topmanager.oiltycoon.game.model.GameState;
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Requirement;
 import com.topmanager.oiltycoon.game.model.Room;
-import com.topmanager.oiltycoon.game.model.game.*;
+import com.topmanager.oiltycoon.game.model.game.Company;
 import com.topmanager.oiltycoon.game.service.MessageSender;
 import com.topmanager.oiltycoon.game.service.RoomRunnable;
 import com.topmanager.oiltycoon.social.model.GameStats;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.HashMap;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -311,113 +311,15 @@ public class GameService implements RoomRunnable {
                                 user.getAvatar(),
                                 user.getId(),
                                 null
-                        )
-                )
+                        ),
+                        LocalTime.now())
         ));
 
     }
 
     private Player createNewPlayer(User user, String companyName) {
         Player player = new Player(user);
-
-        Company company = new Company(
-                null,
-                player,
-                companyName,
-                new HashMap<>(),
-                new HashMap<>(),
-                new HashMap<>(),
-                new Store(0, 0),
-                1_000_000,
-                0,
-                0
-
-        );
-        Factory factory = new Factory(null, null, new HashMap<>());
-        calcFactory(factory, 0, 0, 0);
-        company.addFactory(factory);
-
-        GasStation gasStation = new GasStation(null, null, new HashMap<>());
-        calcGasStation(
-                gasStation,
-                0,
-                0,
-                97.5d,
-                0
-        );
-        company.addGasStation(gasStation);
-
-        OilWell oilWell = new OilWell(null, null, 0, new HashMap<>());
-        calcOilWell(oilWell, 0, 0);
-        company.addOilWell(oilWell);
-
-        player.setCompany(company);
-        companyDao.save(company);
         playerDao.save(player);
         return player;
-    }
-
-    private void calcFactory(Factory factory, int investments, int nir, int currentRound) {
-        Factory.FactoryData newFactoryData;
-        if (currentRound == 0) {
-            newFactoryData = new Factory.FactoryData(
-                    nir, investments, 2_000_000,
-                    30_000,
-                    (int) (130 * 16.5d / 60d)
-            );
-        } else {
-            Factory.FactoryData oldFactoryData = factory.getPeriodData().get(currentRound - 1);
-            newFactoryData = new Factory.FactoryData(
-                    oldFactoryData.getNir() + nir,
-                    oldFactoryData.getInvestments() + investments,
-                    oldFactoryData.getCost(),
-                    (int) Math.sqrt(30_000d * 30_000d + Math.sqrt(oldFactoryData.getInvestments() * Math.pow(10d, 12d))),
-                    (int) (130 * 16.5d / 60d)
-            );
-        }
-        factory.getPeriodData().put(currentRound, newFactoryData);
-    }
-
-    private void calcGasStation(GasStation gasStation, int marketing, int image, double oilPrice, int currentRound) {
-        GasStation.GasStationData newData;
-        if (currentRound == 0) {
-            newData = new GasStation.GasStationData(
-                    marketing, image, 1_000_000,
-                    oilPrice
-            );
-        } else {
-            GasStation.GasStationData oldData = gasStation.getPeriodData().get(currentRound - 1);
-            if (oilPrice <= 0) {
-                throw new RestException(INVALID_PRODUCT_PRICE);
-            }
-            newData = new GasStation.GasStationData(
-                    marketing,
-                    oldData.getImage() + image,
-                    oldData.getCost(),
-                    oilPrice
-            );
-        }
-        gasStation.getPeriodData().put(currentRound, newData);
-    }
-
-    private void calcOilWell(OilWell oilWell, int nir, int currentRound) {
-        OilWell.OilWellData newData;
-        if (currentRound == 0) {
-            newData = new OilWell.OilWellData(
-                    nir,
-                    18_000,
-                    2_500_000,
-                    17.5d
-            );
-        } else {
-            OilWell.OilWellData oldData = oilWell.getPeriodData().get(currentRound - 1);
-            newData = new OilWell.OilWellData(
-                    oldData.getNir() + nir,
-                    (int) Math.sqrt(40_000 + oldData.getNir() / 28d),
-                    oldData.getCost(),
-                    0.013d * (Math.pow(oilWell.getStartPeriod(), 2d)) + 17.5d
-            );
-        }
-        oilWell.getPeriodData().put(currentRound, newData);
     }
 }

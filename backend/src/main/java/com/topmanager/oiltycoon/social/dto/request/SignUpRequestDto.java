@@ -25,13 +25,8 @@ public class SignUpRequestDto {
     @Length(min = 6, max = 25, message = Utils.NAME_NOT_VALID_MESSAGE)
     private String password;
 
-    private String firstName;
-    private String lastName;
-
     @Email(regexp = Utils.EMAIL_REGEX, message = Utils.EMAIL_NOT_VALID)
     private String email;
-
-    private String description;
 
     private String avatar;
 

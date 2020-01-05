@@ -17,6 +17,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "Users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,14 +30,10 @@ public class User {
     private String email;
     private String userName;
 
-    private String firstName;
-    private String lastName;
     private String password;
 
     private int reputation;
-    private String description;
     private int profileWatchAmount;
-    private boolean isOnline;
     private String avatar;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -65,8 +62,8 @@ public class User {
     @JsonIgnore
     private VerificationToken verificationToken;
 
-    public User(String country, LocalDate registerDate, LocalDate lastLogIn, String email, String userName, String firstName,
-                String lastName, String password, boolean isOnline, String avatar, Set<UserRole> roles) {
+    public User(String country, LocalDate registerDate, LocalDate lastLogIn, String email, String userName,
+                String password, String avatar, Set<UserRole> roles) {
         this(
                 null,
                 "",
@@ -75,13 +72,9 @@ public class User {
                 lastLogIn,
                 email,
                 userName,
-                firstName,
-                lastName,
                 password,
                 0,
-                "",
                 0,
-                isOnline,
                 avatar,
                 roles,
                 new GameStats(

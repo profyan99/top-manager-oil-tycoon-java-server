@@ -21,13 +21,9 @@ public class UserDto {
     private LocalDate lastLogIn;
 
     private int reputation;
-    private String description;
     private int profileWatchAmount;
-    private boolean isOnline;
     private String avatar;
 
-    private String firstName;
-    private String lastName;
     private Set<UserRole> roles;
     private String email;
     private GameStatsDto gameStats;

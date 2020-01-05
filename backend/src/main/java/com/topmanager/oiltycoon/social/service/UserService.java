@@ -132,8 +132,6 @@ public class UserService {
                 throw new RestException(ErrorCode.USERNAME_NOT_UNIQUE);
             }
         }
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
         user.setUserName(dto.getUserName());
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         userDao.save(user);
@@ -180,10 +178,7 @@ public class UserService {
                 LocalDate.now(),
                 dto.getEmail(),
                 dto.getUserName(),
-                dto.getFirstName(),
-                dto.getLastName(),
                 dto.getPassword() == null ? null : passwordEncoder.encode(dto.getPassword()),
-                true,
                 dto.getAvatar(),
                 new HashSet<>(Arrays.asList(UserRole.PLAYER, UserRole.UNVERIFIED))
         );
@@ -232,12 +227,8 @@ public class UserService {
                 user.getRegisterDate(),
                 user.getLastLogIn(),
                 user.getReputation(),
-                user.getDescription(),
                 user.getProfileWatchAmount(),
-                user.isOnline(),
                 user.getAvatar(),
-                user.getFirstName(),
-                user.getLastName(),
                 user.getRoles(),
                 user.getEmail(),
                 new GameStatsDto(
@@ -263,7 +254,6 @@ public class UserService {
                 () -> new RestException(ErrorCode.ACCOUNT_NOT_FOUND)
         );
         user.setLastLogIn(LocalDate.now());
-        user.setOnline(true);
         userDao.save(user);
     }
 }
