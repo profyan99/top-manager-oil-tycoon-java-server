@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -39,9 +38,9 @@ public class BaseAuthenticationEntryPoint implements AuthenticationEntryPoint {
         logger.debug("Commence entry point");
         response.setContentType("text/html; charset=UTF-8");
         response.setCharacterEncoding("UTF-8");
-        if(e.getCause() instanceof OAuth2Exception) {
-            String errorCode = ((OAuth2Exception)e.getCause()).getOAuth2ErrorCode();
-            if(errorCode.contains("invalid_token") && e.getMessage().contains("Access token expired")) {
+        if (e.getCause() instanceof OAuth2Exception) {
+            String errorCode = ((OAuth2Exception) e.getCause()).getOAuth2ErrorCode();
+            if (errorCode.contains("invalid_token") && e.getMessage().contains("Access token expired")) {
                 logger.debug("Access token expired");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().print(objectMapper.writeValueAsString(
@@ -49,7 +48,7 @@ public class BaseAuthenticationEntryPoint implements AuthenticationEntryPoint {
                                 ErrorCode.ACCESS_TOKEN_EXPIRED.getMessage())))
                 ));
             } else {
-                logger.debug("Another oauth2 exception");
+                logger.debug("Another oauth2 exception: " + errorCode);
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 response.getWriter().print(objectMapper.writeValueAsString(
                         new ErrorResponseDto(Collections.singletonList(new ErrorDto(ErrorCode.AUTHENTICATION_ERROR.name(),

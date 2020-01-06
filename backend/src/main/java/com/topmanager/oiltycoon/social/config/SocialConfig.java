@@ -1,8 +1,5 @@
 package com.topmanager.oiltycoon.social.config;
 
-import com.vk.api.sdk.client.VkApiClient;
-import com.vk.api.sdk.httpclient.HttpTransportClient;
-import com.vk.api.sdk.queries.account.AccountGetInfoField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

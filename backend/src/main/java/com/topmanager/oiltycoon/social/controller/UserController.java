@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import javax.validation.Valid;
 
@@ -32,6 +32,11 @@ public class UserController {
     public ResponseEntity<?> signup(@RequestBody @Valid SignUpRequestDto signUpRequestDto) {
         userService.create(signUpRequestDto);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(path = "auth/{provider}")
+    public RedirectView handleSocialAuth(@PathVariable String provider) {
+        return new RedirectView("/auth/" + provider);
     }
 
     @GetMapping(path = "profile")
@@ -73,6 +78,5 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    
 
 }

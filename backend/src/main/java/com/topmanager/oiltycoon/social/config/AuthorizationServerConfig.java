@@ -21,9 +21,6 @@ import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
-import java.util.Arrays;
-import java.util.List;
-
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
@@ -85,6 +82,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .tokenServices(tokenServices())
                 .userDetailsService(userDetailsService)
                 .accessTokenConverter(accessTokenConverter())
+                .pathMapping("/oauth/token", "/api/oauth/token")
                 .authenticationManager(authenticationManager);
     }
 

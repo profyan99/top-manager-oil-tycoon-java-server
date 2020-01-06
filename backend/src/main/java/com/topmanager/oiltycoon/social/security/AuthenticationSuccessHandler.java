@@ -20,9 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashSet;
 
-import static com.topmanager.oiltycoon.Utils.ACCESS_TOKEN_PARAM_NAME;
-import static com.topmanager.oiltycoon.Utils.REFRESH_TOKEN_PARAM_NAME;
-import static com.topmanager.oiltycoon.Utils.UTF_ENCODING;
+import static com.topmanager.oiltycoon.Utils.*;
 
 @Component
 public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -82,7 +80,7 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
                     )
             );
             logger.debug("Social auth success: " + userDetails.getUsername());
-            String redirectUrl = frontendUrl+"/signin" +
+            String redirectUrl = frontendUrl + "/" +
                     "?" + ACCESS_TOKEN_PARAM_NAME + "=" +
                     encode(oauth2Token.getValue()) +
                     "&" + REFRESH_TOKEN_PARAM_NAME + "=" +
