@@ -2,22 +2,22 @@ package com.topmanager.oiltycoon.game.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
-public class RoomChatMessageResponseDto extends BaseRoomResponseDto<RoomChatMessageResponseDto.RoomChatMessageDto> {
+public class ChatMessageResponseDto extends BaseRoomResponseDto<ChatMessageResponseDto.ChatMessageDto> {
 
-    public RoomChatMessageResponseDto(RoomChatMessageDto body) {
+    public ChatMessageResponseDto(ChatMessageDto body) {
         super(ResponseObjectType.MESSAGE, ResponseEventType.ADD, body);
     }
 
-    public static class RoomChatMessageDto {
+    public static class ChatMessageDto {
         private String message;
         private PlayerInfoResponseDto.PlayerInfoDto player;
 
-        @JsonFormat(pattern = "HH:mm:ss")
-        private LocalTime time;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime time;
 
-        public RoomChatMessageDto(String message, PlayerInfoResponseDto.PlayerInfoDto player, LocalTime time) {
+        public ChatMessageDto(String message, PlayerInfoResponseDto.PlayerInfoDto player, LocalDateTime time) {
             this.message = message;
             this.player = player;
             this.time = time;
@@ -39,11 +39,11 @@ public class RoomChatMessageResponseDto extends BaseRoomResponseDto<RoomChatMess
             this.player = player;
         }
 
-        public LocalTime getDate() {
+        public LocalDateTime getDate() {
             return time;
         }
 
-        public void setDate(LocalTime time) {
+        public void setDate(LocalDateTime time) {
             this.time = time;
         }
     }

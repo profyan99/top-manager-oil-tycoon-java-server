@@ -5,10 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Setter
 @Getter
-public class RoomChatMessageRequestDto extends ChatMessageRequestDto {
-    private int roomId;
+public class ChatMessageRequestDto {
+    private String message;
 }

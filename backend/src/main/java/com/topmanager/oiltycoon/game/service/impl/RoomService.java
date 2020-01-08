@@ -2,12 +2,10 @@ package com.topmanager.oiltycoon.game.service.impl;
 
 import com.topmanager.oiltycoon.game.dao.PlayerDao;
 import com.topmanager.oiltycoon.game.dao.RoomDao;
-import com.topmanager.oiltycoon.game.dto.CompanyDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
 import com.topmanager.oiltycoon.game.dto.response.GameInfoResponseDto;
-import com.topmanager.oiltycoon.game.dto.response.PlayerInfoResponseDto;
 import com.topmanager.oiltycoon.game.dto.response.ResponseEventType;
 import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.social.model.User;
@@ -30,7 +28,6 @@ import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.ROOM_NAME_NOT_UNIQUE;
 
@@ -93,43 +90,13 @@ public class RoomService {
             }
         });
         gameService.onPlayerConnect(currentRoom, user, roomConnectDto.getPassword(), roomConnectDto.getCompanyName());
-        return new GameInfoResponseDto(ResponseEventType.ADD,
-                new GameInfoResponseDto.GameInfoDto(
-                        roomId,
-                        currentRoom.getName(),
-                        currentRoom.getMaxPlayers(),
-                        currentRoom.getCurrentPlayers(),
-                        currentRoom.isLocked(),
-                        currentRoom.isTournament(),
-                        currentRoom.isScenario(),
-                        currentRoom.getScenario(),
-                        currentRoom.getState(),
-                        currentRoom.getMaxRounds(),
-                        currentRoom.getCurrentRound(),
-                        currentRoom
-                                .getPlayers()
-                                .values()
-                                .stream()
-                                .map(p -> new PlayerInfoResponseDto.PlayerInfoDto(
-                                        p.getUserName(),
-                                        p.getUser().getAvatar(),
-                                        p.getUser().getId(),
-                                        new CompanyDto(p.getCompany())))
-                                .collect(Collectors.toList())
-
-                ));
+        return new GameInfoResponseDto(ResponseEventType.ADD, new GameInfoResponseDto.GameInfoDto(currentRoom));
     }
 
     @Transactional(readOnly = true)
     public void connectToRoomWebsocket(int roomId, SimpMessageHeaderAccessor accessor) {
         User user = userService.getUser();
-        if (playerDao
-                .findByUser(user)
-                .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID))
-                .getRoom()
-                .getId() != roomId) {
-            throw new RestException(ErrorCode.INVALID_ROOM_ID);
-        }
+        checkPlayerInRoom(user, roomId);
         playerRoomIdMap.put(accessor.getSessionId(), roomId);
         logger.debug(":: Connect to room via websocket user: " + user.getUserName() + " room: " + roomId);
     }
@@ -146,9 +113,10 @@ public class RoomService {
     public void sendChatMessage(RoomChatMessageRequestDto chatMessageDto) {
         Room room = roomDao.findById(chatMessageDto.getRoomId())
                 .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
-        gameService.onChatMessageSend(room, chatMessageDto, userService.getUser());
+        User currentUser = userService.getUser();
+        checkPlayerInRoom(currentUser, room.getId());
+        gameService.onChatMessageSend(room, chatMessageDto, currentUser);
     }
-
 
     @EventListener
     public void handleSessionConnected(SessionConnectEvent event) {
@@ -201,6 +169,16 @@ public class RoomService {
             return Integer.parseInt(paths[4]);
         } else {
             return k;
+        }
+    }
+
+    private void checkPlayerInRoom(User user, int roomId) {
+        if (!playerDao
+                .findByUser(user)
+                .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID))
+                .getRoom()
+                .getId().equals(roomId)) {
+            throw new RestException(ErrorCode.INVALID_ROOM_ID);
         }
     }
 }

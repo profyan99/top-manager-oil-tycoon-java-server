@@ -2,7 +2,6 @@ package com.topmanager.oiltycoon.game.service.impl;
 
 import com.topmanager.oiltycoon.game.dao.CompanyDao;
 import com.topmanager.oiltycoon.game.dao.PlayerDao;
-import com.topmanager.oiltycoon.game.dto.CompanyDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
 import com.topmanager.oiltycoon.game.dto.response.*;
 import com.topmanager.oiltycoon.game.model.GameState;
@@ -24,7 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -58,12 +57,16 @@ public class GameService implements RoomRunnable {
     @Override
     @Transactional
     public void roomUpdate(Room room) {
+        boolean isSaveNeed = false;
+
         if (room.getState() == PLAY) {
             room.incCurrentSecond();
+            updateTick(room, room.getCurrentSecond());
         }
 
         if (room.getPrepareSecond() != 0) {
             room.decPrepareSecond();
+            updateTick(room, room.getPrepareSecond());
         }
 
         if (room.getCurrentPlayers() == 0
@@ -86,9 +89,10 @@ public class GameService implements RoomRunnable {
                 } else {
                     calcGame(room);
                 }
+                isSaveNeed = true;
             } else {
                 final long secondsNow = Instant.now().getEpochSecond();
-                removePlayers(room, player ->
+                isSaveNeed = removePlayers(room, player ->
                         !player.isConnected()
                                 && (player.getTimeEndReload() != 0
                                 && secondsNow > player.getTimeEndReload()
@@ -96,10 +100,12 @@ public class GameService implements RoomRunnable {
                 );
             }
         }
-
+        if (isSaveNeed) {
+            updateRoom(room);
+        }
     }
 
-    private void removePlayers(Room roomData, Predicate<Player> condition) {
+    private boolean removePlayers(Room roomData, Predicate<Player> condition) {
         List<Player> playersToDelete = roomData
                 .getPlayers()
                 .values()
@@ -113,8 +119,9 @@ public class GameService implements RoomRunnable {
                 setPlayerLeaveGame(roomData, player.getUser());
                 roomData.removePlayer(player);
             });
-            roomListService.updateRoom(roomData);
+            return true;
         }
+        return false;
     }
 
     @Transactional
@@ -137,8 +144,7 @@ public class GameService implements RoomRunnable {
                     new PlayerReconnectResponseDto(
                             oldPlayer.getUserName(),
                             oldPlayer.getUser().getAvatar(),
-                            oldPlayer.getUser().getId(),
-                            new CompanyDto(oldPlayer.getCompany())
+                            oldPlayer.getUser().getId()
                     )
             );
         } else {
@@ -186,15 +192,14 @@ public class GameService implements RoomRunnable {
                 }
                 newGame(roomData);
             } else {
-                roomListService.updateRoom(roomData);
+                updateRoom(roomData);
             }
             messageSender.sendToRoomDest(
                     roomData.getId(),
                     new PlayerConnectResponseDto(
                             player.getUserName(),
                             player.getUser().getAvatar(),
-                            player.getUser().getId(),
-                            new CompanyDto(player.getCompany())
+                            player.getUser().getId()
                     )
             );
 
@@ -231,7 +236,6 @@ public class GameService implements RoomRunnable {
                             user.getUserName(),
                             user.getAvatar(),
                             user.getId(),
-                            new CompanyDto(company),
                             force
                     )
             ));
@@ -249,7 +253,7 @@ public class GameService implements RoomRunnable {
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + roomData.getName() + "] :: " + "new game");
         }
-        roomListService.updateRoom(roomData);
+        updateRoom(roomData);
     }
 
     public void initGame(Room roomData) {
@@ -276,14 +280,12 @@ public class GameService implements RoomRunnable {
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + roomData.getName() + "] :: " + "regular end of game");
         }
-        roomListService.updateRoom(roomData);
     }
 
     private void calcGame(Room roomData) {
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + roomData.getName() + "] :: " + "calculation round");
         }
-        roomListService.updateRoom(roomData);
     }
 
     private void setPlayerLeaveGame(Room roomData, User user) {
@@ -303,16 +305,15 @@ public class GameService implements RoomRunnable {
 
     @Transactional(readOnly = true)
     public void onChatMessageSend(Room roomData, RoomChatMessageRequestDto chatMessageDto, User user) {
-        messageSender.sendToRoomDest(chatMessageDto.getRoomId(), new RoomChatMessageResponseDto(
-                new RoomChatMessageResponseDto.RoomChatMessageDto(
+        messageSender.sendToRoomDest(chatMessageDto.getRoomId(), new ChatMessageResponseDto(
+                new ChatMessageResponseDto.ChatMessageDto(
                         chatMessageDto.getMessage(),
                         new PlayerInfoResponseDto.PlayerInfoDto(
                                 user.getUserName(),
                                 user.getAvatar(),
-                                user.getId(),
-                                null
+                                user.getId()
                         ),
-                        LocalTime.now())
+                        LocalDateTime.now())
         ));
 
     }
@@ -321,5 +322,20 @@ public class GameService implements RoomRunnable {
         Player player = new Player(user);
         playerDao.save(player);
         return player;
+    }
+
+    private void updateRoom(Room room) {
+        roomListService.updateRoom(room);
+        messageSender.sendToRoomDest(
+                room.getId(),
+                new GameInfoResponseDto(ResponseEventType.UPDATE, new GameInfoResponseDto.GameInfoDto(room))
+        );
+    }
+
+    private void updateTick(Room room, int amount) {
+        messageSender.sendToRoomDest(
+                room.getId(),
+                new GameTickResponseDto(new GameTickResponseDto.GameTickDto(amount))
+        );
     }
 }

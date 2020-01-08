@@ -1,8 +1,14 @@
 package com.topmanager.oiltycoon.game.dto.response;
 
 import com.topmanager.oiltycoon.game.model.GameState;
+import com.topmanager.oiltycoon.game.model.Room;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class GameInfoResponseDto extends BaseRoomResponseDto<GameInfoResponseDto.GameInfoDto> {
@@ -10,7 +16,10 @@ public class GameInfoResponseDto extends BaseRoomResponseDto<GameInfoResponseDto
         super(ResponseObjectType.GAME, eventType, body);
     }
 
-    //TODO Gamedto complete
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Setter
+    @Getter
     public static class GameInfoDto {
         private int roomId;
         private String name;
@@ -23,78 +32,35 @@ public class GameInfoResponseDto extends BaseRoomResponseDto<GameInfoResponseDto
         private GameState state;
         private int maxRounds;
         private int currentRound;
+        private int currentSecond;
+        private int prepareSecond;
         private List<PlayerInfoResponseDto.PlayerInfoDto> players;
 
-        public GameInfoDto(int roomId, String name, int maxPlayers, int currentPlayers, boolean locked,
-                           boolean tournament, boolean scenario, String scenarioName, GameState state, int maxRounds,
-                           int currentRound, List<PlayerInfoResponseDto.PlayerInfoDto> players) {
-            this.roomId = roomId;
-            this.name = name;
-            this.maxPlayers = maxPlayers;
-            this.currentPlayers = currentPlayers;
-            this.locked = locked;
-            this.tournament = tournament;
-            this.scenario = scenario;
-            this.scenarioName = scenarioName;
-            this.state = state;
-            this.maxRounds = maxRounds;
-            this.currentRound = currentRound;
-            this.players = players;
-        }
+        public GameInfoDto(Room room) {
+            this(room.getId(),
+                    room.getName(),
+                    room.getMaxPlayers(),
+                    room.getCurrentPlayers(),
+                    room.isLocked(),
+                    room.isTournament(),
+                    room.isScenario(),
+                    room.getScenario(),
+                    room.getState(),
+                    room.getMaxRounds(),
+                    room.getCurrentRound(),
+                    room.getCurrentSecond(),
+                    room.getPrepareSecond(),
+                    room
+                            .getPlayers()
+                            .values()
+                            .stream()
+                            .map(p -> new PlayerInfoResponseDto.PlayerInfoDto(
+                                    p.getUserName(),
+                                    p.getUser().getAvatar(),
+                                    p.getUser().getId()))
+                            .collect(Collectors.toList())
 
-        public GameInfoDto() {
-        }
-
-        public List<PlayerInfoResponseDto.PlayerInfoDto> getPlayers() {
-            return players;
-        }
-
-        public int getRoomId() {
-            return roomId;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public int getMaxPlayers() {
-            return maxPlayers;
-        }
-
-        public int getCurrentPlayers() {
-            return currentPlayers;
-        }
-
-        public boolean isLocked() {
-            return locked;
-        }
-
-        public boolean isTournament() {
-            return tournament;
-        }
-
-        public boolean isScenario() {
-            return scenario;
-        }
-
-        public String getScenarioName() {
-            return scenarioName;
-        }
-
-        public GameState getState() {
-            return state;
-        }
-
-        public int getMaxRounds() {
-            return maxRounds;
-        }
-
-        public int getCurrentRound() {
-            return currentRound;
+            );
         }
     }
 }

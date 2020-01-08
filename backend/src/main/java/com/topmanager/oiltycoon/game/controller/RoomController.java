@@ -1,5 +1,6 @@
 package com.topmanager.oiltycoon.game.controller;
 
+import com.topmanager.oiltycoon.game.dto.request.ChatMessageRequestDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
@@ -19,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.security.core.Authentication;
@@ -42,7 +42,6 @@ public class RoomController {
         this.roomListService = roomListService;
     }
 
-
     @IsPlayer
     @PostMapping(path = "/api/room", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> addRoom(@RequestBody @Valid RoomAddDto roomAddDto) {
@@ -64,15 +63,25 @@ public class RoomController {
     }
 
     @IsPlayer
+    @PostMapping(path = "/api/room/{roomId}/message", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> sendChatRoomMessage(@RequestBody @Valid RoomChatMessageRequestDto requestDto,
+                                                 @PathVariable int roomId) {
+        requestDto.setRoomId(roomId);
+        roomService.sendChatMessage(requestDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @IsPlayer
     @GetMapping(path = "/api/rooms", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getRoomList() {
         return ResponseEntity.ok(roomListService.getRoomsList());
     }
 
-    @MessageMapping("/room/{roomId}/message")
-    public void sendChatMessage(@DestinationVariable int roomId, @Payload RoomChatMessageRequestDto requestDto) {
-        requestDto.setRoomId(roomId);
-        roomService.sendChatMessage(requestDto);
+    @IsPlayer
+    @PostMapping(path = "/api/rooms/message", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> send(@RequestBody @Valid ChatMessageRequestDto requestDto) {
+        roomListService.sendChatMessage(requestDto);
+        return ResponseEntity.ok().build();
     }
 
     @MessageMapping("/room/{roomId}/connect")
