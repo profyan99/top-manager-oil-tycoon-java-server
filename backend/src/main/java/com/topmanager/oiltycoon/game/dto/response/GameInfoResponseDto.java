@@ -57,6 +57,7 @@ public class GameInfoResponseDto extends BaseRoomResponseDto<GameInfoResponseDto
                             .map(p -> new PlayerInfoResponseDto.PlayerInfoDto(
                                     p.getUserName(),
                                     p.getUser().getAvatar(),
+                                    p.getCompany().getName(),
                                     p.getUser().getId()))
                             .collect(Collectors.toList())
 

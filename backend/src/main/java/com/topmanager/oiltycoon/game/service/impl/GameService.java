@@ -9,6 +9,7 @@ import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Requirement;
 import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.game.model.game.Company;
+import com.topmanager.oiltycoon.game.model.game.Store;
 import com.topmanager.oiltycoon.game.service.MessageSender;
 import com.topmanager.oiltycoon.game.service.RoomRunnable;
 import com.topmanager.oiltycoon.social.model.GameStats;
@@ -141,11 +142,7 @@ public class GameService implements RoomRunnable {
             oldPlayer.setTimeEndReload(0);
             messageSender.sendToRoomDest(
                     roomData.getId(),
-                    new PlayerReconnectResponseDto(
-                            oldPlayer.getUserName(),
-                            oldPlayer.getUser().getAvatar(),
-                            oldPlayer.getUser().getId()
-                    )
+                    new PlayerReconnectResponseDto(oldPlayer)
             );
         } else {
             if (roomData.getCurrentPlayers() == roomData.getMaxPlayers()) {
@@ -196,11 +193,7 @@ public class GameService implements RoomRunnable {
             }
             messageSender.sendToRoomDest(
                     roomData.getId(),
-                    new PlayerConnectResponseDto(
-                            player.getUserName(),
-                            player.getUser().getAvatar(),
-                            player.getUser().getId()
-                    )
+                    new PlayerConnectResponseDto(player)
             );
 
         }
@@ -211,7 +204,6 @@ public class GameService implements RoomRunnable {
         Player disconnectedPlayer = roomData.getPlayers().get(playerName);
         if (disconnectedPlayer != null) {
             User user = disconnectedPlayer.getUser();
-            Company company = disconnectedPlayer.getCompany();
             disconnectedPlayer.setConnected(false);
 
             if (roomData.getState() == PLAY) {
@@ -232,12 +224,7 @@ public class GameService implements RoomRunnable {
                             + user.getUserName() + " force: " + force
             );
             messageSender.sendToRoomDest(roomData.getId(), new PlayerDisconnectResponseDto(
-                    new PlayerDisconnectResponseDto.PlayerDisconnectDto(
-                            user.getUserName(),
-                            user.getAvatar(),
-                            user.getId(),
-                            force
-                    )
+                    new PlayerDisconnectResponseDto.PlayerDisconnectDto(disconnectedPlayer, force)
             ));
         } else {
             if (logger.isDebugEnabled()) {
@@ -304,14 +291,15 @@ public class GameService implements RoomRunnable {
     }
 
     @Transactional(readOnly = true)
-    public void onChatMessageSend(Room roomData, RoomChatMessageRequestDto chatMessageDto, User user) {
+    public void onChatMessageSend(Room roomData, RoomChatMessageRequestDto chatMessageDto, Player player) {
         messageSender.sendToRoomDest(chatMessageDto.getRoomId(), new ChatMessageResponseDto(
                 new ChatMessageResponseDto.ChatMessageDto(
                         chatMessageDto.getMessage(),
                         new PlayerInfoResponseDto.PlayerInfoDto(
-                                user.getUserName(),
-                                user.getAvatar(),
-                                user.getId()
+                                player.getUserName(),
+                                player.getUser().getAvatar(),
+                                player.getCompany().getName(),
+                                player.getUser().getId()
                         ),
                         LocalDateTime.now())
         ));
@@ -320,6 +308,9 @@ public class GameService implements RoomRunnable {
 
     private Player createNewPlayer(User user, String companyName) {
         Player player = new Player(user);
+        Company company = new Company(null, player, companyName, new Store(), 0, 0);
+        player.setCompany(company);
+        companyDao.save(company);
         playerDao.save(player);
         return player;
     }

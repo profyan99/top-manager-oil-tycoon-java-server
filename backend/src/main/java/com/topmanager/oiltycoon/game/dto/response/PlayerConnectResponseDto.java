@@ -1,7 +1,9 @@
 package com.topmanager.oiltycoon.game.dto.response;
 
+import com.topmanager.oiltycoon.game.model.Player;
+
 public class PlayerConnectResponseDto extends PlayerInfoResponseDto {
-    public PlayerConnectResponseDto(String userName, String avatar, int id) {
-        super(ResponseEventType.CONNECT, new PlayerInfoResponseDto.PlayerInfoDto(userName, avatar, id));
+    public PlayerConnectResponseDto(Player player) {
+        super(ResponseEventType.CONNECT, new PlayerInfoResponseDto.PlayerInfoDto(player));
     }
 }

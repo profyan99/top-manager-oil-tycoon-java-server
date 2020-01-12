@@ -7,6 +7,7 @@ import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
 import com.topmanager.oiltycoon.game.dto.response.GameInfoResponseDto;
 import com.topmanager.oiltycoon.game.dto.response.ResponseEventType;
+import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Room;
 import com.topmanager.oiltycoon.social.model.User;
 import com.topmanager.oiltycoon.social.security.exception.ErrorCode;
@@ -114,8 +115,8 @@ public class RoomService {
         Room room = roomDao.findById(chatMessageDto.getRoomId())
                 .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
         User currentUser = userService.getUser();
-        checkPlayerInRoom(currentUser, room.getId());
-        gameService.onChatMessageSend(room, chatMessageDto, currentUser);
+        Player currentPlayer = checkPlayerInRoom(currentUser, room.getId());
+        gameService.onChatMessageSend(room, chatMessageDto, currentPlayer);
     }
 
     @EventListener
@@ -172,13 +173,14 @@ public class RoomService {
         }
     }
 
-    private void checkPlayerInRoom(User user, int roomId) {
-        if (!playerDao
+    private Player checkPlayerInRoom(User user, int roomId) {
+        Player player = playerDao
                 .findByUser(user)
-                .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID))
-                .getRoom()
-                .getId().equals(roomId)) {
+                .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
+
+        if (!player.getRoom().getId().equals(roomId)) {
             throw new RestException(ErrorCode.INVALID_ROOM_ID);
         }
+        return player;
     }
 }

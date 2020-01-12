@@ -80,6 +80,7 @@ public class RoomListService {
                         new PlayerInfoResponseDto.PlayerInfoDto(
                                 currentUser.getUserName(),
                                 currentUser.getAvatar(),
+                                null,
                                 currentUser.getId()
                         ),
                         LocalDateTime.now())
