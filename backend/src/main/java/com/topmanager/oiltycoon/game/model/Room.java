@@ -29,7 +29,6 @@ public class Room {
     private String scenario;
 
     private int currentSecond;
-
     private int prepareSecond;
     private int timePlayerReload;
 
@@ -64,6 +63,7 @@ public class Room {
             foreignKey = @ForeignKey(name = "game_data_game_fk")
     )
     private Map<Integer, GameData> periodData;
+    private boolean isSendSolutionAllowed;
 
     public Room(Integer id, String name, int maxPlayers, int currentPlayers, boolean isLocked, boolean isTournament, boolean isScenario,
                 String scenario, Map<String, Player> players, GameState state, int maxRounds,
@@ -142,11 +142,12 @@ public class Room {
     @NoArgsConstructor
     @Embeddable
     public static class GameData {
-        private int summaryImage;
         private int summaryMarketing;
-        private int summaryFactoryNir;
-        private int gasStationAmount;
-        private double averagePrice;
-        private double coefficient;
+        private int summaryNir;
+        private int summaryProduction;
+        private double totalMarketing;
+        private double totalPrice;
+        private int totalBuyers;
+        private int totalSales;
     }
 }

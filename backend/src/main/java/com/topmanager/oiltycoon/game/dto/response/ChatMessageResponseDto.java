@@ -1,6 +1,9 @@
 package com.topmanager.oiltycoon.game.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -10,41 +13,14 @@ public class ChatMessageResponseDto extends BaseRoomResponseDto<ChatMessageRespo
         super(ResponseObjectType.MESSAGE, ResponseEventType.ADD, body);
     }
 
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
     public static class ChatMessageDto {
         private String message;
-        private PlayerInfoResponseDto.PlayerInfoDto player;
+        private UserInfoResponseDto.UserInfoDto player;
 
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime time;
-
-        public ChatMessageDto(String message, PlayerInfoResponseDto.PlayerInfoDto player, LocalDateTime time) {
-            this.message = message;
-            this.player = player;
-            this.time = time;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
-        public PlayerInfoResponseDto.PlayerInfoDto getPlayer() {
-            return player;
-        }
-
-        public void setPlayer(PlayerInfoResponseDto.PlayerInfoDto player) {
-            this.player = player;
-        }
-
-        public LocalDateTime getDate() {
-            return time;
-        }
-
-        public void setDate(LocalDateTime time) {
-            this.time = time;
-        }
     }
 }

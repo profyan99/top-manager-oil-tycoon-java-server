@@ -15,18 +15,33 @@ import org.springframework.transaction.annotation.Transactional;
 public class RoomSchedulingService {
     private static final Logger logger = LoggerFactory.getLogger(RoomSchedulingService.class);
 
-    private RoomDao roomDao;
-    private RoomRunnable roomRunnable;
+    private final RoomDao roomDao;
+    private final RoomRunnable roomRunnable;
+    private final RoomService roomService;
 
     @Autowired
-    public RoomSchedulingService(RoomRunnable roomRunnable, RoomDao roomDao) {
+    public RoomSchedulingService(RoomRunnable roomRunnable, RoomDao roomDao, RoomService roomService) {
         this.roomRunnable = roomRunnable;
         this.roomDao = roomDao;
+        this.roomService = roomService;
     }
 
     @Scheduled(fixedDelayString = "${room-schedule-delay}")
     @Transactional
     public void releaseSecond() {
-        roomDao.findAll().forEach(room -> roomRunnable.roomUpdate(room));
+        roomDao.findAll().forEach(room -> {
+            if (room.getCurrentPlayers() == 0
+                    && room.getPlayers().isEmpty()
+                    && room.getPrepareSecond() <= 0) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Room [" + room.getName() + "] :: " + "no players in room. Delete room");
+                }
+                roomService.deleteRoom(room.getId());
+            } else {
+                if (roomRunnable.roomUpdate(room)) {
+                    roomService.updateRoom(room);
+                }
+            }
+        });
     }
 }

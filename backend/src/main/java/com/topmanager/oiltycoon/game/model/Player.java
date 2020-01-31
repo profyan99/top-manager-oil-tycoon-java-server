@@ -27,6 +27,7 @@ public class Player {
     private long timeEndReload;
     private boolean connected;
     private String userName;
+    private PlayerState state;
 
     @OneToOne(
             mappedBy = "player",
@@ -63,4 +64,13 @@ public class Player {
         return userName.hashCode();
     }
 
+    public Player(User user, long timeEndReload, boolean connected, String userName, Company company, Room room) {
+        this.user = user;
+        this.timeEndReload = timeEndReload;
+        this.connected = connected;
+        this.userName = userName;
+        this.state = PlayerState.WAIT;
+        this.company = company;
+        this.room = room;
+    }
 }

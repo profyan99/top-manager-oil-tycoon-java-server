@@ -1,36 +1,22 @@
 package com.topmanager.oiltycoon.game.dto;
 
 import com.topmanager.oiltycoon.game.model.game.Company;
+import com.topmanager.oiltycoon.game.model.game.CompanyStatistics;
+import com.topmanager.oiltycoon.game.model.game.Store;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
 public class CompanyDto {
     private String name;
-    private int rating;
-
-    public CompanyDto(String name, int rating) {
-        this.name = name;
-        this.rating = rating;
-    }
+    private CompanyStatistics statistics;
+    private Store store;
+    private int bank;
 
     public CompanyDto(Company company) {
-        this(
-                company.getName(),
-                company.getRating()
-        );
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getRating() {
-        return rating;
-    }
-
-    public void setRating(int rating) {
-        this.rating = rating;
+        this(company.getName(), company.getStatistics(), company.getStore(), company.getBank());
     }
 }

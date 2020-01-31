@@ -31,10 +31,13 @@ public class Company {
 
     @Embedded
     @JsonManagedReference
+    private CompanyStatistics statistics;
+
+    @Embedded
+    @JsonManagedReference
     private Store store;
 
     private int bank;
-    private int rating;
 
     @Override
     public boolean equals(Object o) {
@@ -42,10 +45,10 @@ public class Company {
         if (o == null || getClass() != o.getClass()) return false;
         Company company = (Company) o;
         return bank == company.bank &&
-                rating == company.rating &&
                 Objects.equals(id, company.id) &&
                 Objects.equals(player, company.player) &&
                 Objects.equals(name, company.name) &&
+                Objects.equals(statistics, company.statistics) &&
                 Objects.equals(store, company.store);
     }
 

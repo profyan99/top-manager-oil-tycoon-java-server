@@ -5,10 +5,12 @@ import com.topmanager.oiltycoon.game.dao.RoomDao;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
-import com.topmanager.oiltycoon.game.dto.response.GameInfoResponseDto;
-import com.topmanager.oiltycoon.game.dto.response.ResponseEventType;
+import com.topmanager.oiltycoon.game.dto.response.*;
 import com.topmanager.oiltycoon.game.model.Player;
+import com.topmanager.oiltycoon.game.model.Requirement;
 import com.topmanager.oiltycoon.game.model.Room;
+import com.topmanager.oiltycoon.game.service.MessageSender;
+import com.topmanager.oiltycoon.social.model.GameStats;
 import com.topmanager.oiltycoon.social.model.User;
 import com.topmanager.oiltycoon.social.security.exception.ErrorCode;
 import com.topmanager.oiltycoon.social.security.exception.RestException;
@@ -27,18 +29,24 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.ROOM_NAME_NOT_UNIQUE;
+import static com.topmanager.oiltycoon.game.model.GameState.PLAY;
+import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.*;
 
 @Service
 public class RoomService {
     private final RoomDao roomDao;
     private final PlayerDao playerDao;
-    private final GameService gameService;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
+    private final GameService gameService;
+    private final RoomListService roomListService;
+    private final MessageSender messageSender;
+
 
     private Map<String, Integer> playerRoomIdMap;
     private Map<String, String> subscriptionDestinationMap;
@@ -47,12 +55,14 @@ public class RoomService {
 
     @Autowired
     public RoomService(RoomDao roomDao, PlayerDao playerDao, PasswordEncoder passwordEncoder,
-                       UserService userService, GameService gameService) {
+                       UserService userService, GameService gameService, RoomListService roomListService, MessageSender messageSender) {
         this.roomDao = roomDao;
         this.playerDao = playerDao;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.gameService = gameService;
+        this.roomListService = roomListService;
+        this.messageSender = messageSender;
 
         playerRoomIdMap = new HashMap<>();
         subscriptionDestinationMap = new HashMap<>();
@@ -76,6 +86,8 @@ public class RoomService {
                 roomAdd.getRoomPeriodDelay()
         );
         gameService.initGame(room);
+        roomDao.save(room);
+        roomListService.addRoom(room);
         logger.debug(":: Add room: " + roomAdd.getName());
     }
 
@@ -90,7 +102,55 @@ public class RoomService {
                 throw new RestException(ErrorCode.ALREADY_IN_ANOTHER_ROOM);
             }
         });
-        gameService.onPlayerConnect(currentRoom, user, roomConnectDto.getPassword(), roomConnectDto.getCompanyName());
+        if (currentRoom.getPlayers().get(user.getUserName()) != null) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Room [" + currentRoom.getName() + "] :: " + "User reconnected: " + user.getUserName());
+            }
+            Player oldPlayer = currentRoom.getPlayers().get(user.getUserName());
+            oldPlayer.setConnected(true);
+            oldPlayer.setTimeEndReload(0);
+            messageSender.sendToRoomDest(currentRoom.getId(), new PlayerReconnectResponseDto(oldPlayer));
+        } else {
+            if (currentRoom.getCurrentPlayers() == currentRoom.getMaxPlayers()) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Room [" + currentRoom.getName() + "] :: " + "is full: " + user.getUserName());
+                }
+                throw new RestException(ROOM_IS_FULL);
+            }
+            if (currentRoom.getState() == PLAY) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Room [" + currentRoom.getName() + "] :: " + "already started: " + user.getUserName());
+                }
+                throw new RestException(GAME_HAS_ALREADY_STARTED);
+            }
+            if (currentRoom.isLocked() && !passwordEncoder.matches(roomConnectDto.getPassword(), currentRoom.getPassword())) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Room [" + currentRoom.getName() + "] :: " + "invalid password: " + user.getUserName());
+                }
+                throw new RestException(INVALID_ROOM_PASSWORD);
+            }
+            if (currentRoom.getRequirement() != null) {
+                Requirement requirement = currentRoom.getRequirement();
+                GameStats userGameStats = user.getGameStats();
+                if (requirement.getMinHoursInGameAmount() > userGameStats.getHoursInGame()
+                        && userGameStats.getAchievements().containsAll(requirement.getRequireAchievements())
+                        && requirement.getRequireRoles().containsAll(requirement.getRequireRoles())) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Room [" + currentRoom.getName() + "] :: " + "not satisfy: " + user.getUserName());
+                    }
+                    throw new RestException(PLAYER_NOT_SATISFY);
+                }
+            }
+            if (currentRoom.getPlayers().values().stream().anyMatch(p -> p.getCompany().getName().equals(roomConnectDto.getCompanyName()))) {
+                throw new RestException(COMPANY_NAME_ALREADY_EXISTS);
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("Room [" + currentRoom.getName() + "] :: " + "successfully connected: " + user.getUserName());
+            }
+            Player newPlayer = gameService.onPlayerAdd(currentRoom, user, roomConnectDto.getCompanyName());
+            updateRoom(currentRoom);
+            messageSender.sendToRoomDest(currentRoom.getId(), new PlayerConnectResponseDto(newPlayer));
+        }
         return new GameInfoResponseDto(ResponseEventType.ADD, new GameInfoResponseDto.GameInfoDto(currentRoom));
     }
 
@@ -106,8 +166,20 @@ public class RoomService {
     public void deleteRoom(int roomId) {
         Room room = roomDao.findById(roomId)
                 .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
-        gameService.onRoomDelete(room);
+
+        roomDao.delete(room);
+        messageSender.sendToRoomDest(room.getId(), new ServerMessageResponseDto(
+                ResponseEventType.REMOVE, new ServerMessageResponseDto.ServerMessageDto("Комната будет удалена.")
+        ));
+        roomListService.deleteRoom(room);
         logger.debug(":: Delete room: " + roomId);
+    }
+
+    @Transactional
+    public void updateRoom(Room room) {
+        logger.debug("Room [" + room.getName() + "] :: " + "update");
+        roomListService.updateRoom(room);
+        roomDao.save(room);
     }
 
     @Transactional(readOnly = true)
@@ -115,8 +187,14 @@ public class RoomService {
         Room room = roomDao.findById(chatMessageDto.getRoomId())
                 .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
         User currentUser = userService.getUser();
-        Player currentPlayer = checkPlayerInRoom(currentUser, room.getId());
-        gameService.onChatMessageSend(room, chatMessageDto, currentPlayer);
+        checkPlayerInRoom(currentUser, room.getId());
+        messageSender.sendToRoomDest(chatMessageDto.getRoomId(), new ChatMessageResponseDto(
+                new ChatMessageResponseDto.ChatMessageDto(
+                        chatMessageDto.getMessage(),
+                        new UserInfoResponseDto.UserInfoDto(currentUser),
+                        LocalDateTime.now()
+                ))
+        );
     }
 
     @EventListener
@@ -134,7 +212,7 @@ public class RoomService {
         if (roomId != -1) {
             Room room = roomDao.findById(roomId)
                     .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
-            gameService.onPlayerDisconnect(room, headerAccessor.getUser().getName(), false);
+            onPlayerDisconnect(room, headerAccessor.getUser().getName(), false);
             playerRoomIdMap.remove(headerAccessor.getSessionId());
         }
     }
@@ -157,9 +235,35 @@ public class RoomService {
             Room room = roomDao.findById(roomId)
                     .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
 
-            gameService.onPlayerDisconnect(room, headers.getUser().getName(), true);
+            onPlayerDisconnect(room, headers.getUser().getName(), true);
             playerRoomIdMap.remove(headers.getSessionId());
             subscriptionDestinationMap.remove(headers.getSubscriptionId());
+        }
+    }
+
+    private void onPlayerDisconnect(Room roomData, String playerName, boolean force) {
+        Player disconnectedPlayer = roomData.getPlayers().get(playerName);
+        if (disconnectedPlayer != null) {
+            User user = disconnectedPlayer.getUser();
+            disconnectedPlayer.setConnected(false);
+
+            if (force || roomData.getState() != PLAY) {
+                gameService.onPlayerRemove(roomData, disconnectedPlayer);
+            } else {
+                disconnectedPlayer.setTimeEndReload(Instant.now().getEpochSecond() + roomData.getTimePlayerReload());
+                playerDao.save(disconnectedPlayer);
+            }
+
+            logger.debug(
+                    "Room [" + roomData.getName() + "] :: " + "player disconnected: " + user.getUserName() + " force: " + force
+            );
+            messageSender.sendToRoomDest(roomData.getId(), new PlayerDisconnectResponseDto(
+                    new PlayerDisconnectResponseDto.PlayerDisconnectDto(disconnectedPlayer, force)
+            ));
+        } else {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Room [" + roomData.getName() + "] :: " + "disconnect user not found: " + playerName);
+            }
         }
     }
 

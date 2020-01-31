@@ -45,8 +45,6 @@ public class RoomListService {
 
     @Transactional
     public void addRoom(Room room) {
-        logger.debug("Room [" + room.getName() + "] :: " + "add");
-        roomDao.save(room);
         messageSender.sendToRoomListDest(new RoomInfoAddResponseDto(
                 Collections.singletonList(new RoomInfoResponseDto.RoomInfoDto(room))
         ));
@@ -54,8 +52,6 @@ public class RoomListService {
 
     @Transactional
     public void updateRoom(Room room) {
-        logger.debug("Room [" + room.getName() + "] :: " + "update");
-        roomDao.save(room);
         messageSender.sendToRoomListDest(new RoomInfoResponseDto(
                 ResponseEventType.UPDATE,
                 new RoomInfoResponseDto.RoomInfoDto(room)
@@ -64,8 +60,6 @@ public class RoomListService {
 
     @Transactional
     public void deleteRoom(Room room) {
-        logger.debug("Room [" + room.getName() + "] :: " + "delete");
-        roomDao.delete(room);
         messageSender.sendToRoomListDest(new RoomInfoResponseDto(
                 ResponseEventType.REMOVE,
                 new RoomInfoResponseDto.RoomInfoDto(room)
@@ -77,12 +71,7 @@ public class RoomListService {
         messageSender.sendToRoomListDest(new ChatMessageResponseDto(
                 new ChatMessageResponseDto.ChatMessageDto(
                         requestDto.getMessage(),
-                        new PlayerInfoResponseDto.PlayerInfoDto(
-                                currentUser.getUserName(),
-                                currentUser.getAvatar(),
-                                null,
-                                currentUser.getId()
-                        ),
+                        new UserInfoResponseDto.UserInfoDto(currentUser),
                         LocalDateTime.now())
         ));
     }
