@@ -1,4 +1,4 @@
-package com.topmanager.oiltycoon.game.model.game;
+package com.topmanager.oiltycoon.game.model.game.company;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,11 +12,10 @@ import javax.persistence.Embeddable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Embeddable
-public class CompanyStatistics {
-    private int rating;
+public class CompanySolutions {
     private int price;
-    private int revenue;
-    private int netProfit;
-    private int accumulatedProfit;
-    private double marketingPart;
+    private int production;
+    private int marketing;
+    private int investments;
+    private int nir;
 }

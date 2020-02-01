@@ -3,7 +3,7 @@ package com.topmanager.oiltycoon.game.dto.response;
 
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.PlayerState;
-import com.topmanager.oiltycoon.game.model.game.CompanyStatistics;
+import com.topmanager.oiltycoon.game.model.game.company.CompanyStatistics;
 import com.topmanager.oiltycoon.social.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -2,6 +2,7 @@ package com.topmanager.oiltycoon.game.service.impl;
 
 import com.topmanager.oiltycoon.game.dao.PlayerDao;
 import com.topmanager.oiltycoon.game.dao.RoomDao;
+import com.topmanager.oiltycoon.game.dto.request.PlayerSolutionsDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
 import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
@@ -195,6 +196,16 @@ public class RoomService {
                         LocalDateTime.now()
                 ))
         );
+    }
+
+    @Transactional
+    public void setSolutions(int roomId, PlayerSolutionsDto solutionsDto) {
+        Room room = roomDao.findById(roomId)
+                .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
+        Player player = checkPlayerInRoom(userService.getUser(), roomId);
+        if(gameService.onPlayerSendSolutions(room, player, solutionsDto)) {
+            updateRoom(room);
+        }
     }
 
     @EventListener

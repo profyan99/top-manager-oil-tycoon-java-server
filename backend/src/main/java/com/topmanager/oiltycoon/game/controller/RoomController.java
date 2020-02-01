@@ -1,9 +1,6 @@
 package com.topmanager.oiltycoon.game.controller;
 
-import com.topmanager.oiltycoon.game.dto.request.ChatMessageRequestDto;
-import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
-import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
-import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
+import com.topmanager.oiltycoon.game.dto.request.*;
 import com.topmanager.oiltycoon.game.dto.response.ErrorResponseDto;
 import com.topmanager.oiltycoon.game.service.impl.RoomListService;
 import com.topmanager.oiltycoon.game.service.impl.RoomService;
@@ -68,6 +65,13 @@ public class RoomController {
                                                  @PathVariable int roomId) {
         requestDto.setRoomId(roomId);
         roomService.sendChatMessage(requestDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @IsPlayer
+    @PostMapping(path = "/api/room/{roomId}/solutions", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> connectRoom(@RequestBody @Valid PlayerSolutionsDto solutionsDto, @PathVariable int roomId) {
+        roomService.setSolutions(roomId, solutionsDto);
         return ResponseEntity.ok().build();
     }
 

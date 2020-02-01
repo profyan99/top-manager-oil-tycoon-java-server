@@ -1,7 +1,6 @@
-package com.topmanager.oiltycoon.game.model.game;
+package com.topmanager.oiltycoon.game.model.game.company;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.topmanager.oiltycoon.game.model.Player;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @Getter
@@ -29,32 +30,31 @@ public class Company {
 
     private String name;
 
-    @Embedded
-    @JsonManagedReference
-    private CompanyStatistics statistics;
-
-    @Embedded
-    @JsonManagedReference
-    private Store store;
-
-    private int bank;
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "company_company_period_data_mapping",
+            joinColumns = {@JoinColumn(name = "company_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "company_period_data_id", referencedColumnName = "id")})
+    @MapKey(name = "period")
+    private Map<Integer, CompanyPeriodData> periodData = new HashMap<>();
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Company company = (Company) o;
-        return bank == company.bank &&
-                Objects.equals(id, company.id) &&
+        return Objects.equals(id, company.id) &&
                 Objects.equals(player, company.player) &&
                 Objects.equals(name, company.name) &&
-                Objects.equals(statistics, company.statistics) &&
-                Objects.equals(store, company.store);
+                Objects.equals(periodData, company.periodData);
     }
 
     @Override
     public int hashCode() {
         return name.hashCode();
+    }
+
+    public CompanyPeriodData getDataByPeriod(int period) {
+        return periodData.get(period);
     }
 
 }

@@ -1,7 +1,7 @@
 package com.topmanager.oiltycoon.game.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.topmanager.oiltycoon.game.model.game.Company;
+import com.topmanager.oiltycoon.game.model.game.company.Company;
 import com.topmanager.oiltycoon.social.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,6 +28,8 @@ public class Player {
     private boolean connected;
     private String userName;
     private PlayerState state;
+    private boolean solutionsSent;
+    private boolean bankrupt;
 
     @OneToOne(
             mappedBy = "player",
