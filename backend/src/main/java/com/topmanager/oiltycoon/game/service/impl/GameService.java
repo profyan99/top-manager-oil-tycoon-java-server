@@ -138,7 +138,7 @@ public class GameService implements RoomRunnable {
         roomData.setState(GameState.PREPARE);
 
         GamePeriodData gameData = new GamePeriodData(
-                8400, 3360, 3360, 8400d, 0d, 0, 3360
+                // TODO
         );
         roomData.setSendSolutionAllowed(false);
         roomData.getPeriodData().put(roomData.getCurrentRound(), gameData);
@@ -225,7 +225,6 @@ public class GameService implements RoomRunnable {
 
     private void handleNewPeriod(Room roomData) {
         roomData.setCurrentSecond(0);
-        roomData.setCurrentRound(Math.min(roomData.getCurrentRound() + 1, roomData.getMaxRounds()));
         roomData.setSendSolutionAllowed(false);
         roomData.setPlayersSolutionSentAmount(0);
 
@@ -253,7 +252,9 @@ public class GameService implements RoomRunnable {
             logger.debug("Room [" + roomData.getName() + "] :: " + "calculation round");
         }
 
-        //TODO send industry summary
+        computationService.calculatePeriod(roomData, roomData.getCurrentRound());
+        roomData.setCurrentRound(Math.min(roomData.getCurrentRound() + 1, roomData.getMaxRounds()));
+        //TODO send industry summary and players dto updates
         allowSendSolutions(roomData);
     }
 
@@ -268,21 +269,21 @@ public class GameService implements RoomRunnable {
         int playersAmount = roomData.getMaxPlayers();
 
         Player player = new Player(user);
+        player.setBankrupt(false);
+        player.setState(PlayerState.WAIT);
+        player.setSolutionsSent(false);
+        player.setConnected(true);
+        player.setRoom(roomData);
+
         Map<Integer, CompanyPeriodData> periodDataMap = new HashMap<>();
         CompanyPeriodData zeroPeriodData = new CompanyPeriodData(
+                // TODO
                 null,
                 roomData.getCurrentRound(),
-                new CompanyStatistics(
-                        100,
-                        30,
-                        0,
-                        0,
-                        0,
-                        100d / playersAmount
-                ),
                 new CompanyStore(
                         3600 / playersAmount,
                         4200 / playersAmount,
+                        0,
                         0,
                         0,
                         0,
@@ -297,8 +298,8 @@ public class GameService implements RoomRunnable {
                 ),
                 85870 / playersAmount,
                 72240 / playersAmount,0,0,0,0,0,0,0,0,0,0,0,
-                4200/playersAmount,0,0d,0,0,
-                18d,0
+                4200/playersAmount,0,0,0,0d,0,0,
+                18d,0, 0, 0, 0, 0, 0, 0, 0d, 0d, 0
         );
         computationService.calculateCompany(zeroPeriodData, roomData);
 

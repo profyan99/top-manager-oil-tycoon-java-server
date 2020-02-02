@@ -18,5 +18,6 @@ public class CompanyStore {
     private int storage;
     private int storageCost;
     private int sales;
+    private int salesOld;
     private int backlogSales;
 }

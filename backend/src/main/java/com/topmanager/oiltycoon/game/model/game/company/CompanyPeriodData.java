@@ -23,10 +23,6 @@ public class CompanyPeriodData {
 
     @Embedded
     @JsonManagedReference
-    private CompanyStatistics statistics;
-
-    @Embedded
-    @JsonManagedReference
     private CompanyStore store;
 
     @Embedded
@@ -47,6 +43,8 @@ public class CompanyPeriodData {
     private int tax;
     private int netProfit;
     private int accumulatedProfit;
+    private int initialAccumulatedProfit;
+    private double marketingPart;
 
     private int futurePower;
     private int fullPower;
@@ -56,4 +54,17 @@ public class CompanyPeriodData {
 
     private double productionCost;
     private int productionCostAll;
+
+    private int sumMarketing;
+    private int sumNir;
+    private int sumProduction;
+
+    private int rating;
+    //need for calculation
+    private int maxPredictedSales;
+    private int maxPredictedRevenue;
+
+    private double shareEffectMk;
+    private double shareEffectRd;
+    private double shareEffectPr;
 }

@@ -144,4 +144,8 @@ public class Room {
     public int hashCode() {
         return name.hashCode();
     }
+
+    public GamePeriodData getPeriodDataByPeriod(int period) {
+        return periodData.get(period);
+    }
 }
