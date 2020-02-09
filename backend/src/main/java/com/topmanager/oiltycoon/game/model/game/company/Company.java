@@ -57,4 +57,7 @@ public class Company {
         return periodData.get(period);
     }
 
+    public void addDataByPeriod(int period, CompanyPeriodData newPeriodCompany) {
+        this.periodData.put(period, newPeriodCompany);
+    }
 }

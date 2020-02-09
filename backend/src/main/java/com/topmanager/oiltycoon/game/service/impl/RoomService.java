@@ -1,15 +1,15 @@
 package com.topmanager.oiltycoon.game.service.impl;
 
+import com.topmanager.oiltycoon.Utils;
 import com.topmanager.oiltycoon.game.dao.PlayerDao;
 import com.topmanager.oiltycoon.game.dao.RoomDao;
-import com.topmanager.oiltycoon.game.dto.request.PlayerSolutionsDto;
-import com.topmanager.oiltycoon.game.dto.request.RoomAddDto;
-import com.topmanager.oiltycoon.game.dto.request.RoomChatMessageRequestDto;
-import com.topmanager.oiltycoon.game.dto.request.RoomConnectDto;
+import com.topmanager.oiltycoon.game.dao.ScenarioDao;
+import com.topmanager.oiltycoon.game.dto.request.*;
 import com.topmanager.oiltycoon.game.dto.response.*;
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.Requirement;
 import com.topmanager.oiltycoon.game.model.Room;
+import com.topmanager.oiltycoon.game.model.game.scenario.Scenario;
 import com.topmanager.oiltycoon.game.service.MessageSender;
 import com.topmanager.oiltycoon.social.model.GameStats;
 import com.topmanager.oiltycoon.social.model.User;
@@ -33,7 +33,10 @@ import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.topmanager.oiltycoon.game.model.GameState.PLAY;
 import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.*;
@@ -42,12 +45,12 @@ import static com.topmanager.oiltycoon.social.security.exception.ErrorCode.*;
 public class RoomService {
     private final RoomDao roomDao;
     private final PlayerDao playerDao;
+    private final ScenarioDao scenarioDao;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
     private final GameService gameService;
     private final RoomListService roomListService;
     private final MessageSender messageSender;
-
 
     private Map<String, Integer> playerRoomIdMap;
     private Map<String, String> subscriptionDestinationMap;
@@ -55,10 +58,11 @@ public class RoomService {
     private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
     @Autowired
-    public RoomService(RoomDao roomDao, PlayerDao playerDao, PasswordEncoder passwordEncoder,
+    public RoomService(RoomDao roomDao, PlayerDao playerDao, ScenarioDao scenarioDao, PasswordEncoder passwordEncoder,
                        UserService userService, GameService gameService, RoomListService roomListService, MessageSender messageSender) {
         this.roomDao = roomDao;
         this.playerDao = playerDao;
+        this.scenarioDao = scenarioDao;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.gameService = gameService;
@@ -69,18 +73,52 @@ public class RoomService {
         subscriptionDestinationMap = new HashMap<>();
     }
 
+    public Set<ScenarioResponseDto> getScenarios() {
+        return scenarioDao.findAll().stream()
+                .map(ScenarioResponseDto::new)
+                .collect(Collectors.toSet());
+    }
+
+    public ScenarioResponseDto addScenario(ScenarioAddRequestDto requestDto) {
+        if (scenarioDao.findByName(requestDto.getName()).isPresent()) {
+            throw new RestException(ErrorCode.SCENARIO_NAME_MUST_BE_UNIQUE);
+        }
+
+        Scenario scenario = new Scenario(
+                null,
+                requestDto.getName(),
+                requestDto.getDescription(),
+                requestDto.getLoanLimit(),
+                requestDto.getExtraLoanLimit(),
+                requestDto.getBankRate(),
+                requestDto.getExtraBankRate()
+        );
+        scenario = scenarioDao.save(scenario);
+        return new ScenarioResponseDto(scenario);
+    }
+
     @Transactional
     public void addRoom(RoomAddDto roomAdd) {
         if (roomDao.existsByName(roomAdd.getName())) {
             throw new RestException(ROOM_NAME_NOT_UNIQUE);
         }
+
+        Scenario scenario;
+        if (roomAdd.getScenarioName().isEmpty()) {
+            scenario = scenarioDao.findByName(Utils.DEFAULT_SCENARIO)
+                    .orElseThrow(() -> new RestException(ErrorCode.UNABLE_TO_ADD_ROOM));
+        } else {
+            scenario = scenarioDao.findByName(roomAdd.getScenarioName())
+                    .orElseThrow(() -> new RestException(ErrorCode.INVALID_SCENARIO));
+        }
+
         Room room = new Room(
                 roomAdd.getName(),
                 roomAdd.getMaxPlayers(),
                 roomAdd.isLocked(),
                 roomAdd.isTournament(),
                 roomAdd.isScenario(),
-                roomAdd.getScenarioName(),
+                scenario,
                 roomAdd.getRequirement(),
                 roomAdd.getMaxRounds(),
                 roomAdd.isLocked() ? passwordEncoder.encode(roomAdd.getPassword()) : null,
@@ -203,7 +241,7 @@ public class RoomService {
         Room room = roomDao.findById(roomId)
                 .orElseThrow(() -> new RestException(ErrorCode.INVALID_ROOM_ID));
         Player player = checkPlayerInRoom(userService.getUser(), roomId);
-        if(gameService.onPlayerSendSolutions(room, player, solutionsDto)) {
+        if (gameService.onPlayerSendSolutions(room, player, solutionsDto)) {
             updateRoom(room);
         }
     }

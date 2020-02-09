@@ -67,4 +67,21 @@ public class CompanyPeriodData {
     private double shareEffectMk;
     private double shareEffectRd;
     private double shareEffectPr;
+
+    public CompanyPeriodData(Integer period) {
+        this(null, period, new CompanyStore(), new CompanySolutions(),
+                0,0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0);
+    }
+
+    public CompanyPeriodData(Integer period, CompanyStore store, CompanySolutions solutions, int bank, int loan,
+                             int initialAccumulatedProfit, double productionCost, int futurePower) {
+        this(null, period, store, solutions,
+                bank,loan,0,0,0,0,0,0,0,
+                0,0,0,0,initialAccumulatedProfit,0,futurePower,0,
+                0,0,0,productionCost,0,0,0,
+                0,0,0,0,0,0,0);
+    }
 }

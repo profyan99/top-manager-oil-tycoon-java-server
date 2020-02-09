@@ -2,11 +2,9 @@ package com.topmanager.oiltycoon.game.service.impl;
 
 import com.topmanager.oiltycoon.game.dao.CompanyDao;
 import com.topmanager.oiltycoon.game.dao.PlayerDao;
+import com.topmanager.oiltycoon.game.dto.CompanyDto;
 import com.topmanager.oiltycoon.game.dto.request.PlayerSolutionsDto;
-import com.topmanager.oiltycoon.game.dto.response.GameInfoResponseDto;
-import com.topmanager.oiltycoon.game.dto.response.GameTickResponseDto;
-import com.topmanager.oiltycoon.game.dto.response.PlayerInfoResponseDto;
-import com.topmanager.oiltycoon.game.dto.response.ResponseEventType;
+import com.topmanager.oiltycoon.game.dto.response.*;
 import com.topmanager.oiltycoon.game.model.GameState;
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.PlayerState;
@@ -70,23 +68,23 @@ public class GameService implements RoomRunnable {
             handleNewPeriod(room);
             isSaveNeed = true;
         } else {
-            final long secondsNow = Instant.now().getEpochSecond();
-            isSaveNeed = removePlayers(room, player ->
-                    !player.isConnected()
-                            && (player.getTimeEndReload() != 0
-                            && secondsNow > player.getTimeEndReload()
-                            || room.getState() == END)
-            );
+            isSaveNeed = removeInactivePlayers(room);
         }
         return isSaveNeed;
     }
 
-    private boolean removePlayers(Room roomData, Predicate<Player> condition) {
+    private boolean removeInactivePlayers(Room roomData) {
+        final long secondsNow = Instant.now().getEpochSecond();
         List<Player> playersToDelete = roomData
                 .getPlayers()
                 .values()
                 .stream()
-                .filter(condition)
+                .filter(player ->
+                        !player.isConnected()
+                                && (player.getTimeEndReload() != 0
+                                && secondsNow > player.getTimeEndReload()
+                                || roomData.getState() == END)
+                )
                 .collect(Collectors.toList());
 
         if (playersToDelete.size() > 0) {
@@ -108,7 +106,7 @@ public class GameService implements RoomRunnable {
             if (logger.isDebugEnabled()) {
                 logger.debug("Room [" + roomData.getName() + "] :: " + "start new game. Enough players.");
             }
-            newGame(roomData);
+            startGame(roomData);
         }
         return player;
     }
@@ -121,13 +119,11 @@ public class GameService implements RoomRunnable {
         roomData.removePlayer(disconnectedPlayer);
     }
 
-    private void newGame(Room roomData) {
+    private void startGame(Room roomData) {
         roomData.setState(PLAY);
-        roomData.setCurrentSecond(0);
         roomData.setPrepareSecond(0);
 
-        sendUpdateGame(roomData, ResponseEventType.START);
-        allowSendSolutions(roomData);
+        handleNewPeriod(roomData);
 
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + roomData.getName() + "] :: " + "new game");
@@ -137,11 +133,9 @@ public class GameService implements RoomRunnable {
     public void initGame(Room roomData) {
         roomData.setState(GameState.PREPARE);
 
-        GamePeriodData gameData = new GamePeriodData(
-                // TODO
-        );
+        GamePeriodData gameData = new GamePeriodData();
         roomData.setSendSolutionAllowed(false);
-        roomData.getPeriodData().put(roomData.getCurrentRound(), gameData);
+        roomData.getPeriodData().put(-1, gameData);
 
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + roomData.getName() + "] :: " + "init game");
@@ -151,14 +145,13 @@ public class GameService implements RoomRunnable {
     private void allowSendSolutions(Room roomData) {
         roomData.setSendSolutionAllowed(true);
 
-        roomData.getPlayers().values().forEach(player -> {
+        for (Player player : roomData.getPlayers().values()) {
+            Company company = player.getCompany();
+            CompanyPeriodData companyPeriodData = new CompanyPeriodData(roomData.getCurrentPeriod());
+            company.addDataByPeriod(roomData.getCurrentPeriod(), companyPeriodData);
+
             player.setState(PlayerState.THINK);
-            playerDao.save(player);
-            messageSender.sendToRoomDest(
-                    roomData.getId(),
-                    new PlayerInfoResponseDto(ResponseEventType.UPDATE, new PlayerInfoResponseDto.PlayerInfoDto(player))
-            );
-        });
+        }
     }
 
     public boolean onPlayerSendSolutions(Room roomData, Player player, PlayerSolutionsDto solutionsDto) {
@@ -166,7 +159,7 @@ public class GameService implements RoomRunnable {
             return false;
         }
 
-        CompanyPeriodData currentData = player.getCompany().getDataByPeriod(roomData.getCurrentRound());
+        CompanyPeriodData currentData = player.getCompany().getDataByPeriod(roomData.getCurrentPeriod());
         Scenario scenario = roomData.getScenario();
         int availableMoney =
                 scenario.getLoanLimit() + scenario.getExtraLoanLimit() + currentData.getBank() - currentData.getLoan();
@@ -228,14 +221,34 @@ public class GameService implements RoomRunnable {
         roomData.setSendSolutionAllowed(false);
         roomData.setPlayersSolutionSentAmount(0);
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Room [" + roomData.getName() + "] :: " + "new round ["
-                    + roomData.getCurrentRound() + "/" + roomData.getMaxRounds() + "]");
-        }
-        if (roomData.getCurrentRound() == roomData.getMaxRounds()) {
+        //calculates all game period and every company
+        calcGame(roomData);
+
+        if (roomData.getCurrentPeriod() == roomData.getMaxRounds()) {
             endGame(roomData);
         } else {
-            calcGame(roomData);
+            roomData.setCurrentPeriod(Math.min(roomData.getCurrentPeriod() + 1, roomData.getMaxRounds()));
+            allowSendSolutions(roomData);
+        }
+        // update game and player's state and rating
+        sendUpdateGame(roomData);
+        // update every players company
+        for (Player player : roomData.getPlayers().values()) {
+            Company company = player.getCompany();
+            companyDao.save(company);
+            playerDao.save(player);
+
+            messageSender.sendToUserDest(
+                    player.getUserName(),
+                    new CompanyResponseDto(
+                            ResponseEventType.UPDATE,
+                            new CompanyDto(company.getDataByPeriod(roomData.getCurrentPeriod()))
+                    )
+            );
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Room [" + roomData.getName() + "] :: " + "new round ["
+                    + roomData.getCurrentPeriod() + "/" + roomData.getMaxRounds() + "]");
         }
     }
 
@@ -244,7 +257,6 @@ public class GameService implements RoomRunnable {
         if (logger.isDebugEnabled()) {
             logger.debug("Room [" + roomData.getName() + "] :: " + "regular end of game");
         }
-        sendUpdateGame(roomData, ResponseEventType.END);
     }
 
     private void calcGame(Room roomData) {
@@ -252,10 +264,8 @@ public class GameService implements RoomRunnable {
             logger.debug("Room [" + roomData.getName() + "] :: " + "calculation round");
         }
 
-        computationService.calculatePeriod(roomData, roomData.getCurrentRound());
-        roomData.setCurrentRound(Math.min(roomData.getCurrentRound() + 1, roomData.getMaxRounds()));
-        //TODO send industry summary and players dto updates
-        allowSendSolutions(roomData);
+        GamePeriodData newPeriodData = computationService.calculatePeriod(roomData, roomData.getCurrentPeriod());
+        roomData.addPeriodDataByPeriod(roomData.getCurrentPeriod() + 1, newPeriodData);
     }
 
     private void setPlayerLeaveGame(Room roomData, User user) {
@@ -276,10 +286,8 @@ public class GameService implements RoomRunnable {
         player.setRoom(roomData);
 
         Map<Integer, CompanyPeriodData> periodDataMap = new HashMap<>();
-        CompanyPeriodData zeroPeriodData = new CompanyPeriodData(
-                // TODO
-                null,
-                roomData.getCurrentRound(),
+        CompanyPeriodData initial = new CompanyPeriodData(
+                -1,
                 new CompanyStore(
                         3600 / playersAmount,
                         4200 / playersAmount,
@@ -297,13 +305,22 @@ public class GameService implements RoomRunnable {
                         3360 / playersAmount
                 ),
                 85870 / playersAmount,
-                72240 / playersAmount,0,0,0,0,0,0,0,0,0,0,0,
-                4200/playersAmount,0,0,0,0d,0,0,
-                18d,0, 0, 0, 0, 0, 0, 0, 0d, 0d, 0
+                72240 / playersAmount,
+                4200 / playersAmount,
+                18d,
+                4200 / playersAmount
         );
-        computationService.calculateCompany(zeroPeriodData, roomData);
+        CompanyPeriodData zero = new CompanyPeriodData();
+        zero.setSolutions(new CompanySolutions(
+                30,
+                3360 / playersAmount,
+                8400 / playersAmount,
+                4200 / playersAmount * 2,
+                3360 / playersAmount
+        ));
 
-        periodDataMap.put(roomData.getCurrentRound(), zeroPeriodData);
+        periodDataMap.put(-1, initial);
+        periodDataMap.put(0, zero);
         Company company = new Company(null, player, companyName, periodDataMap);
         player.setCompany(company);
         companyDao.save(company);
@@ -318,10 +335,10 @@ public class GameService implements RoomRunnable {
         );
     }
 
-    private void sendUpdateGame(Room room, ResponseEventType responseEventType) {
+    private void sendUpdateGame(Room room) {
         messageSender.sendToRoomDest(
                 room.getId(),
-                new GameInfoResponseDto(responseEventType, new GameInfoResponseDto.GameInfoDto(room))
+                new GameInfoResponseDto(ResponseEventType.UPDATE, new GameInfoResponseDto.GameInfoDto(room))
         );
     }
 }

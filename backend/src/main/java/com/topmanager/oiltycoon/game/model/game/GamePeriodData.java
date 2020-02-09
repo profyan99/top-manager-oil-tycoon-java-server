@@ -16,8 +16,8 @@ public class GamePeriodData {
     private int summaryMarketing;
     private int summaryNir;
     private int summaryProduction;
-    private double totalMarketing; // summM
-    private double totalPrice; // summP
+    private double totalMarketing;
+    private double totalPrice;
     private int totalBuyers;
     private int totalSales;
 

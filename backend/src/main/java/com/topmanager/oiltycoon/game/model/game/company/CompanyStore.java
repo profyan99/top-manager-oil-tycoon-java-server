@@ -20,4 +20,9 @@ public class CompanyStore {
     private int sales;
     private int salesOld;
     private int backlogSales;
+
+    public CompanyStore(CompanyStore store) {
+        this(store.receivedOrders, store.machineTools, store.storage, store.storageCost,
+                store.sales, store.salesOld, store.backlogSales);
+    }
 }

@@ -13,6 +13,9 @@ public class Utils {
     @Value("${frontend.url}")
     public static String BASE_URL = "http://localhost:8080";
 
+    @Value("${scenario.default}")
+    public static String DEFAULT_SCENARIO;
+
     public static final String ACCESS_TOKEN_PARAM_NAME = "access_token";
     public static final String REFRESH_TOKEN_PARAM_NAME = "refresh_token";
     public static final String UTF_ENCODING = "UTF-8";

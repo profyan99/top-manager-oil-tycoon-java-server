@@ -52,7 +52,7 @@ public class Room {
 
     private GameState state;
     private int maxRounds;
-    private int currentRound;
+    private int currentPeriod;
     private String password;
     private int roomPeriodDelay;
 
@@ -72,7 +72,7 @@ public class Room {
 
     public Room(Integer id, String name, int maxPlayers, int currentPlayers, boolean isLocked, boolean isTournament, boolean isScenario,
                 Scenario scenario, Map<String, Player> players, GameState state, int maxRounds,
-                int currentRound, String password, int roomPeriodDelay, Requirement requirement) {
+                int currentPeriod, String password, int roomPeriodDelay, Requirement requirement) {
         this.id = id;
         this.name = name;
         this.maxPlayers = maxPlayers;
@@ -85,7 +85,7 @@ public class Room {
         this.requirement = requirement;
         this.state = state;
         this.maxRounds = maxRounds;
-        this.currentRound = currentRound;
+        this.currentPeriod = currentPeriod;
         this.password = password;
         this.roomPeriodDelay = roomPeriodDelay;
 
@@ -147,5 +147,9 @@ public class Room {
 
     public GamePeriodData getPeriodDataByPeriod(int period) {
         return periodData.get(period);
+    }
+
+    public void addPeriodDataByPeriod(int currentRound, GamePeriodData newPeriodData) {
+        this.periodData.put(currentRound, newPeriodData);
     }
 }

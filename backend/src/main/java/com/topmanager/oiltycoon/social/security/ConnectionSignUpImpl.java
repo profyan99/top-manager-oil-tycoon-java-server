@@ -19,7 +19,7 @@ import org.springframework.social.connect.Connection;
 import org.springframework.social.connect.ConnectionSignUp;
 import org.springframework.social.google.api.Google;
 import org.springframework.social.google.api.plus.Person;
-import org.springframework.social.vkontakte.api.VKontakte;
+//import org.springframework.social.vkontakte.api.VKontakte;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -51,7 +51,7 @@ public class ConnectionSignUpImpl implements ConnectionSignUp {
         String email;
         String country = null;
 
-        if (connection.getApi() instanceof VKontakte) {
+        /*if (connection.getApi() instanceof VKontakte) {
             VKontakte vKontakteApi = (VKontakte) connection.getApi();
             email = vKontakteApi.getEmail();
             VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance());
@@ -62,7 +62,7 @@ public class ConnectionSignUpImpl implements ConnectionSignUp {
             } catch (ApiException | ClientException e) {
                 throw new RestException(ErrorCode.AUTHORIZATION_ERROR);
             }
-        } else {
+        } else {*/
             Google googleApi = (Google) connection.getApi();
             email = connection.fetchUserProfile().getEmail();
             Person googleApiProfile = googleApi
@@ -77,7 +77,7 @@ public class ConnectionSignUpImpl implements ConnectionSignUp {
                         .map(Map.Entry::getKey)
                         .collect(Collectors.joining(" "));
             }
-        }
+        //}
         User user = userService.createUserFromSignUpForm(new SignUpRequestDto(
                         getUniqueUserName(connection.fetchUserProfile().getFirstName()),
                         null,

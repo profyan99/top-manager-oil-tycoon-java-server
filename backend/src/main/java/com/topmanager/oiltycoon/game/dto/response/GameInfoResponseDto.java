@@ -27,8 +27,7 @@ public class GameInfoResponseDto extends BaseRoomResponseDto<GameInfoResponseDto
         private int currentPlayers;
         private boolean locked;
         private boolean tournament;
-        private boolean scenario;
-        private String scenarioName;
+        private ScenarioResponseDto scenario;
         private GameState state;
         private int maxRounds;
         private int currentRound;
@@ -43,11 +42,10 @@ public class GameInfoResponseDto extends BaseRoomResponseDto<GameInfoResponseDto
                     room.getCurrentPlayers(),
                     room.isLocked(),
                     room.isTournament(),
-                    room.isScenario(),
-                    room.getScenario(),
+                    new ScenarioResponseDto(room.getScenario()),
                     room.getState(),
                     room.getMaxRounds(),
-                    room.getCurrentRound(),
+                    room.getCurrentPeriod(),
                     room.getCurrentSecond(),
                     room.getPrepareSecond(),
                     room

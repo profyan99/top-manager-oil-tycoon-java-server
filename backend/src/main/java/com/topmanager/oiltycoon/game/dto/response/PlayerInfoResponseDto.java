@@ -1,9 +1,9 @@
 package com.topmanager.oiltycoon.game.dto.response;
 
 
+import com.topmanager.oiltycoon.game.dto.CompanyStatisticsDto;
 import com.topmanager.oiltycoon.game.model.Player;
 import com.topmanager.oiltycoon.game.model.PlayerState;
-import com.topmanager.oiltycoon.game.model.game.company.CompanyStatistics;
 import com.topmanager.oiltycoon.social.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,9 +23,9 @@ public class PlayerInfoResponseDto extends BaseRoomResponseDto<PlayerInfoRespons
     public static class PlayerInfoDto extends UserInfoResponseDto.UserInfoDto {
         private String companyName;
         private PlayerState state;
-        private CompanyStatistics statistics;
+        private CompanyStatisticsDto statistics;
 
-        public PlayerInfoDto(User user, String companyName, PlayerState state, CompanyStatistics statistics) {
+        public PlayerInfoDto(User user, String companyName, PlayerState state, CompanyStatisticsDto statistics) {
             super(user);
             this.companyName = companyName;
             this.state = state;
@@ -37,7 +37,16 @@ public class PlayerInfoResponseDto extends BaseRoomResponseDto<PlayerInfoRespons
                     player.getUser(),
                     player.getCompany().getName(),
                     player.getState(),
-                    player.getCompany().getStatistics()
+                    null
+            );
+        }
+
+        public PlayerInfoDto(Player player, CompanyStatisticsDto statistics) {
+            this(
+                    player.getUser(),
+                    player.getCompany().getName(),
+                    player.getState(),
+                    statistics
             );
         }
     }

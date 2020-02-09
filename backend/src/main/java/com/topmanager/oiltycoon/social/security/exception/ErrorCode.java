@@ -27,11 +27,10 @@ public enum ErrorCode {
     ALREADY_IN_ANOTHER_ROOM("Вы уже играете в другой комнате."),
     UNDEFINED_ERROR("Неизвестная ошибка"),
 
-    FACTORY_ALREADY_EXISTS("Такой НПЗ уже есть в компании."),
-    GAS_STATION_ALREADY_EXISTS("Такая АЗС уже есть в компании."),
-    OIL_WELL_ALREADY_EXISTS("Такая скважина уже есть в компании."),
     COMPANY_NAME_ALREADY_EXISTS("Компания с таким названием уже зарегистрирована."),
-    INVALID_PRODUCT_PRICE("Неверная цена товара.");
+    INVALID_SCENARIO("Неверный сценарий игры."),
+    SCENARIO_NAME_MUST_BE_UNIQUE("Сценарий с таким именем уже существует."),
+    UNABLE_TO_ADD_ROOM("Невозможно создать комнату со стандартным сценарием.");
 
 
     private String message;

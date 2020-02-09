@@ -5,10 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Getter
 @Setter
@@ -20,11 +17,14 @@ public class Scenario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(unique = true)
     private String name;
 
-    private int loanLimit = 50000;
-    private int extraLoanLimit = 50000;
-    private double bankRate = 0.1f;
-    private double extraBankRate = 0.4f;
+    private String description;
+
+    private int loanLimit;
+    private int extraLoanLimit;
+    private double bankRate;
+    private double extraBankRate;
 
 }

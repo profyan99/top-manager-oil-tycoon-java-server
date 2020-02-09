@@ -2,6 +2,7 @@ package com.topmanager.oiltycoon.game.controller;
 
 import com.topmanager.oiltycoon.game.dto.request.*;
 import com.topmanager.oiltycoon.game.dto.response.ErrorResponseDto;
+import com.topmanager.oiltycoon.game.dto.response.ScenarioResponseDto;
 import com.topmanager.oiltycoon.game.service.impl.RoomListService;
 import com.topmanager.oiltycoon.game.service.impl.RoomService;
 import com.topmanager.oiltycoon.social.dto.ErrorDto;
@@ -37,6 +38,18 @@ public class RoomController {
     public RoomController(RoomService roomService, RoomListService roomListService) {
         this.roomService = roomService;
         this.roomListService = roomListService;
+    }
+
+    @IsPlayer
+    @GetMapping(path = "/api/scenarios", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getScenarios() {
+        return ResponseEntity.ok(roomService.getScenarios());
+    }
+
+    @IsAdmin
+    @PostMapping(path="/api/scenarios", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> addScenario(@RequestBody @Valid ScenarioAddRequestDto requestDto) {
+        return ResponseEntity.ok(roomService.addScenario(requestDto));
     }
 
     @IsPlayer
